@@ -2,11 +2,26 @@ package types
 
 import (
 	"context"
+	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
 
 	"github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/NibiruChain/nibiru/x/common"
 )
+
+// ParamsFromOracleParams converts oracletypes.Params into
+// Params. Panics on invalid whitelist pairs.
+func ParamsFromOracleParams(p oracletypes.Params) Params {
+	pairs := make([]common.AssetPair, len(p.Whitelist))
+	for i, pair := range p.Whitelist {
+		pair := pair
+		pairs[i] = common.MustNewAssetPair(pair)
+	}
+	return Params{
+		Pairs:            pairs,
+		VotePeriodBlocks: p.VotePeriod,
+	}
+}
 
 // Params is the x/oracle specific subset of parameters required for price feeding.
 type Params struct {

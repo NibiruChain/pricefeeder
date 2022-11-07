@@ -23,7 +23,7 @@ func (notConnectedWs) Close() error { return nil }
 
 func newWs(dialFn func() (conn, error), log zerolog.Logger) *ws {
 	ws := &ws{
-		log:  log.With().Str("component", "websocket").Logger(),
+		log:  log.With().Str("sub-component", "websocket").Logger(),
 		stop: make(chan struct{}),
 		done: make(chan struct{}),
 		read: make(chan []byte),
