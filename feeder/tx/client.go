@@ -83,17 +83,18 @@ func (c *Client) Whoami() sdk.ValAddress {
 	return c.validator
 }
 
-func (c *Client) SendPrices(ctx context.Context, prices []types.Price) (signalSuccess chan struct{}) {
+func (c *Client) SendPrices(ctx context.Context, vp types.VotingPeriod, prices []types.Price) (signalSuccess chan struct{}) {
 	defer c.mu.Unlock()
 	c.mu.Lock()
 	// first time executing
+	log := c.log.With().Uint64("voting-period-height", vp.Height).Logger()
 	if c.currentExecutionContext == nil {
-		c.currentExecutionContext = newContext(ctx, prices, nil, c.deps, c.validator, c.feeder, c.log)
+		c.currentExecutionContext = newContext(ctx, prices, nil, c.deps, c.validator, c.feeder, log)
 	} else { // already executed once...
 		if !c.currentExecutionContext.isSuccess() {
-			c.currentExecutionContext = newContext(ctx, prices, nil, c.deps, c.validator, c.feeder, c.log)
+			c.currentExecutionContext = newContext(ctx, prices, nil, c.deps, c.validator, c.feeder, log)
 		} else {
-			c.currentExecutionContext = newContext(ctx, prices, c.currentExecutionContext.currentPrevote, c.deps, c.validator, c.feeder, c.log)
+			c.currentExecutionContext = newContext(ctx, prices, c.currentExecutionContext.currentPrevote, c.deps, c.validator, c.feeder, log)
 		}
 	}
 	return c.currentExecutionContext.signalSuccess

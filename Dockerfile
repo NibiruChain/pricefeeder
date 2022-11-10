@@ -31,4 +31,5 @@ ARG ARCH="aarch64"
 
 COPY --from=builder /node/build/nibid /usr/bin/nibid
 COPY --from=builder /feeder/build/feeder /usr/bin/feeder
+COPY --from=builder /feeder/config/config.yaml /root/config.yaml
 COPY ./scripts /scripts

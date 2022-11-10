@@ -1,0 +1,70 @@
+package feeder_test
+
+import (
+	"bytes"
+	"github.com/NibiruChain/nibiru/app"
+	"github.com/NibiruChain/nibiru/simapp"
+	"github.com/NibiruChain/nibiru/x/common"
+	testutilcli "github.com/NibiruChain/nibiru/x/testutil/cli"
+	"github.com/NibiruChain/price-feeder/feeder"
+	"github.com/NibiruChain/price-feeder/feeder/events"
+	"github.com/NibiruChain/price-feeder/feeder/priceprovider"
+	"github.com/NibiruChain/price-feeder/feeder/tx"
+	"github.com/rs/zerolog"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+	"io"
+	"net/url"
+	"os"
+	"testing"
+)
+
+type IntegrationTestSuite struct {
+	suite.Suite
+
+	cfg     testutilcli.Config
+	network *testutilcli.Network
+
+	feeder *feeder.Feeder
+	logs   *bytes.Buffer
+}
+
+func (s *IntegrationTestSuite) SetupSuite() {
+	app.SetPrefixes(app.AccountAddressPrefix)
+	s.cfg = testutilcli.BuildNetworkConfig(simapp.NewTestGenesisStateFromDefault())
+	s.network = testutilcli.NewNetwork(s.T(), s.cfg)
+
+	_, err := s.network.WaitForHeight(1)
+	require.NoError(s.T(), err)
+
+	val := s.network.Validators[0]
+	grpcEndpoint, tmEndpoint := val.AppConfig.GRPC.Address, val.RPCAddress
+	u, err := url.Parse(tmEndpoint)
+	require.NoError(s.T(), err)
+	u.Scheme = "ws"
+	u.Path = "/websocket"
+
+	s.logs = new(bytes.Buffer)
+	log := zerolog.New(io.MultiWriter(os.Stderr, s.logs)).Level(zerolog.InfoLevel)
+
+	eventsStream := events.Dial(u.String(), grpcEndpoint, log)
+	priceProvider := priceprovider.NewPriceProvider(priceprovider.Bitfinex, map[common.AssetPair]string{
+		common.Pair_BTC_NUSD: "tBTCUSD",
+		common.Pair_ETH_NUSD: "tETHUSD",
+	}, log)
+	pricePoster := tx.Dial(grpcEndpoint, s.cfg.ChainID, val.ClientCtx.Keyring, val.ValAddress, val.Address, log)
+	s.feeder = feeder.Run(eventsStream, pricePoster, priceProvider, log)
+}
+
+func (s *IntegrationTestSuite) TestOk() {
+	select {}
+}
+
+func (s *IntegrationTestSuite) TearDownSuite() {
+	s.network.Cleanup()
+	s.feeder.Close()
+}
+
+func TestIntegration(t *testing.T) {
+	suite.Run(t, new(IntegrationTestSuite))
+}

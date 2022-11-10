@@ -67,7 +67,7 @@ func TestVotingPeriod(t *testing.T) {
 
 	tf.mockPriceProvider.EXPECT().GetPrice(common.Pair_BTC_NUSD).Return(validPrice)
 	tf.mockPriceProvider.EXPECT().GetPrice(common.Pair_ETH_NUSD).Return(invalidPrice)
-	tf.mockPricePoster.EXPECT().SendPrices(gomock.Any(), []types.Price{validPrice, abstainPrice})
+	tf.mockPricePoster.EXPECT().SendPrices(gomock.Any(), gomock.Any(), []types.Price{validPrice, abstainPrice})
 	// trigger voting period.
 	tf.newVotingPeriod <- types.VotingPeriod{Height: 100}
 	time.Sleep(10 * time.Millisecond)

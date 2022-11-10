@@ -143,7 +143,7 @@ func (c *Config) Validate() error {
 }
 
 func (c *Config) Feeder() *feeder.Feeder {
-	log := zerolog.New(os.Stderr)
+	log := zerolog.New(os.Stderr).Level(zerolog.InfoLevel)
 	eventsStream := events.Dial(c.TendermintEndpoint, c.GRPCEndpoint, log)
 	priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, log)
 	kb, valAddr, feederAddr := getAuth(c.FeederPrivateKeyHex)

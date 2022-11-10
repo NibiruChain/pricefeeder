@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	InitTimeout = 5 * time.Second
+	InitTimeout = 15 * time.Second
 )
 
 // votingPeriodContext keeps track of the current voting period.
@@ -129,7 +129,7 @@ func (f *Feeder) startNewVotingPeriod(vp types.VotingPeriod) {
 
 	// send prices asynchronously and non-blocking
 	ctx, cancel := context.WithCancel(context.Background())
-	asyncSendPriceResponse := f.pricePoster.SendPrices(ctx, prices)
+	asyncSendPriceResponse := f.pricePoster.SendPrices(ctx, vp, prices)
 
 	f.votingPeriodContext = &votingPeriodContext{
 		height:                     vp.Height,

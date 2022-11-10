@@ -11,11 +11,6 @@ import (
 	txservice "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
-	"time"
-)
-
-var (
-	Timeout = 5 * time.Second
 )
 
 func sendTx(
@@ -72,8 +67,6 @@ func sendTx(
 		panic(err)
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, Timeout)
-	defer cancel()
 	resp, err := txClient.BroadcastTx(ctx, &txservice.BroadcastTxRequest{
 		TxBytes: txBytes,
 		Mode:    txservice.BroadcastMode_BROADCAST_MODE_BLOCK,
@@ -88,8 +81,6 @@ func sendTx(
 }
 
 func getAccount(ctx context.Context, authClient Auth, ir codectypes.InterfaceRegistry, feeder sdk.AccAddress) (uint64, uint64, error) {
-	ctx, cancel := context.WithTimeout(ctx, Timeout)
-	defer cancel()
 	accRaw, err := authClient.Account(ctx, &authtypes.QueryAccountRequest{Address: feeder.String()})
 	if err != nil {
 		return 0, 0, err // if account not found it's pointless to continue

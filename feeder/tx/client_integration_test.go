@@ -54,7 +54,7 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 }
 
 func (s *IntegrationTestSuite) TestClientWorks() {
-	success := s.client.SendPrices(context.Background(), s.randomPrices())
+	success := s.client.SendPrices(context.Background(), types.VotingPeriod{}, s.randomPrices())
 	select {
 	case <-success:
 	case <-time.After(15 * time.Second):
@@ -67,7 +67,7 @@ func (s *IntegrationTestSuite) TestClientWorks() {
 
 	// wait for next vote period
 	s.waitNextVotePeriod()
-	success = s.client.SendPrices(context.Background(), s.randomPrices())
+	success = s.client.SendPrices(context.Background(), types.VotingPeriod{}, s.randomPrices())
 	select {
 	case <-success:
 	case <-time.After(15 * time.Second):

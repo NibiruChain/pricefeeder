@@ -5,6 +5,7 @@ import (
 	"github.com/NibiruChain/price-feeder/feeder/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/rs/zerolog"
+	"time"
 )
 
 func newContext(
@@ -50,7 +51,7 @@ type exContext struct {
 func (e *exContext) do() {
 	defer close(e.done)
 	var resp *sdk.TxResponse
-	err := tryUntilDone(e.ctx, func() error {
+	err := tryUntilDone(e.ctx, 1*time.Second, func() error {
 		voteResp, err := vote(e.ctx, e.currentPrevote, e.previousPrevote, e.validator, e.feeder, e.deps, e.log)
 		if err != nil {
 			e.log.Err(err).Msg("failed to vote")
@@ -89,5 +90,10 @@ func (e *exContext) handleFailure(resp *sdk.TxResponse, err error) {
 }
 
 func (e *exContext) handleSuccess() {
+	event := e.log.Info()
+	if e.previousPrevote != nil {
+		event = event.Interface("current-vote", e.previousPrevote.vote)
+	}
+	event.Interface("next-vote", e.currentPrevote.vote).Msg("successfully forwarded votes")
 	close(e.signalSuccess)
 }

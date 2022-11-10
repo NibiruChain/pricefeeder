@@ -113,7 +113,7 @@ type PricePoster interface {
 	// is canceled. The operation must not be blocking.
 	// It returns a done channel which must be closed after prices
 	// are successfully sent to the chain.
-	SendPrices(ctx context.Context, prices []Price) (done chan struct{})
+	SendPrices(ctx context.Context, vp VotingPeriod, prices []Price) (done chan struct{})
 	// Close shuts down the PricePoster.
 	Close()
 }
