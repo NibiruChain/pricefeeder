@@ -27,7 +27,6 @@ func newContext(
 		deps:            deps,
 		validator:       validator,
 		feeder:          feeder,
-		success:         false,
 	}
 	go e.do()
 	return e
@@ -46,29 +45,25 @@ type exContext struct {
 
 	validator sdk.ValAddress
 	feeder    sdk.AccAddress
-
-	success bool
 }
 
 func (e *exContext) do() {
 	defer close(e.done)
-	// after this we can loop attempting to send the new vote && prevote tx.
-	for {
-		select {
-		case <-e.ctx.Done():
-			// vote miss, exit, no signal success
-			return
-		default:
+	var resp *sdk.TxResponse
+	err := tryUntilDone(e.ctx, func() error {
+		voteResp, err := vote(e.ctx, e.currentPrevote, e.previousPrevote, e.validator, e.feeder, e.deps, e.log)
+		if err != nil {
+			e.log.Err(err).Msg("failed to vote")
+			return err
 		}
-
-		resp, err := vote(e.ctx, e.currentPrevote, e.previousPrevote, e.validator, e.feeder, e.deps, e.log)
-		if err == nil {
-			e.log.Info().Str("tx-hash", resp.TxHash).Msg("transaction successfully sent")
-			break
-		}
+		resp = voteResp
+		return nil
+	})
+	if err != nil {
 		e.handleFailure(resp, err)
+	} else {
+		e.handleSuccess()
 	}
-	e.handleSuccess()
 }
 
 func (e *exContext) terminate() {
@@ -77,7 +72,12 @@ func (e *exContext) terminate() {
 }
 
 func (e *exContext) isSuccess() bool {
-	return e.success
+	select {
+	case <-e.signalSuccess:
+		return true
+	default:
+		return false
+	}
 }
 
 func (e *exContext) handleFailure(resp *sdk.TxResponse, err error) {
@@ -90,5 +90,4 @@ func (e *exContext) handleFailure(resp *sdk.TxResponse, err error) {
 
 func (e *exContext) handleSuccess() {
 	close(e.signalSuccess)
-	e.success = true
 }
