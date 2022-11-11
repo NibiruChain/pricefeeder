@@ -17,6 +17,7 @@ import (
 	"net/url"
 	"os"
 	"testing"
+	"time"
 )
 
 type IntegrationTestSuite struct {
@@ -57,7 +58,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 }
 
 func (s *IntegrationTestSuite) TestOk() {
-	select {}
+	<-time.After(30 * time.Second) // TODO
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
