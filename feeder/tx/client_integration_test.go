@@ -16,7 +16,6 @@ import (
 	"net/url"
 	"os"
 	"testing"
-	"time"
 )
 
 type IntegrationTestSuite struct {
@@ -54,12 +53,7 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 }
 
 func (s *IntegrationTestSuite) TestClientWorks() {
-	success := s.client.SendPrices(context.Background(), s.randomPrices())
-	select {
-	case <-success:
-	case <-time.After(15 * time.Second):
-		s.T().Fatal("timeout")
-	}
+	s.client.SendPrices(types.VotingPeriod{}, s.randomPrices())
 
 	// assert vote was skipped because no previous prevote
 	require.Contains(s.T(), s.logs.String(), "skipping vote preparation as there is no old prevote")
@@ -67,12 +61,7 @@ func (s *IntegrationTestSuite) TestClientWorks() {
 
 	// wait for next vote period
 	s.waitNextVotePeriod()
-	success = s.client.SendPrices(context.Background(), s.randomPrices())
-	select {
-	case <-success:
-	case <-time.After(15 * time.Second):
-		s.T().Fatal("timeout")
-	}
+	s.client.SendPrices(types.VotingPeriod{}, s.randomPrices())
 	require.Contains(s.T(), s.logs.String(), "prepared vote message")
 }
 

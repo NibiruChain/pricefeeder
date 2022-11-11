@@ -1,0 +1,20 @@
+version: '3.4'
+
+services:
+  node:
+    image: nibiru/price-feeder:master
+    logging:
+      driver: none
+    ports:
+      - "26656-26657:26656-26657"
+      - "9090:9090"
+      - "1317:1317"
+    expose:
+      - "26657:26657"
+      - "9090:9090"
+      - "1317:1317"
+    entrypoint: ["sh", "/scripts/node.sh"]
+
+  oracle:
+    image: 	nibiru/price-feeder:master
+    entrypoint: ["sh", "/scripts/oracle.sh"]

@@ -9,14 +9,14 @@ import (
 
 func Test_tryUntilDone(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
-		require.NoError(t, tryUntilDone(context.Background(), func() error {
+		require.NoError(t, tryUntilDone(context.Background(), 0, func() error {
 			return nil
 		}))
 	})
 
 	t.Run("retries", func(t *testing.T) {
 		i := 0
-		err := tryUntilDone(context.Background(), func() error {
+		err := tryUntilDone(context.Background(), 0, func() error {
 			if i == 0 {
 				i++
 				return fmt.Errorf("some error")
@@ -33,7 +33,7 @@ func Test_tryUntilDone(t *testing.T) {
 		i := 0
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		err := tryUntilDone(ctx, func() error {
+		err := tryUntilDone(ctx, 0, func() error {
 			i++
 			if i == 5 {
 				cancel()

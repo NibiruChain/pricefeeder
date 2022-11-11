@@ -13,7 +13,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
-	"sync"
+	"time"
 )
 
 var _ types.PricePoster = (*Client)(nil)
@@ -58,12 +58,10 @@ func Dial(grpcEndpoint string, chainID string, keyBase keyring.Keyring, validato
 	}
 
 	return &Client{
-		log:                     log,
-		validator:               validator,
-		feeder:                  feeder,
-		mu:                      new(sync.Mutex),
-		currentExecutionContext: nil,
-		deps:                    deps,
+		log:       log,
+		validator: validator,
+		feeder:    feeder,
+		deps:      deps,
 	}
 }
 
@@ -73,36 +71,31 @@ type Client struct {
 	validator sdk.ValAddress
 	feeder    sdk.AccAddress
 
-	mu                      *sync.Mutex
-	currentExecutionContext *exContext
-
-	deps deps
+	previousPrevote *prevote
+	deps            deps
 }
 
 func (c *Client) Whoami() sdk.ValAddress {
 	return c.validator
 }
 
-func (c *Client) SendPrices(ctx context.Context, prices []types.Price) (signalSuccess chan struct{}) {
-	defer c.mu.Unlock()
-	c.mu.Lock()
-	// first time executing
-	if c.currentExecutionContext == nil {
-		c.currentExecutionContext = newContext(ctx, prices, nil, c.deps, c.validator, c.feeder, c.log)
-	} else { // already executed once...
-		if !c.currentExecutionContext.isSuccess() {
-			c.currentExecutionContext = newContext(ctx, prices, nil, c.deps, c.validator, c.feeder, c.log)
-		} else {
-			c.currentExecutionContext = newContext(ctx, prices, c.currentExecutionContext.currentPrevote, c.deps, c.validator, c.feeder, c.log)
-		}
+func (c *Client) SendPrices(vp types.VotingPeriod, prices []types.Price) {
+	log := c.log.With().Uint64("voting-period-height", vp.Height).Logger()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	newPrevote := newPrevote(prices, c.validator, c.feeder)
+	resp, err := vote(ctx, newPrevote, c.previousPrevote, c.validator, c.feeder, c.deps, log)
+	if err != nil {
+		log.Err(err).Msg("prevote failed")
+		return
 	}
-	return c.currentExecutionContext.signalSuccess
+
+	c.previousPrevote = newPrevote
+	log.Info().Str("tx-hash", resp.TxHash).Msg("successfully forwarded prices")
+
 }
 
 func (c *Client) Close() {
-	defer c.mu.Unlock()
-	c.mu.Lock()
-	if c.currentExecutionContext != nil {
-		c.currentExecutionContext.terminate()
-	}
 }

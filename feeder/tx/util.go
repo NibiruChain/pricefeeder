@@ -1,8 +1,11 @@
 package tx
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
-func tryUntilDone(ctx context.Context, f func() error) error {
+func tryUntilDone(ctx context.Context, wait time.Duration, f func() error) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -13,5 +16,6 @@ func tryUntilDone(ctx context.Context, f func() error) error {
 		if err == nil {
 			return nil
 		}
+		time.Sleep(wait)
 	}
 }

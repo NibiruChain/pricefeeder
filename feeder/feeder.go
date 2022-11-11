@@ -1,7 +1,6 @@
 package feeder
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -11,17 +10,8 @@ import (
 )
 
 var (
-	InitTimeout = 5 * time.Second
+	InitTimeout = 15 * time.Second
 )
-
-// votingPeriodContext keeps track of the current voting period.
-type votingPeriodContext struct {
-	height                     uint64
-	votingPeriodDurationBlocks uint64
-	cancelSendPrices           func() // signals cancel send prices for types.PricePoster
-	pricePosterCtx             context.Context
-	sendPricesDone             chan struct{} // response given by types.PricePoster to signal if prices were sent correctly.
-}
 
 // Feeder is the price feeder.
 type Feeder struct {
@@ -32,8 +22,6 @@ type Feeder struct {
 
 	params types.Params
 
-	votingPeriodContext *votingPeriodContext
-
 	eventsStream  types.EventsStream
 	pricePoster   types.PricePoster
 	priceProvider types.PriceProvider
@@ -42,14 +30,13 @@ type Feeder struct {
 // Run instantiates a new Feeder instance.
 func Run(stream types.EventsStream, poster types.PricePoster, provider types.PriceProvider, log zerolog.Logger) *Feeder {
 	f := &Feeder{
-		log:                 log,
-		stop:                make(chan struct{}),
-		done:                make(chan struct{}),
-		params:              types.Params{},
-		votingPeriodContext: nil,
-		eventsStream:        stream,
-		pricePoster:         poster,
-		priceProvider:       provider,
+		log:           log,
+		stop:          make(chan struct{}),
+		done:          make(chan struct{}),
+		params:        types.Params{},
+		eventsStream:  stream,
+		pricePoster:   poster,
+		priceProvider: provider,
 	}
 
 	// init params
@@ -95,24 +82,6 @@ func (f *Feeder) handleVotingPeriod(vp types.VotingPeriod) {
 }
 
 func (f *Feeder) endLastVotingPeriod() {
-	if f.votingPeriodContext == nil {
-		return
-	}
-
-	// cancel the last voting period send prices operation
-	f.votingPeriodContext.cancelSendPrices()
-	// check if it prices sends went fine
-	select {
-	case <-f.votingPeriodContext.sendPricesDone:
-	default:
-		// TODO(testinginprod): from coverage we can see this was called. Maybe in the future
-		// we can add something extra to assert this was hit in testing.
-		f.log.Err(fmt.Errorf("vote period missed")).
-			Uint64("voting-period-start-height", f.votingPeriodContext.height).
-			Uint64("voting-period-block-duration", f.votingPeriodContext.votingPeriodDurationBlocks)
-	}
-	// reset voting period context
-	f.votingPeriodContext = nil
 }
 
 func (f *Feeder) startNewVotingPeriod(vp types.VotingPeriod) {
@@ -127,17 +96,8 @@ func (f *Feeder) startNewVotingPeriod(vp types.VotingPeriod) {
 		prices[i] = price
 	}
 
-	// send prices asynchronously and non-blocking
-	ctx, cancel := context.WithCancel(context.Background())
-	asyncSendPriceResponse := f.pricePoster.SendPrices(ctx, prices)
-
-	f.votingPeriodContext = &votingPeriodContext{
-		height:                     vp.Height,
-		votingPeriodDurationBlocks: f.params.VotePeriodBlocks,
-		cancelSendPrices:           cancel,
-		pricePosterCtx:             ctx,
-		sendPricesDone:             asyncSendPriceResponse,
-	}
+	// send prices
+	f.pricePoster.SendPrices(vp, prices)
 }
 
 func (f *Feeder) Close() {

@@ -64,8 +64,6 @@ func prepareVote(
 	// there might be cases where due to downtimes the prevote
 	// has expired. So we check if a prevote exists in the chain, if it does not
 	// then we simply return.
-	ctx, cancel := context.WithTimeout(ctx, Timeout)
-	defer cancel()
 	resp, err := oracleClient.AggregatePrevote(ctx, &oracletypes.QueryAggregatePrevoteRequest{
 		ValidatorAddr: validator.String(),
 	})

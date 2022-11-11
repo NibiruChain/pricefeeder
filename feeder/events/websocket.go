@@ -94,12 +94,12 @@ func (w *ws) loop() {
 }
 
 func (w *ws) connect() {
-	var err error
 	w.log.Debug().Msg("connecting")
-	w.ws, err = w.dial()
+	ws, err := w.dial()
 	if err != nil {
 		w.log.Err(err).Msg("failed to connect")
 	} else {
+		w.ws = ws
 		w.log.Info().Msg("connected")
 	}
 }

@@ -15,12 +15,14 @@ replace github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.0
 replace github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
 
 require (
-	github.com/NibiruChain/nibiru v0.15.0-rc1.0.20221107125102-5944f49c5782
+	github.com/NibiruChain/nibiru v0.15.0-rc1.0.20221110180301-961796e2263c
 	github.com/cosmos/cosmos-sdk v0.45.9
+	github.com/ghodss/yaml v1.0.0
 	github.com/golang/mock v1.6.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/rs/zerolog v1.28.0
 	github.com/stretchr/testify v1.8.1
+	github.com/tendermint/tendermint v0.34.22
 	google.golang.org/grpc v1.50.0
 )
 
@@ -123,7 +125,6 @@ require (
 	github.com/tendermint/btcd v0.1.1 // indirect
 	github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15 // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
-	github.com/tendermint/tendermint v0.34.22 // indirect
 	github.com/tendermint/tm-db v0.6.7 // indirect
 	github.com/zondax/hid v0.9.0 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
