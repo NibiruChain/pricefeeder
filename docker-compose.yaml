@@ -15,3 +15,6 @@ services:
       - "1317:1317"
     entrypoint: ["sh", "/scripts/node.sh"]
 
+  oracle:
+    image: 	nibiru/price-feeder:master
+    entrypoint: ["sh", "/scripts/oracle.sh"]

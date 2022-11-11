@@ -11,6 +11,7 @@ import (
 	txservice "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
+	"log"
 )
 
 func sendTx(
@@ -72,6 +73,7 @@ func sendTx(
 		Mode:    txservice.BroadcastMode_BROADCAST_MODE_BLOCK,
 	})
 	if err != nil {
+		log.Printf("ERROR HERE: %s", err)
 		return nil, err
 	}
 	if resp.TxResponse.Code != abcitypes.CodeTypeOK {

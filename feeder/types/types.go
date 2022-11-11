@@ -1,7 +1,6 @@
 package types
 
 import (
-	"context"
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
 
 	"github.com/cosmos/cosmos-sdk/types"
@@ -108,12 +107,7 @@ type PricePoster interface {
 	// is sending prices for.
 	Whoami() types.ValAddress
 	// SendPrices sends the provided slice of Price.
-	// It must keep trying to send the prices until it
-	// either succeeds or the provided context.Context
-	// is canceled. The operation must not be blocking.
-	// It returns a done channel which must be closed after prices
-	// are successfully sent to the chain.
-	SendPrices(ctx context.Context, vp VotingPeriod, prices []Price) (done chan struct{})
+	SendPrices(vp VotingPeriod, prices []Price)
 	// Close shuts down the PricePoster.
 	Close()
 }

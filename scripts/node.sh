@@ -7,9 +7,10 @@ addr=$(nibid keys show fd --keyring-backend=test -a)
 val_addr=$(nibid keys show fd  --keyring-backend=test --bech val -a)
 
 nibid add-genesis-account $addr 1000000000000unibi --keyring-backend=test
-nibid add-genesis-account fd 10000000unibi --keyring-backend=test
+nibid add-genesis-account fd 900000000000unibi --keyring-backend=test
 nibid gentx fd 10000000unibi --keyring-backend=test --chain-id testing
 nibid collect-gentxs
 nibid validate-genesis
 sed -i 's/127.0.0.1/0.0.0.0/g' /root/.nibid/config/config.toml
+sed -i 's/\"5s\"/\"1s\"/g' /root/.nibid/config/config.toml
 nibid start

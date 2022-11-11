@@ -5,7 +5,6 @@
 package mock_types
 
 import (
-	context "context"
 	reflect "reflect"
 
 	types "github.com/NibiruChain/price-feeder/feeder/types"
@@ -49,17 +48,15 @@ func (mr *MockPricePosterMockRecorder) Close() *gomock.Call {
 }
 
 // SendPrices mocks base method.
-func (m *MockPricePoster) SendPrices(arg0 context.Context, arg1 types.VotingPeriod, arg2 []types.Price) chan struct{} {
+func (m *MockPricePoster) SendPrices(arg0 types.VotingPeriod, arg1 []types.Price) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendPrices", arg0, arg1, arg2)
-	ret0, _ := ret[0].(chan struct{})
-	return ret0
+	m.ctrl.Call(m, "SendPrices", arg0, arg1)
 }
 
 // SendPrices indicates an expected call of SendPrices.
-func (mr *MockPricePosterMockRecorder) SendPrices(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockPricePosterMockRecorder) SendPrices(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPrices", reflect.TypeOf((*MockPricePoster)(nil).SendPrices), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPrices", reflect.TypeOf((*MockPricePoster)(nil).SendPrices), arg0, arg1)
 }
 
 // Whoami mocks base method.
