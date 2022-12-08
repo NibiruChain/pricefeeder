@@ -8,3 +8,6 @@ build-feeder:
 
 run:
 	docker-compose up price_feeder
+
+test:
+	go test -json ./...

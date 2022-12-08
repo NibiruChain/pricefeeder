@@ -17,3 +17,18 @@ EXCHANGE_SYMBOLS_MAP='{"bitfinex": {"ubtc:unusd": "tBTCUSD", "ueth:unusd": "tETH
 
 ## Build
 
+```sh
+make build-feeder
+```
+
+## Run
+
+```sh
+make run
+```
+or to run as a daemon:
+```
+make docker-compose up -d price_feeder
+```
+
+
