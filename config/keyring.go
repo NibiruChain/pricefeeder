@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/go-bip39"
 )
 
 var (
@@ -26,8 +27,16 @@ type privKeyKeyring struct {
 	privKey cryptotypes.PrivKey
 }
 
-func getAuth(pkHex string) (keyring.Keyring, sdk.ValAddress, sdk.AccAddress) {
-	kr := newPrivKeyKeyring(pkHex)
+func getAuth(mnemonic string) (keyring.Keyring, sdk.ValAddress, sdk.AccAddress) {
+	seed := bip39.NewSeed(mnemonic, "")
+	master, ch := hd.ComputeMastersFromSeed(seed)
+	path := "m/44'/118'/0'/0/0"
+
+	priv, err := hd.DerivePrivateKeyForPath(master, ch, path)
+	if err != nil {
+		panic(err)
+	}
+	kr := newPrivKeyKeyring(hex.EncodeToString(priv))
 	return kr, sdk.ValAddress(kr.addr), kr.addr
 }
 

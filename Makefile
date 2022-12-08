@@ -3,9 +3,11 @@ generate:
 
 mocks: generate
 
-compose-all: image
-	docker-compose down --volumes
-	docker-compose up --build
+build-feeder:
+	docker-compose build
 
-image:
-	docker build -t nibiru/price-feeder:master .
+run:
+	docker-compose up price_feeder
+
+test:
+	go test -json ./...
