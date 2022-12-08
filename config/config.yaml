@@ -1,9 +1,0 @@
-chain_id: "testing"
-grpc_endpoint: "node:9090"
-tendermint_endpoint: "ws://node:26657/websocket"
-feeder_private_key_hex: "16fdd1a5a1882c8132678eae95a3ad8b87344cce7796f97ad1211c12fd354f77"
-exchanges_to_pair_to_symbol_map:
-  bitfinex:
-    "ubtc:unusd": "tBTCUSD"
-    "ueth:unusd": "tETHUSD"
-    "uusd:unusd": "tUSTUSD"
