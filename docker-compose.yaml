@@ -1,20 +1,13 @@
-version: '3.4'
+version: '3.8'
 
 services:
-  node:
-    image: nibiru/price-feeder:master
-    logging:
-      driver: none
-    ports:
-      - "26656-26657:26656-26657"
-      - "9090:9090"
-      - "1317:1317"
-    expose:
-      - "26657:26657"
-      - "9090:9090"
-      - "1317:1317"
-    entrypoint: ["sh", "/scripts/node.sh"]
-
-  oracle:
-    image: 	nibiru/price-feeder:master
-    entrypoint: ["sh", "/scripts/oracle.sh"]
+  price_feeder:
+    platform: linux/amd64
+    restart: always
+    container_name: price_feeder
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    tty: true

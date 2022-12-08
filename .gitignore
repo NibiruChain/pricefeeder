@@ -1,0 +1,15 @@
+**__pycache**
+unit-test-reports
+vue/node_modules
+vue/dist
+release/
+.idea/
+.vscode/
+.fleet/
+.DS_Store
+data
+build
+*_old
+mockdata/
+docs
+.env

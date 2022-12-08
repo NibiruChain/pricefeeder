@@ -20,7 +20,7 @@ func TestConfig_JSON(t *testing.T) {
 			},
 		},
 		GRPCEndpoint:        "somegrpcendpoint:440",
-		TendermintEndpoint:  "sometendermintendpoint:900",
+		WebsocketEndpoint:   "sometendermintendpoint:900",
 		FeederPrivateKeyHex: "somehexkey",
 		ChainID:             "chainid",
 	}
