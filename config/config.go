@@ -41,8 +41,8 @@ func Get() (*Config, error) {
 	conf.ExchangesToPairToSymbolMap = map[string]map[common.AssetPair]string{}
 	for exchange, symbolMap := range exchangeSymbolsMap {
 		conf.ExchangesToPairToSymbolMap[exchange] = map[common.AssetPair]string{}
-		for assetPairStr, tickerSymbol := range symbolMap {
-			conf.ExchangesToPairToSymbolMap[exchange][common.MustNewAssetPair(assetPairStr)] = tickerSymbol
+		for nibiAssetPair, tickerSymbol := range symbolMap {
+			conf.ExchangesToPairToSymbolMap[exchange][common.MustNewAssetPair(nibiAssetPair)] = tickerSymbol
 		}
 	}
 	return conf, conf.Validate()
