@@ -3,6 +3,8 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+
 	"github.com/NibiruChain/nibiru/x/common"
 	"github.com/NibiruChain/price-feeder/feeder"
 	"github.com/NibiruChain/price-feeder/feeder/events"
@@ -10,7 +12,6 @@ import (
 	"github.com/NibiruChain/price-feeder/feeder/tx"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
-	"os"
 )
 
 func MustGet() *Config {
@@ -20,6 +21,7 @@ func MustGet() *Config {
 	}
 	return conf
 }
+
 func Get() (*Config, error) {
 	_ = godotenv.Load() // .env is optional
 
@@ -37,14 +39,10 @@ func Get() (*Config, error) {
 	}
 
 	conf.ExchangesToPairToSymbolMap = map[string]map[common.AssetPair]string{}
-	for e, p := range exchangeSymbolsMap {
-		conf.ExchangesToPairToSymbolMap[e] = map[common.AssetPair]string{}
-		for assetPairStr, symbol := range p {
-			assetPair, err := common.NewAssetPair(assetPairStr)
-			if err != nil {
-				return nil, fmt.Errorf("%w: %s", err, assetPairStr)
-			}
-			conf.ExchangesToPairToSymbolMap[e][assetPair] = symbol
+	for exchange, symbolMap := range exchangeSymbolsMap {
+		conf.ExchangesToPairToSymbolMap[exchange] = map[common.AssetPair]string{}
+		for nibiAssetPair, tickerSymbol := range symbolMap {
+			conf.ExchangesToPairToSymbolMap[exchange][common.MustNewAssetPair(nibiAssetPair)] = tickerSymbol
 		}
 	}
 	return conf, conf.Validate()
