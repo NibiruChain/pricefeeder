@@ -7,12 +7,11 @@ import (
 )
 
 func NewAggregatePriceProvider(exchangesToPairToSymbolMap map[string]map[common.AssetPair]string, logger zerolog.Logger) types.PriceProvider {
-	log := logger.With().Str("component", "aggregate-price-provider").Logger()
 	providers := make([]types.PriceProvider, 0, len(exchangesToPairToSymbolMap))
 	for exchangeName, pairToSymbolMap := range exchangesToPairToSymbolMap {
-		providers = append(providers, NewPriceProvider(exchangeName, pairToSymbolMap, log.With().Str("exchange", exchangeName).Logger()))
+		providers = append(providers, NewPriceProvider(exchangeName, pairToSymbolMap, logger.With().Str("exchange", exchangeName).Logger()))
 	}
-	return newAggregatePriceProvider(providers, log)
+	return newAggregatePriceProvider(providers, logger)
 }
 
 // NewAggregatePriceProvider instantiates a new AggregatePriceProvider instance

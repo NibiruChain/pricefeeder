@@ -47,13 +47,13 @@ type FetchPricesFunc func(symbols []string) (map[string]float64, error)
 // which returns the latest prices for the provided symbols.
 func NewTickSource(symbols []string, fetchPricesFunc FetchPricesFunc, logger zerolog.Logger) *TickSource {
 	ts := &TickSource{
-		logger:          logger,
-		stop:            make(chan struct{}),
-		done:            make(chan struct{}),
-		tick:            time.NewTicker(UpdateTick),
-		symbols:         symbols,
-		fetchPrices:     fetchPricesFunc,
-		sendPriceUpdate: make(chan map[string]PriceUpdate),
+		logger:             logger,
+		stopSignal:         make(chan struct{}),
+		done:               make(chan struct{}),
+		tick:               time.NewTicker(UpdateTick),
+		symbols:            symbols,
+		fetchPrices:        fetchPricesFunc,
+		priceUpdateChannel: make(chan map[string]PriceUpdate),
 	}
 	go ts.loop()
 	return ts
@@ -62,13 +62,13 @@ func NewTickSource(symbols []string, fetchPricesFunc FetchPricesFunc, logger zer
 // TickSource is a Source which updates prices
 // every x time.Duration.
 type TickSource struct {
-	logger          zerolog.Logger
-	stop            chan struct{}
-	done            chan struct{}
-	tick            *time.Ticker
-	symbols         []string
-	fetchPrices     func(symbols []string) (map[string]float64, error)
-	sendPriceUpdate chan map[string]PriceUpdate
+	logger             zerolog.Logger
+	stopSignal         chan struct{} // external signal to stop the loop
+	done               chan struct{} // internal signal to wait for shutdown operations
+	tick               *time.Ticker
+	symbols            []string
+	fetchPrices        func(symbols []string) (map[string]float64, error)
+	priceUpdateChannel chan map[string]PriceUpdate
 }
 
 func (s *TickSource) loop() {
@@ -76,28 +76,30 @@ func (s *TickSource) loop() {
 	defer close(s.done)
 	for {
 		select {
-		case <-s.stop:
+		case <-s.stopSignal:
 			return
 		case <-s.tick.C:
-			now := time.Now()
-			s.logger.Debug().Time("time", now).Msg("received tick, updating prices")
+			s.logger.Debug().Msg("received tick, updating prices")
+
 			prices, err := s.fetchPrices(s.symbols)
 			if err != nil {
 				s.logger.Err(err).Msg("failed to update prices")
 				break // breaks the current select case, not the for cycle
 			}
-			update := make(map[string]PriceUpdate, len(prices))
+
+			priceUpdate := make(map[string]PriceUpdate, len(prices))
 			for symbol, price := range prices {
-				update[symbol] = PriceUpdate{
+				priceUpdate[symbol] = PriceUpdate{
 					Price:      price,
-					UpdateTime: now,
+					UpdateTime: time.Now(),
 				}
 			}
+
 			s.logger.Debug().Msg("sending price update")
 			select {
-			case s.sendPriceUpdate <- update:
+			case s.priceUpdateChannel <- priceUpdate:
 				s.logger.Debug().Msg("sent price update")
-			case <-s.stop:
+			case <-s.stopSignal:
 				s.logger.Warn().Msg("dropped price update due to shutdown")
 				return
 			}
@@ -106,10 +108,10 @@ func (s *TickSource) loop() {
 }
 
 func (s *TickSource) PricesUpdate() <-chan map[string]PriceUpdate {
-	return s.sendPriceUpdate
+	return s.priceUpdateChannel
 }
 
 func (s *TickSource) Close() {
-	close(s.stop)
+	close(s.stopSignal)
 	<-s.done
 }

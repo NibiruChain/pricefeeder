@@ -26,13 +26,8 @@ func NewPriceProvider(exchangeName string, pairToSymbolMap map[common.AssetPair]
 // map of nibiru common.AssetPair to Source's symbols, plus the zerolog.Logger instance.
 // Exists for testing purposes.
 func newPriceProvider(source Source, exchangeName string, pairToSymbolsMap map[common.AssetPair]string, logger zerolog.Logger) *PriceProvider {
-	log := logger.With().
-		Str("component", "price-provider").
-		Str("price-source", exchangeName).
-		Logger()
-
 	pp := &PriceProvider{
-		logger:          log,
+		logger:          logger,
 		stop:            make(chan struct{}),
 		done:            make(chan struct{}),
 		source:          source,
@@ -51,7 +46,8 @@ func newPriceProvider(source Source, exchangeName string, pairToSymbolsMap map[c
 type PriceProvider struct {
 	logger zerolog.Logger
 
-	stop, done chan struct{}
+	stop chan struct{}
+	done chan struct{}
 
 	source       Source
 	exchangeName string
@@ -70,7 +66,7 @@ func (p *PriceProvider) GetPrice(pair common.AssetPair) types.Price {
 	// when for example we have a param update, then we return
 	// an abstain vote on the provided asset pair.
 	if !ok {
-		p.logger.Warn().Str("nibiru-pair", pair.String()).Msg("unknown nibiru pair")
+		p.logger.Warn().Str("pair", pair.String()).Msg("unknown nibiru pair")
 		return types.Price{
 			Pair:         pair,
 			Price:        0, // TODO(heisenberg): return -1 instead for abstain vote
