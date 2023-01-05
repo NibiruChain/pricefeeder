@@ -21,24 +21,25 @@ func NewWebsocket(url string, onOpenMsg []byte, log zerolog.Logger) *ws {
 
 func newWebsocket(dialFn dianFn, log zerolog.Logger) *ws {
 	ws := &ws{
-		log:        log.With().Str("sub-component", "websocket").Logger(),
-		stopSignal: make(chan struct{}),
-		done:       make(chan struct{}),
-		read:       make(chan []byte),
-		dial:       dialFn,
-		connection: nil,
+		log:              log.With().Str("sub-component", "websocket").Logger(),
+		done:             make(chan struct{}),
+		read:             make(chan []byte),
+		dial:             dialFn,
+		connection:       nil,
+		connectionClosed: new(atomic.Bool),
 	}
+
 	go ws.loop()
 	return ws
 }
 
 type ws struct {
-	log        zerolog.Logger
-	stopSignal chan struct{} // allows external callers to stop the ws
-	done       chan struct{} // internal signal to wait for the ws to execute its shutdown operations
-	read       chan []byte
-	dial       dianFn
-	connection *websocket.Conn
+	log              zerolog.Logger
+	done             chan struct{} // internal signal to wait for the ws to execute its shutdown operations
+	read             chan []byte
+	dial             dianFn
+	connection       *websocket.Conn
+	connectionClosed *atomic.Bool
 }
 
 func (w *ws) loop() {
@@ -46,49 +47,27 @@ func (w *ws) loop() {
 
 	w.connect()
 
-	exit := new(atomic.Bool)
-	readLoopDone := make(chan struct{})
-
-	// readLoop reads messages and also handles reconnection alongside first connection too.
-	go func() {
-		defer close(readLoopDone)
-
-		for {
-			_, bytes, err := w.connection.ReadMessage()
-			if err != nil {
-				// error can be caused by Close
-				// so in case the ws was closed we exit
-				if exit.Load() {
-					return
-				}
-
-				// otherwise it's a read error, so we attempt to reconnect. LFG.
-				w.log.Err(err).Msg("disconnected")
-				// we don't care if it fails, because if it does on ReadMessage we will receive an error
-				// and then attempt to reconnect again.
-				w.connect() // racey with connection Close()
-				continue
-			}
-
-			// no error, forward the msg
-			select {
-			case w.read <- bytes:
-			case <-w.stopSignal:
-				w.log.Warn().Str("message", string(bytes)).Msg("message dropped due to shutdown")
+	// read messages and also handles reconnection.
+	for {
+		_, bytes, err := w.connection.ReadMessage()
+		if err != nil {
+			if w.connectionClosed.Load() {
+				// if the connection was closed, then we exit
 				return
 			}
+
+			// otherwise we attempt to reconnect
+			// we don't care if it fails, because if it does on ReadMessage we will receive an error
+			// and then attempt to reconnect again.
+			w.log.Err(err).Msg("disconnected")
+			w.connect()
+			continue
 		}
-	}()
 
-	// wait for a stop signal
-	<-w.stopSignal
-	exit.Store(true)
-	if err := w.connection.Close(); err != nil { // this is racey with connect
-		w.log.Err(err).Msg("close error")
+		// no error, forward the msg
+		w.read <- bytes
+		w.log.Debug().Str("payload", string(bytes)).Msg("message received")
 	}
-
-	// wait readLoop finished
-	<-readLoopDone
 }
 
 func (w *ws) connect() {
@@ -98,7 +77,7 @@ func (w *ws) connect() {
 		w.log.Err(err).Msg("failed to connect")
 	} else {
 		w.connection = connection
-		w.log.Info().Msg("connected")
+		w.log.Debug().Msg("connected")
 	}
 }
 
@@ -107,6 +86,9 @@ func (w *ws) message() <-chan []byte {
 }
 
 func (w *ws) close() {
-	close(w.stopSignal)
+	w.connectionClosed.Store(true)
+	if err := w.connection.Close(); err != nil {
+		w.log.Err(err).Msg("close error")
+	}
 	<-w.done
 }
