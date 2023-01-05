@@ -22,10 +22,10 @@ const (
 // and mappings across common.AssetPair and the Source
 // symbols.
 type Source interface {
-	// PricesUpdate is a readonly channel which provides
+	// PriceUpdates is a readonly channel which provides
 	// the latest prices update. Updates can be provided
 	// for one asset only or in batches, hence the map.
-	PricesUpdate() <-chan map[string]PriceUpdate
+	PriceUpdates() <-chan map[string]PriceUpdate
 	// Close closes the Source.
 	Close()
 }
@@ -107,7 +107,7 @@ func (s *TickSource) loop() {
 	}
 }
 
-func (s *TickSource) PricesUpdate() <-chan map[string]PriceUpdate {
+func (s *TickSource) PriceUpdates() <-chan map[string]PriceUpdate {
 	return s.priceUpdateChannel
 }
 

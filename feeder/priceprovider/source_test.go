@@ -33,7 +33,7 @@ func TestTickSource(t *testing.T) {
 
 		var gotPrices map[string]PriceUpdate
 		select {
-		case gotPrices = <-ts.PricesUpdate():
+		case gotPrices = <-ts.PriceUpdates():
 		case <-time.After(6 * time.Second): // timeout
 			t.Fatal("timeout when receiving prices")
 		}
@@ -48,11 +48,13 @@ func TestTickSource(t *testing.T) {
 	t.Run("price update dropped due to shutdown", func(t *testing.T) {
 		// basically every log written ends up here
 		logs := new(bytes.Buffer)
-		mw := mockWriter{w: func(p []byte) (n int, err error) {
-			written, err := logs.Write(p)
-			require.NoError(t, err)
-			return written, nil
-		}}
+		mw := mockWriter{
+			w: func(p []byte) (n int, err error) {
+				written, err := logs.Write(p)
+				require.NoError(t, err)
+				return written, nil
+			},
+		}
 
 		expectedSymbols := []string{"tBTCUSDT"}
 		expectedPrices := map[string]float64{"tBTCUSDT": 250_000.56}
@@ -84,7 +86,7 @@ func TestTickSource(t *testing.T) {
 		<-time.After(UpdateTick + 1*time.Second) // wait for a tick update
 
 		select {
-		case <-ts.PricesUpdate():
+		case <-ts.PriceUpdates():
 			t.Fatal("no price updates expected")
 		default:
 		}

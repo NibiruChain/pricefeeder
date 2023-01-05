@@ -93,7 +93,7 @@ func (p *PriceProvider) loop() {
 		select {
 		case <-p.stop:
 			return
-		case updates := <-p.source.PricesUpdate():
+		case updates := <-p.source.PriceUpdates():
 			p.lastPricesMutex.Lock()
 			for symbol, price := range updates {
 				p.lastPrices[symbol] = price

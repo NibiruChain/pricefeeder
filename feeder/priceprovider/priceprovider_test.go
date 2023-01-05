@@ -10,13 +10,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type testAsyncPriceProvider struct {
+var _ Source = (*testAsyncSource)(nil)
+
+type testAsyncSource struct {
 	closeFn       func()
 	priceUpdatesC chan map[string]PriceUpdate
 }
 
-func (t testAsyncPriceProvider) Close() { t.closeFn() }
-func (t testAsyncPriceProvider) PricesUpdate() <-chan map[string]PriceUpdate {
+func (t testAsyncSource) Close() { t.closeFn() }
+func (t testAsyncSource) PriceUpdates() <-chan map[string]PriceUpdate {
 	return t.priceUpdatesC
 }
 
@@ -37,7 +39,7 @@ func TestPriceProvider(t *testing.T) {
 	})
 
 	t.Run("returns invalid price on unknown AssetPair", func(t *testing.T) {
-		pp := newPriceProvider(testAsyncPriceProvider{}, "test", map[common.AssetPair]string{}, zerolog.New(io.Discard))
+		pp := newPriceProvider(testAsyncSource{}, "test", map[common.AssetPair]string{}, zerolog.New(io.Discard))
 		price := pp.GetPrice(common.Pair_BTC_NUSD)
 		require.False(t, price.Valid)
 		require.Zero(t, price.Price)
@@ -46,7 +48,7 @@ func TestPriceProvider(t *testing.T) {
 
 	t.Run("Close assertions", func(t *testing.T) {
 		var closed bool
-		pp := newPriceProvider(testAsyncPriceProvider{
+		pp := newPriceProvider(testAsyncSource{
 			closeFn: func() {
 				closed = true
 			},
