@@ -2,9 +2,10 @@ package events
 
 import (
 	"fmt"
+	"sync/atomic"
+
 	"github.com/gorilla/websocket"
 	"github.com/rs/zerolog"
-	"sync/atomic"
 )
 
 // conn represents a websocket connection interface,
@@ -81,14 +82,13 @@ func (w *ws) loop() {
 	}()
 
 	// wait close votePeriodLoop
-	select {
-	case <-w.stop:
-		exit.Store(true)
-		err := w.ws.Close() // this is racey with connect
-		if err != nil {
-			w.log.Err(err).Msg("close error")
-		}
+	<-w.stop
+	exit.Store(true)
+	err := w.ws.Close() // this is racey with connect
+	if err != nil {
+		w.log.Err(err).Msg("close error")
 	}
+
 	// wait read votePeriodLoop finished
 	<-readLoopDone
 }
