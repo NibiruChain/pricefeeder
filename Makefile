@@ -3,11 +3,14 @@ generate:
 
 mocks: generate
 
-build-feeder:
+build-docker:
 	docker-compose build
 
-run:
-	docker-compose up price_feeder
+docker-compose:
+	docker-compose up
 
 test:
 	go test -json ./...
+
+run:
+	go run ./cmd/feeder/main.go
