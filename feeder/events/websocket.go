@@ -2,6 +2,7 @@ package events
 
 import (
 	"sync/atomic"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/rs/zerolog"
@@ -45,7 +46,28 @@ type ws struct {
 func (w *ws) loop() {
 	defer close(w.done)
 
-	w.connect()
+	if w.connection == nil {
+		// if the connection is nil, then we attempt to connect using binary exponential backoff
+		attempt := 0
+		delay := 1 * time.Second
+		for {
+			w.connect()
+			if w.connection != nil {
+				break
+			}
+
+			// if we failed to connect, we wait and try again
+			attempt++
+			if attempt > 10 {
+				// if we failed to connect more than 10 times, we exit
+				w.log.Fatal().Msg("failed to connect to websocket")
+			}
+
+			w.log.Debug().Int("attempt", attempt).Msg("failed to connect to websocket, retrying")
+			time.Sleep(delay)
+			delay *= 2
+		}
+	}
 
 	// read messages and also handles reconnection.
 	for {
@@ -59,7 +81,7 @@ func (w *ws) loop() {
 			// otherwise we attempt to reconnect
 			// we don't care if it fails, because if it does on ReadMessage we will receive an error
 			// and then attempt to reconnect again.
-			w.log.Err(err).Msg("disconnected")
+			w.log.Err(err).Msg("disconnected from websocket, attempting to reconnect")
 			w.connect()
 			continue
 		}
@@ -74,10 +96,10 @@ func (w *ws) connect() {
 	w.log.Debug().Msg("connecting")
 	connection, err := w.dial()
 	if err != nil {
-		w.log.Err(err).Msg("failed to connect")
+		w.log.Err(err).Msg("failed to connect to websocket")
 	} else {
 		w.connection = connection
-		w.log.Debug().Msg("connected")
+		w.log.Debug().Msg("connected to websocket")
 	}
 }
 
