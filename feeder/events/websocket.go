@@ -23,6 +23,7 @@ func NewWebsocket(url string, onOpenMsg []byte, logger zerolog.Logger) *ws {
 func newWebsocket(dialFn dianFn, logger zerolog.Logger) *ws {
 	ws := &ws{
 		logger:           logger.With().Str("component", "websocket").Logger(),
+		stopSignal:       make(chan struct{}),
 		done:             make(chan struct{}),
 		read:             make(chan []byte),
 		dial:             dialFn,
@@ -36,6 +37,7 @@ func newWebsocket(dialFn dianFn, logger zerolog.Logger) *ws {
 
 type ws struct {
 	logger           zerolog.Logger
+	stopSignal       chan struct{} // external signal to stop the ws
 	done             chan struct{} // internal signal to wait for the ws to execute its shutdown operations
 	read             chan []byte
 	dial             dianFn
@@ -47,26 +49,7 @@ func (w *ws) loop() {
 	defer close(w.done)
 
 	if w.connection == nil {
-		// if the connection is nil, then we attempt to connect using binary exponential backoff
-		attempt := 0
-		delay := 1 * time.Second
-		for {
-			w.connect()
-			if w.connection != nil {
-				break
-			}
-
-			// if we failed to connect, we wait and try again
-			attempt++
-			if attempt > 10 {
-				// if we failed to connect more than 10 times, we exit
-				w.logger.Fatal().Msg("failed to connect to websocket")
-			}
-
-			w.logger.Debug().Int("attempt", attempt).Msg("failed to connect to websocket, retrying")
-			time.Sleep(delay)
-			delay *= 2
-		}
+		w.connect()
 	}
 
 	// read messages and also handles reconnection.
@@ -87,19 +70,39 @@ func (w *ws) loop() {
 		}
 
 		// no error, forward the msg
-		w.read <- bytes
-		w.logger.Debug().Str("payload", string(bytes)).Msg("message received")
+		select {
+		case w.read <- bytes:
+			w.logger.Debug().Str("payload", string(bytes)).Msg("message received")
+		case <-w.stopSignal:
+			w.logger.Warn().Str("message", string(bytes)).Msg("message dropped due to shutdown")
+			return
+		}
 	}
 }
 
 func (w *ws) connect() {
 	w.logger.Debug().Msg("connecting")
-	connection, err := w.dial()
-	if err != nil {
+
+	retries := 0
+	delay := 1 * time.Second
+	for {
+		connection, err := w.dial()
+		if err == nil {
+			w.connection = connection
+			w.logger.Debug().Msg("connected to websocket")
+			return
+		}
+		// if we failed to connect, we wait and try again
 		w.logger.Err(err).Msg("failed to connect to websocket")
-	} else {
-		w.connection = connection
-		w.logger.Debug().Msg("connected to websocket")
+		retries++
+		if retries > 10 {
+			// if we failed to connect more than 10 times, we exit
+			w.logger.Fatal().Msg("failed to connect to websocket")
+		}
+
+		w.logger.Debug().Int("retries", retries).Msg("failed to connect to websocket, retrying")
+		time.Sleep(delay)
+		delay *= 2
 	}
 }
 
@@ -108,6 +111,7 @@ func (w *ws) message() <-chan []byte {
 }
 
 func (w *ws) close() {
+	close(w.stopSignal)
 	w.connectionClosed.Store(true)
 	if err := w.connection.Close(); err != nil {
 		w.logger.Err(err).Msg("close error")
