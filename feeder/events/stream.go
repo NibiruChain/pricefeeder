@@ -42,7 +42,7 @@ func newStream(ws wsI, oracle oracletypes.QueryClient, logger zerolog.Logger) *S
 	}
 
 	stream.waitGroup.Add(2)
-	go stream.votePeriodLoop(ws, logger.With().Str("component", "vote-period-loop").Logger())
+	go stream.votingPeriodStartedLoop(ws, logger.With().Str("component", "voting-period-started-loop").Logger())
 	go stream.paramsLoop(oracle, logger.With().Str("component", "params-loop").Logger())
 	return stream
 }
@@ -55,7 +55,7 @@ type Stream struct {
 	params              *atomic.Pointer[types.Params]
 }
 
-func (s *Stream) votePeriodLoop(ws wsI, logger zerolog.Logger) {
+func (s *Stream) votingPeriodStartedLoop(ws wsI, logger zerolog.Logger) {
 	defer func() {
 		logger.Info().Msg("exited loop")
 	}()

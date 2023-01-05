@@ -2,6 +2,10 @@ package events
 
 import (
 	"bytes"
+	"net/url"
+	"testing"
+	"time"
+
 	"github.com/NibiruChain/nibiru/app"
 	"github.com/NibiruChain/nibiru/simapp"
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
@@ -10,9 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
-	"net/url"
-	"testing"
-	"time"
 )
 
 type IntegrationTestSuite struct {
@@ -21,9 +22,9 @@ type IntegrationTestSuite struct {
 	cfg     testutilcli.Config
 	network *testutilcli.Network
 
-	eventsClient *Stream
+	eventsStream *Stream
 	logs         *bytes.Buffer
-	oracle       oracletypes.QueryClient
+	oracleClient oracletypes.QueryClient
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
@@ -42,21 +43,21 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	u.Path = "/websocket"
 
 	s.logs = new(bytes.Buffer)
-	s.eventsClient = Dial(u.String(), grpcEndpoint, zerolog.New(s.logs))
+	s.eventsStream = Dial(u.String(), grpcEndpoint, zerolog.New(s.logs))
 
 	conn, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure())
 	require.NoError(s.T(), err)
-	s.oracle = oracletypes.NewQueryClient(conn)
+	s.oracleClient = oracletypes.NewQueryClient(conn)
 }
 
 func (s *IntegrationTestSuite) TestStreamWorks() {
 	select {
-	case <-s.eventsClient.ParamsUpdate():
+	case <-s.eventsStream.ParamsUpdate():
 	case <-time.After(15 * time.Second):
 		s.T().Fatal("params timeout")
 	}
 	select {
-	case <-s.eventsClient.VotingPeriodStarted():
+	case <-s.eventsStream.VotingPeriodStarted():
 	case <-time.After(15 * time.Second):
 		s.T().Fatal("vote period timeout")
 	}
@@ -71,7 +72,7 @@ func (s *IntegrationTestSuite) TestStreamWorks() {
 
 func (s *IntegrationTestSuite) TearDownSuite() {
 	s.network.Cleanup()
-	s.eventsClient.Close()
+	s.eventsStream.Close()
 }
 
 func TestIntegration(t *testing.T) {
