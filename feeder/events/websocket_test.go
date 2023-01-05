@@ -1,16 +1,17 @@
 package events
 
 import (
-	"github.com/rs/zerolog"
-	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/rs/zerolog"
+	"github.com/stretchr/testify/require"
 )
 
 func TestWebsocket(t *testing.T) {
 	t.Run("success - read/write", func(t *testing.T) {
-		ws := dial("wss://echo.websocket.events/.ws", []byte("test"), zerolog.New(os.Stderr))
+		ws := NewWebsocket("wss://echo.websocket.events/.ws", []byte("test"), zerolog.New(os.Stderr))
 		defer ws.close()
 		// LOL this test websocket URL we're using returns the following
 		select {

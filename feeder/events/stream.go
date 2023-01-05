@@ -2,13 +2,14 @@ package events
 
 import (
 	"context"
+	"sync"
+	"sync/atomic"
+	"time"
+
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
 	"github.com/NibiruChain/price-feeder/feeder/types"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
-	"sync"
-	"sync/atomic"
-	"time"
 )
 
 var _ types.EventsStream = (*Stream)(nil)
@@ -27,7 +28,7 @@ func Dial(tendermintRPCEndpoint string, grpcEndpoint string, log zerolog.Logger)
 	oracle := oracletypes.NewQueryClient(grpcConn)
 
 	const newBlockSubscribe = `{"jsonrpc":"2.0","method":"subscribe","id":0,"params":{"query":"tm.event='NewBlock'"}}`
-	ws := dial(tendermintRPCEndpoint, []byte(newBlockSubscribe), log.With().Str("component", "events.Stream").Logger())
+	ws := NewWebsocket(tendermintRPCEndpoint, []byte(newBlockSubscribe), log.With().Str("component", "events.Stream").Logger())
 	return newStream(ws, oracle, log)
 }
 
