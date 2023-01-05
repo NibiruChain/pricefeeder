@@ -22,7 +22,7 @@ func NewWebsocket(url string, onOpenMsg []byte, logger zerolog.Logger) *ws {
 
 func newWebsocket(dialFn dianFn, logger zerolog.Logger) *ws {
 	ws := &ws{
-		logger:           logger.With().Str("sub-component", "websocket").Logger(),
+		logger:           logger.With().Str("component", "websocket").Logger(),
 		done:             make(chan struct{}),
 		read:             make(chan []byte),
 		dial:             dialFn,
