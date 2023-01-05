@@ -27,7 +27,7 @@ func NewPriceProvider(exchangeName string, pairToSymbolMap map[common.AssetPair]
 // Exists for testing purposes.
 func newPriceProvider(source Source, exchangeName string, pairToSymbolsMap map[common.AssetPair]string, logger zerolog.Logger) *PriceProvider {
 	pp := &PriceProvider{
-		logger:          logger,
+		logger:          logger.With().Str("component", "price-provider").Str("exchange", exchangeName).Logger(),
 		stop:            make(chan struct{}),
 		done:            make(chan struct{}),
 		source:          source,

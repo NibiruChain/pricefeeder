@@ -9,7 +9,7 @@ import (
 func NewAggregatePriceProvider(exchangesToPairToSymbolMap map[string]map[common.AssetPair]string, logger zerolog.Logger) types.PriceProvider {
 	providers := make([]types.PriceProvider, 0, len(exchangesToPairToSymbolMap))
 	for exchangeName, pairToSymbolMap := range exchangesToPairToSymbolMap {
-		providers = append(providers, NewPriceProvider(exchangeName, pairToSymbolMap, logger.With().Str("exchange", exchangeName).Logger()))
+		providers = append(providers, NewPriceProvider(exchangeName, pairToSymbolMap, logger))
 	}
 	return newAggregatePriceProvider(providers, logger)
 }
@@ -17,7 +17,10 @@ func NewAggregatePriceProvider(exchangesToPairToSymbolMap map[string]map[common.
 // NewAggregatePriceProvider instantiates a new AggregatePriceProvider instance
 // given multiple PriceProvider.
 func newAggregatePriceProvider(providers []types.PriceProvider, logger zerolog.Logger) types.PriceProvider {
-	a := AggregatePriceProvider{logger, make(map[int]types.PriceProvider, len(providers))}
+	a := AggregatePriceProvider{
+		logger:    logger.With().Str("component", "aggregate-price-provider").Logger(),
+		providers: make(map[int]types.PriceProvider, len(providers)),
+	}
 	for i, p := range providers {
 		a.providers[i] = p
 	}
