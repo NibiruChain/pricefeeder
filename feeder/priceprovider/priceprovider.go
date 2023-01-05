@@ -1,24 +1,25 @@
 package priceprovider
 
 import (
+	"sync"
+	"time"
+
 	"github.com/NibiruChain/nibiru/x/common"
 	"github.com/NibiruChain/price-feeder/feeder/types"
 	"github.com/rs/zerolog"
-	"sync"
-	"time"
 )
 
 // NewPriceProvider returns a types.PriceProvider given the price source we want to gather prices from,
 // the mapping between nibiru common.AssetPair and the source's symbols, and a zerolog.Logger instance.
-func NewPriceProvider(priceSourceName string, pairToSymbolMap map[common.AssetPair]string, log zerolog.Logger) types.PriceProvider {
+func NewPriceProvider(exchangeName string, pairToSymbolMap map[common.AssetPair]string, log zerolog.Logger) types.PriceProvider {
 	var source Source
-	switch priceSourceName {
+	switch exchangeName {
 	case Bitfinex:
 		source = NewTickSource(symbolsFromPairsToSymbolsMap(pairToSymbolMap), BitfinexPriceUpdate, log)
 	default:
-		panic("unknown price provider: " + priceSourceName)
+		panic("unknown price provider: " + exchangeName)
 	}
-	return newPriceProvider(source, priceSourceName, pairToSymbolMap, log)
+	return newPriceProvider(source, exchangeName, pairToSymbolMap, log)
 }
 
 // newPriceProvider returns a raw *PriceProvider given a Source implementer, the source name and the
