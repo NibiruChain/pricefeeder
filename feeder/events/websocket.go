@@ -44,6 +44,8 @@ type ws struct {
 func (w *ws) loop() {
 	defer close(w.done)
 
+	w.connect()
+
 	exit := new(atomic.Bool)
 	readLoopDone := make(chan struct{})
 
