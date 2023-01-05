@@ -10,14 +10,14 @@ import (
 
 type dianFn func() (*websocket.Conn, error)
 
-func NewWebsocket(url string, onOpenMsg []byte, log zerolog.Logger) *ws {
+func NewWebsocket(url string, onOpenMsg []byte, logger zerolog.Logger) *ws {
 	return newWebsocket(func() (*websocket.Conn, error) {
 		connection, _, err := websocket.DefaultDialer.Dial(url, nil)
 		if err != nil {
 			return nil, err
 		}
 		return connection, connection.WriteMessage(websocket.BinaryMessage, onOpenMsg)
-	}, log)
+	}, logger)
 }
 
 func newWebsocket(dialFn dianFn, log zerolog.Logger) *ws {

@@ -72,11 +72,10 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-func (c *Config) Feeder() *feeder.Feeder {
-	log := zerolog.New(os.Stderr).Level(zerolog.InfoLevel)
-	eventsStream := events.Dial(c.WebsocketEndpoint, c.GRPCEndpoint, log)
-	priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, log)
+func (c *Config) Feeder(logger zerolog.Logger) *feeder.Feeder {
+	eventsStream := events.Dial(c.WebsocketEndpoint, c.GRPCEndpoint, logger.With().Str("component", "events-stream").Logger())
+	priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, logger.With().Str("component", "price-provider").Logger())
 	kb, valAddr, feederAddr := getAuth(c.FeederMnemonic)
-	pricePoster := tx.Dial(c.GRPCEndpoint, c.ChainID, kb, valAddr, feederAddr, log)
-	return feeder.Run(eventsStream, pricePoster, priceProvider, log)
+	pricePoster := tx.Dial(c.GRPCEndpoint, c.ChainID, kb, valAddr, feederAddr, logger.With().Str("component", "price-poster").Logger())
+	return feeder.Run(eventsStream, pricePoster, priceProvider, logger)
 }
