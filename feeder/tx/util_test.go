@@ -3,8 +3,9 @@ package tx
 import (
 	"context"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func Test_tryUntilDone(t *testing.T) {
@@ -21,7 +22,6 @@ func Test_tryUntilDone(t *testing.T) {
 				i++
 				return fmt.Errorf("some error")
 			}
-
 			return nil
 		})
 
@@ -41,7 +41,6 @@ func Test_tryUntilDone(t *testing.T) {
 			}
 			return fmt.Errorf("an error")
 		})
-
 		require.ErrorIs(t, err, context.Canceled)
 		require.Equal(t, 5, i)
 	})
