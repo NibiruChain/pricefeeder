@@ -2,6 +2,8 @@ package tx
 
 import (
 	"context"
+	"time"
+
 	"github.com/NibiruChain/nibiru/app"
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
 	"github.com/NibiruChain/price-feeder/feeder/types"
@@ -13,7 +15,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
-	"time"
 )
 
 var _ types.PricePoster = (*Client)(nil)
@@ -40,7 +41,7 @@ type deps struct {
 	chainID      string
 }
 
-func Dial(grpcEndpoint string, chainID string, keyBase keyring.Keyring, validator sdk.ValAddress, feeder sdk.AccAddress, log zerolog.Logger) *Client {
+func Dial(grpcEndpoint string, chainID string, keyBase keyring.Keyring, validator sdk.ValAddress, feeder sdk.AccAddress, logger zerolog.Logger) *Client {
 	conn, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure())
 	if err != nil {
 		panic(err)
@@ -58,7 +59,7 @@ func Dial(grpcEndpoint string, chainID string, keyBase keyring.Keyring, validato
 	}
 
 	return &Client{
-		log:       log,
+		logger:    logger,
 		validator: validator,
 		feeder:    feeder,
 		deps:      deps,
@@ -66,7 +67,7 @@ func Dial(grpcEndpoint string, chainID string, keyBase keyring.Keyring, validato
 }
 
 type Client struct {
-	log zerolog.Logger
+	logger zerolog.Logger
 
 	validator sdk.ValAddress
 	feeder    sdk.AccAddress
@@ -80,20 +81,20 @@ func (c *Client) Whoami() sdk.ValAddress {
 }
 
 func (c *Client) SendPrices(vp types.VotingPeriod, prices []types.Price) {
-	log := c.log.With().Uint64("voting-period-height", vp.Height).Logger()
+	logger := c.logger.With().Uint64("voting-period-height", vp.Height).Logger()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	newPrevote := newPrevote(prices, c.validator, c.feeder)
-	resp, err := vote(ctx, newPrevote, c.previousPrevote, c.validator, c.feeder, c.deps, log)
+	resp, err := vote(ctx, newPrevote, c.previousPrevote, c.validator, c.feeder, c.deps, logger)
 	if err != nil {
-		log.Err(err).Msg("prevote failed")
+		logger.Err(err).Msg("prevote failed")
 		return
 	}
 
 	c.previousPrevote = newPrevote
-	log.Info().Str("tx-hash", resp.TxHash).Msg("successfully forwarded prices")
+	logger.Info().Str("tx-hash", resp.TxHash).Msg("successfully forwarded prices")
 
 }
 

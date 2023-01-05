@@ -15,7 +15,7 @@ var (
 
 // Feeder is the price feeder.
 type Feeder struct {
-	log zerolog.Logger
+	logger zerolog.Logger
 
 	stop chan struct{}
 	done chan struct{}
@@ -28,9 +28,9 @@ type Feeder struct {
 }
 
 // Run instantiates a new Feeder instance.
-func Run(stream types.EventsStream, poster types.PricePoster, provider types.PriceProvider, log zerolog.Logger) *Feeder {
+func Run(stream types.EventsStream, poster types.PricePoster, provider types.PriceProvider, logger zerolog.Logger) *Feeder {
 	f := &Feeder{
-		log:           log,
+		logger:        logger,
 		stop:          make(chan struct{}),
 		done:          make(chan struct{}),
 		params:        types.Params{},
@@ -63,10 +63,10 @@ func (f *Feeder) loop() {
 		case <-f.stop:
 			return
 		case params := <-f.eventsStream.ParamsUpdate():
-			f.log.Info().Interface("changes", params).Msg("params changed")
+			f.logger.Info().Interface("changes", params).Msg("params changed")
 			f.handleParamsUpdate(params)
 		case vp := <-f.eventsStream.VotingPeriodStarted():
-			f.log.Info().Interface("voting-period", vp).Msg("new voting period")
+			f.logger.Info().Interface("voting-period", vp).Msg("new voting period")
 			f.handleVotingPeriod(vp)
 		}
 	}
@@ -90,7 +90,7 @@ func (f *Feeder) startNewVotingPeriod(vp types.VotingPeriod) {
 	for i, p := range f.params.Pairs {
 		price := f.priceProvider.GetPrice(p)
 		if !price.Valid {
-			f.log.Err(fmt.Errorf("no valid price")).Str("asset", p.String()).Str("source", price.ExchangeName)
+			f.logger.Err(fmt.Errorf("no valid price")).Str("asset", p.String()).Str("source", price.ExchangeName)
 			price.Price = 0
 		}
 		prices[i] = price

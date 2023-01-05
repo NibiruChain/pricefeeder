@@ -4,12 +4,13 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"math/big"
+	"strings"
+
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
 	"github.com/NibiruChain/price-feeder/feeder/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/rs/zerolog"
-	"math/big"
-	"strings"
 )
 
 var (
@@ -25,17 +26,17 @@ func vote(
 	validator sdk.ValAddress,
 	feeder sdk.AccAddress,
 	deps deps,
-	log zerolog.Logger,
+	logger zerolog.Logger,
 ) (txResponse *sdk.TxResponse, err error) {
 
 	// if oldPrevote is not nil then we need to get the vote msg
 	var voteMsg *oracletypes.MsgAggregateExchangeRateVote
 	if oldPrevote != nil {
-		voteMsg, err = prepareVote(ctx, deps.oracleClient, validator, feeder, oldPrevote, log)
+		voteMsg, err = prepareVote(ctx, deps.oracleClient, validator, feeder, oldPrevote, logger)
 		if err != nil {
 			return nil, err
 		}
-		log.Info().Interface("vote", voteMsg).Msg("prepared vote message")
+		logger.Info().Interface("vote", voteMsg).Msg("prepared vote message")
 	}
 	// once we prepared the vote msg we can send the tx
 	var msgs = []sdk.Msg{newPrevote.msg}
@@ -44,7 +45,7 @@ func vote(
 		// note ordering matters because the new prevote will overwrite the old one
 		msgs = []sdk.Msg{voteMsg, newPrevote.msg}
 	} else {
-		log.Info().Msg("skipping vote preparation as there is no old prevote")
+		logger.Info().Msg("skipping vote preparation as there is no old prevote")
 	}
 
 	return sendTx(
@@ -58,9 +59,9 @@ func prepareVote(
 	oracleClient Oracle,
 	validator sdk.ValAddress, feeder sdk.AccAddress,
 	prevote *prevote,
-	log zerolog.Logger,
+	logger zerolog.Logger,
 ) (*oracletypes.MsgAggregateExchangeRateVote, error) {
-	log = log.With().Str("stage", "prepare-vote").Logger()
+	log := logger.With().Str("stage", "prepare-vote").Logger()
 	// there might be cases where due to downtimes the prevote
 	// has expired. So we check if a prevote exists in the chain, if it does not
 	// then we simply return.

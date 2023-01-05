@@ -45,9 +45,9 @@ type FetchPricesFunc func(symbols []string) (map[string]float64, error)
 
 // NewTickSource instantiates a new TickSource instance, given the symbols and a price updater function
 // which returns the latest prices for the provided symbols.
-func NewTickSource(symbols []string, fetchPricesFunc FetchPricesFunc, log zerolog.Logger) *TickSource {
+func NewTickSource(symbols []string, fetchPricesFunc FetchPricesFunc, logger zerolog.Logger) *TickSource {
 	ts := &TickSource{
-		log:             log,
+		logger:          logger,
 		stop:            make(chan struct{}),
 		done:            make(chan struct{}),
 		tick:            time.NewTicker(UpdateTick),
@@ -62,7 +62,7 @@ func NewTickSource(symbols []string, fetchPricesFunc FetchPricesFunc, log zerolo
 // TickSource is a Source which updates prices
 // every x time.Duration.
 type TickSource struct {
-	log             zerolog.Logger
+	logger          zerolog.Logger
 	stop            chan struct{}
 	done            chan struct{}
 	tick            *time.Ticker
@@ -80,10 +80,10 @@ func (s *TickSource) loop() {
 			return
 		case <-s.tick.C:
 			now := time.Now()
-			s.log.Debug().Time("time", now).Msg("received tick, updating prices")
+			s.logger.Debug().Time("time", now).Msg("received tick, updating prices")
 			prices, err := s.fetchPrices(s.symbols)
 			if err != nil {
-				s.log.Err(err).Msg("failed to update prices")
+				s.logger.Err(err).Msg("failed to update prices")
 				break // breaks the current select case, not the for cycle
 			}
 			update := make(map[string]PriceUpdate, len(prices))
@@ -93,12 +93,12 @@ func (s *TickSource) loop() {
 					UpdateTime: now,
 				}
 			}
-			s.log.Debug().Msg("sending price update")
+			s.logger.Debug().Msg("sending price update")
 			select {
 			case s.sendPriceUpdate <- update:
-				s.log.Debug().Msg("sent price update")
+				s.logger.Debug().Msg("sent price update")
 			case <-s.stop:
-				s.log.Warn().Msg("dropped price update due to shutdown")
+				s.logger.Warn().Msg("dropped price update due to shutdown")
 				return
 			}
 		}

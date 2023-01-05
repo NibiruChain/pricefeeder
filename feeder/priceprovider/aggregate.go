@@ -6,8 +6,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func NewAggregatePriceProvider(exchangesToPairToSymbolMap map[string]map[common.AssetPair]string, log zerolog.Logger) types.PriceProvider {
-	log = log.With().Str("component", "aggregate-price-provider").Logger()
+func NewAggregatePriceProvider(exchangesToPairToSymbolMap map[string]map[common.AssetPair]string, logger zerolog.Logger) types.PriceProvider {
+	log := logger.With().Str("component", "aggregate-price-provider").Logger()
 	providers := make([]types.PriceProvider, 0, len(exchangesToPairToSymbolMap))
 	for exchangeName, pairToSymbolMap := range exchangesToPairToSymbolMap {
 		providers = append(providers, NewPriceProvider(exchangeName, pairToSymbolMap, log.With().Str("exchange", exchangeName).Logger()))
@@ -17,8 +17,8 @@ func NewAggregatePriceProvider(exchangesToPairToSymbolMap map[string]map[common.
 
 // NewAggregatePriceProvider instantiates a new AggregatePriceProvider instance
 // given multiple PriceProvider.
-func newAggregatePriceProvider(providers []types.PriceProvider, log zerolog.Logger) types.PriceProvider {
-	a := AggregatePriceProvider{log, make(map[int]types.PriceProvider, len(providers))}
+func newAggregatePriceProvider(providers []types.PriceProvider, logger zerolog.Logger) types.PriceProvider {
+	a := AggregatePriceProvider{logger, make(map[int]types.PriceProvider, len(providers))}
 	for i, p := range providers {
 		a.providers[i] = p
 	}
@@ -28,7 +28,7 @@ func newAggregatePriceProvider(providers []types.PriceProvider, log zerolog.Logg
 // AggregatePriceProvider aggregates multiple price providers
 // and queries them for prices.
 type AggregatePriceProvider struct {
-	log       zerolog.Logger
+	logger    zerolog.Logger
 	providers map[int]types.PriceProvider // we use a map here to provide random ranging (since golang's map range is unordered)
 }
 
@@ -46,7 +46,7 @@ func (a AggregatePriceProvider) GetPrice(pair common.AssetPair) types.Price {
 	}
 
 	// if we reach here no valid symbols were found
-	a.log.Warn().Str("pair", pair.String()).Msg("no valid prices")
+	a.logger.Warn().Str("pair", pair.String()).Msg("no valid prices")
 	return types.Price{
 		Pair:         pair,
 		Price:        0,

@@ -97,9 +97,9 @@ func (s *Stream) votePeriodLoop(ws wsI, logger zerolog.Logger) {
 	}
 }
 
-func (s *Stream) paramsLoop(c oracletypes.QueryClient, log zerolog.Logger) {
+func (s *Stream) paramsLoop(c oracletypes.QueryClient, logger zerolog.Logger) {
 	defer func() {
-		log.Info().Msg("exited loop")
+		logger.Info().Msg("exited loop")
 	}()
 	defer s.wg.Done()
 
@@ -123,22 +123,22 @@ func (s *Stream) paramsLoop(c oracletypes.QueryClient, log zerolog.Logger) {
 		case <-tick.C:
 			newParams, err := updateParams()
 			if err != nil {
-				log.Err(err).Msg("param update")
+				logger.Err(err).Msg("param update")
 				break
 			}
 
 			oldParams := s.params.Swap(&newParams)
 			if oldParams != nil {
 				if oldParams.Equal(newParams) {
-					log.Debug().Msg("skipping params update as they're not different from the old ones")
+					logger.Debug().Msg("skipping params update as they're not different from the old ones")
 					break
 				}
 			}
 			select {
 			case <-s.stop:
-				log.Warn().Msg("dropped params update due to shutdown")
+				logger.Warn().Msg("dropped params update due to shutdown")
 			case s.signalParams <- newParams:
-				log.Info().Interface("params", newParams).Msg("signaling new params update")
+				logger.Info().Interface("params", newParams).Msg("signaling new params update")
 			}
 		case <-s.stop:
 			return

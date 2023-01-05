@@ -11,28 +11,28 @@ import (
 
 // NewPriceProvider returns a types.PriceProvider given the price source we want to gather prices from,
 // the mapping between nibiru common.AssetPair and the source's symbols, and a zerolog.Logger instance.
-func NewPriceProvider(exchangeName string, pairToSymbolMap map[common.AssetPair]string, log zerolog.Logger) types.PriceProvider {
+func NewPriceProvider(exchangeName string, pairToSymbolMap map[common.AssetPair]string, logger zerolog.Logger) types.PriceProvider {
 	var source Source
 	switch exchangeName {
 	case Bitfinex:
-		source = NewTickSource(symbolsFromPairsToSymbolsMap(pairToSymbolMap), BitfinexPriceUpdate, log)
+		source = NewTickSource(symbolsFromPairsToSymbolsMap(pairToSymbolMap), BitfinexPriceUpdate, logger)
 	default:
 		panic("unknown price provider: " + exchangeName)
 	}
-	return newPriceProvider(source, exchangeName, pairToSymbolMap, log)
+	return newPriceProvider(source, exchangeName, pairToSymbolMap, logger)
 }
 
 // newPriceProvider returns a raw *PriceProvider given a Source implementer, the source name and the
 // map of nibiru common.AssetPair to Source's symbols, plus the zerolog.Logger instance.
 // Exists for testing purposes.
-func newPriceProvider(source Source, exchangeName string, pairToSymbolsMap map[common.AssetPair]string, log zerolog.Logger) *PriceProvider {
-	log = log.With().
+func newPriceProvider(source Source, exchangeName string, pairToSymbolsMap map[common.AssetPair]string, logger zerolog.Logger) *PriceProvider {
+	log := logger.With().
 		Str("component", "price-provider").
 		Str("price-source", exchangeName).
 		Logger()
 
 	pp := &PriceProvider{
-		log:             log,
+		logger:          log,
 		stop:            make(chan struct{}),
 		done:            make(chan struct{}),
 		source:          source,
@@ -49,7 +49,7 @@ func newPriceProvider(source Source, exchangeName string, pairToSymbolsMap map[c
 // it wraps a Source and handles conversions between
 // nibiru asset pair to exchange symbols.
 type PriceProvider struct {
-	log zerolog.Logger
+	logger zerolog.Logger
 
 	stop, done chan struct{}
 
@@ -70,7 +70,7 @@ func (p *PriceProvider) GetPrice(pair common.AssetPair) types.Price {
 	// when for example we have a param update, then we return
 	// an abstain vote on the provided asset pair.
 	if !ok {
-		p.log.Warn().Str("nibiru-pair", pair.String()).Msg("unknown nibiru pair")
+		p.logger.Warn().Str("nibiru-pair", pair.String()).Msg("unknown nibiru pair")
 		return types.Price{
 			Pair:         pair,
 			Price:        0, // TODO(heisenberg): return -1 instead for abstain vote
