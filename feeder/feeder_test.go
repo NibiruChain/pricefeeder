@@ -49,17 +49,17 @@ func TestVotingPeriod(t *testing.T) {
 	defer tf.close()
 
 	validPrice := types.Price{
-		Pair:   common.Pair_BTC_NUSD,
-		Price:  100_000.8,
-		Source: "mock-source",
-		Valid:  true,
+		Pair:         common.Pair_BTC_NUSD,
+		Price:        100_000.8,
+		ExchangeName: "mock-source",
+		Valid:        true,
 	}
 
 	invalidPrice := types.Price{
-		Pair:   common.Pair_ETH_NUSD,
-		Price:  7000.11,
-		Source: "mock-source",
-		Valid:  false,
+		Pair:         common.Pair_ETH_NUSD,
+		Price:        7000.11,
+		ExchangeName: "mock-source",
+		Valid:        false,
 	}
 
 	abstainPrice := invalidPrice

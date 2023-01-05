@@ -25,21 +25,21 @@ func NewPriceProvider(exchangeName string, pairToSymbolMap map[common.AssetPair]
 // newPriceProvider returns a raw *PriceProvider given a Source implementer, the source name and the
 // map of nibiru common.AssetPair to Source's symbols, plus the zerolog.Logger instance.
 // Exists for testing purposes.
-func newPriceProvider(source Source, sourceName string, pairToSymbolsMap map[common.AssetPair]string, log zerolog.Logger) *PriceProvider {
+func newPriceProvider(source Source, exchangeName string, pairToSymbolsMap map[common.AssetPair]string, log zerolog.Logger) *PriceProvider {
 	log = log.With().
 		Str("component", "price-provider").
-		Str("price-source", sourceName).
+		Str("price-source", exchangeName).
 		Logger()
 
 	pp := &PriceProvider{
-		log:          log,
-		stop:         make(chan struct{}),
-		done:         make(chan struct{}),
-		source:       source,
-		sourceName:   sourceName,
-		pairToSymbol: pairToSymbolsMap,
-		mu:           sync.Mutex{},
-		lastPrices:   map[string]SourcePriceUpdate{},
+		log:             log,
+		stop:            make(chan struct{}),
+		done:            make(chan struct{}),
+		source:          source,
+		exchangeName:    exchangeName,
+		pairToSymbol:    pairToSymbolsMap,
+		lastPricesMutex: sync.Mutex{},
+		lastPrices:      map[string]PriceUpdate{},
 	}
 	go pp.loop()
 	return pp
@@ -54,11 +54,11 @@ type PriceProvider struct {
 	stop, done chan struct{}
 
 	source       Source
-	sourceName   string
+	exchangeName string
 	pairToSymbol map[common.AssetPair]string
 
-	mu         sync.Mutex
-	lastPrices map[string]SourcePriceUpdate
+	lastPricesMutex sync.Mutex
+	lastPrices      map[string]PriceUpdate
 }
 
 // GetPrice returns the types.Price for the given common.AssetPair
@@ -72,20 +72,20 @@ func (p *PriceProvider) GetPrice(pair common.AssetPair) types.Price {
 	if !ok {
 		p.log.Warn().Str("nibiru-pair", pair.String()).Msg("unknown nibiru pair")
 		return types.Price{
-			Pair:   pair,
-			Price:  0,
-			Source: p.sourceName,
-			Valid:  false,
+			Pair:         pair,
+			Price:        0, // TODO(heisenberg): return -1 instead for abstain vote
+			ExchangeName: p.exchangeName,
+			Valid:        false,
 		}
 	}
-	p.mu.Lock()
+	p.lastPricesMutex.Lock()
 	price, ok := p.lastPrices[symbol]
-	p.mu.Unlock()
+	p.lastPricesMutex.Unlock()
 	return types.Price{
-		Pair:   pair,
-		Price:  price.Price,
-		Source: p.sourceName,
-		Valid:  isValid(price, ok),
+		Pair:         pair,
+		Price:        price.Price,
+		ExchangeName: p.exchangeName,
+		Valid:        isValid(price, ok),
 	}
 }
 
@@ -98,11 +98,11 @@ func (p *PriceProvider) loop() {
 		case <-p.stop:
 			return
 		case updates := <-p.source.PricesUpdate():
-			p.mu.Lock()
+			p.lastPricesMutex.Lock()
 			for symbol, price := range updates {
 				p.lastPrices[symbol] = price
 			}
-			p.mu.Unlock()
+			p.lastPricesMutex.Unlock()
 		}
 	}
 }
@@ -124,6 +124,6 @@ func symbolsFromPairsToSymbolsMap(m map[common.AssetPair]string) []string {
 
 // isValid is a helper function which asserts if a price is valid given
 // if it was found and the time at which it was last updated.
-func isValid(price SourcePriceUpdate, found bool) bool {
-	return found && time.Now().Sub(price.UpdateTime) < PriceTimeout
+func isValid(price PriceUpdate, found bool) bool {
+	return found && time.Since(price.UpdateTime) < PriceTimeout
 }

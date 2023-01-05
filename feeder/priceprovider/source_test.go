@@ -3,11 +3,12 @@ package priceprovider
 import (
 	"bytes"
 	"fmt"
-	"github.com/rs/zerolog"
-	"github.com/stretchr/testify/require"
 	"io"
 	"testing"
 	"time"
+
+	"github.com/rs/zerolog"
+	"github.com/stretchr/testify/require"
 )
 
 var _ io.Writer = (*mockWriter)(nil)
@@ -30,7 +31,7 @@ func TestTickSource(t *testing.T) {
 
 		defer ts.Close()
 
-		var gotPrices map[string]SourcePriceUpdate
+		var gotPrices map[string]PriceUpdate
 		select {
 		case gotPrices = <-ts.PricesUpdate():
 		case <-time.After(6 * time.Second): // timeout
@@ -40,7 +41,7 @@ func TestTickSource(t *testing.T) {
 		require.Equal(t, len(expectedPrices), len(gotPrices))
 		for symbol, price := range expectedPrices {
 			require.Equal(t, price, gotPrices[symbol].Price)
-			require.True(t, time.Now().Sub(gotPrices[symbol].UpdateTime) < 50*time.Millisecond)
+			require.True(t, time.Since(gotPrices[symbol].UpdateTime) < 50*time.Millisecond)
 		}
 	})
 

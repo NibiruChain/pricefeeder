@@ -75,8 +75,8 @@ type Price struct {
 	Pair common.AssetPair
 	// Price defines the symbol's price.
 	Price float64
-	// Source defines the source which is providing the prices.
-	Source string
+	// ExchangeName defines the source which is providing the prices.
+	ExchangeName string
 	// Valid reports whether the price is valid or not.
 	// If not valid then an abstain vote will be posted.
 	Valid bool

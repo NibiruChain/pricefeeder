@@ -1,21 +1,22 @@
 package priceprovider
 
 import (
-	"github.com/NibiruChain/nibiru/x/common"
-	"github.com/rs/zerolog"
-	"github.com/stretchr/testify/require"
 	"io"
 	"testing"
 	"time"
+
+	"github.com/NibiruChain/nibiru/x/common"
+	"github.com/rs/zerolog"
+	"github.com/stretchr/testify/require"
 )
 
 type testAsyncPriceProvider struct {
 	closeFn       func()
-	priceUpdatesC chan map[string]SourcePriceUpdate
+	priceUpdatesC chan map[string]PriceUpdate
 }
 
 func (t testAsyncPriceProvider) Close() { t.closeFn() }
-func (t testAsyncPriceProvider) PricesUpdate() <-chan map[string]SourcePriceUpdate {
+func (t testAsyncPriceProvider) PricesUpdate() <-chan map[string]PriceUpdate {
 	return t.priceUpdatesC
 }
 
@@ -58,21 +59,21 @@ func TestPriceProvider(t *testing.T) {
 
 func Test_isValid(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
-		require.True(t, isValid(SourcePriceUpdate{
+		require.True(t, isValid(PriceUpdate{
 			Price:      10,
 			UpdateTime: time.Now(),
 		}, true))
 	})
 
 	t.Run("price not found", func(t *testing.T) {
-		require.False(t, isValid(SourcePriceUpdate{
+		require.False(t, isValid(PriceUpdate{
 			Price:      10,
 			UpdateTime: time.Now(),
 		}, false))
 	})
 
 	t.Run("price expired", func(t *testing.T) {
-		require.False(t, isValid(SourcePriceUpdate{
+		require.False(t, isValid(PriceUpdate{
 			Price:      20,
 			UpdateTime: time.Now().Add(-1 - 1*PriceTimeout),
 		}, true))

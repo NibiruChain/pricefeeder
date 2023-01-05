@@ -3,6 +3,11 @@ package tx
 import (
 	"bytes"
 	"context"
+	"io"
+	"net/url"
+	"os"
+	"testing"
+
 	"github.com/NibiruChain/nibiru/app"
 	"github.com/NibiruChain/nibiru/simapp"
 	"github.com/NibiruChain/nibiru/x/common"
@@ -12,10 +17,6 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"io"
-	"net/url"
-	"os"
-	"testing"
 )
 
 type IntegrationTestSuite struct {
@@ -71,10 +72,10 @@ func (s *IntegrationTestSuite) randomPrices() []types.Price {
 	prices := make([]types.Price, len(vt.VoteTargets))
 	for i, t := range vt.VoteTargets {
 		prices[i] = types.Price{
-			Pair:   common.MustNewAssetPair(t),
-			Price:  float64(i),
-			Source: "test",
-			Valid:  true,
+			Pair:         common.MustNewAssetPair(t),
+			Price:        float64(i),
+			ExchangeName: "test",
+			Valid:        true,
 		}
 	}
 	return prices
