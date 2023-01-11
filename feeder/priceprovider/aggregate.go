@@ -50,10 +50,9 @@ func (a AggregatePriceProvider) GetPrice(pair common.AssetPair) types.Price {
 	// if we reach here no valid symbols were found
 	a.logger.Warn().Str("pair", pair.String()).Msg("no valid prices")
 	return types.Price{
-		Pair:         pair,
-		Price:        0,
-		ExchangeName: "aggregate",
-		Valid:        false,
+		Pair:  pair,
+		Price: 0,
+		Valid: false,
 	}
 }
 
