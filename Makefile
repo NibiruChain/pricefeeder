@@ -8,7 +8,7 @@ docker-compose:
 	docker-compose up
 
 test:
-	go test -json ./...
+	go test ./...
 
 run:
 	go run ./cmd/feeder/main.go
