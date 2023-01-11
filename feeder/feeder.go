@@ -22,13 +22,13 @@ type Feeder struct {
 
 	params types.Params
 
-	eventsStream  types.EventsStream
+	eventsStream  types.EventStream
 	pricePoster   types.PricePoster
 	priceProvider types.PriceProvider
 }
 
 // Run instantiates a new Feeder instance.
-func Run(stream types.EventsStream, poster types.PricePoster, provider types.PriceProvider, logger zerolog.Logger) *Feeder {
+func Run(stream types.EventStream, poster types.PricePoster, provider types.PriceProvider, logger zerolog.Logger) *Feeder {
 	f := &Feeder{
 		logger:        logger,
 		stop:          make(chan struct{}),

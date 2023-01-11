@@ -1,4 +1,4 @@
-package events
+package eventstream
 
 import (
 	"bytes"
@@ -22,7 +22,7 @@ type IntegrationTestSuite struct {
 	cfg     testutilcli.Config
 	network *testutilcli.Network
 
-	eventsStream *Stream
+	eventStream  *Stream
 	logs         *bytes.Buffer
 	oracleClient oracletypes.QueryClient
 }
@@ -43,7 +43,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	u.Path = "/websocket"
 
 	s.logs = new(bytes.Buffer)
-	s.eventsStream = Dial(u.String(), grpcEndpoint, zerolog.New(s.logs))
+	s.eventStream = Dial(u.String(), grpcEndpoint, zerolog.New(s.logs))
 
 	conn, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure())
 	require.NoError(s.T(), err)
@@ -52,12 +52,12 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 func (s *IntegrationTestSuite) TestStreamWorks() {
 	select {
-	case <-s.eventsStream.ParamsUpdate():
+	case <-s.eventStream.ParamsUpdate():
 	case <-time.After(15 * time.Second):
 		s.T().Fatal("params timeout")
 	}
 	select {
-	case <-s.eventsStream.VotingPeriodStarted():
+	case <-s.eventStream.VotingPeriodStarted():
 	case <-time.After(15 * time.Second):
 		s.T().Fatal("vote period timeout")
 	}
@@ -72,7 +72,7 @@ func (s *IntegrationTestSuite) TestStreamWorks() {
 
 func (s *IntegrationTestSuite) TearDownSuite() {
 	s.network.Cleanup()
-	s.eventsStream.Close()
+	s.eventStream.Close()
 }
 
 func TestIntegration(t *testing.T) {

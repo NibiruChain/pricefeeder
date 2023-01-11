@@ -1,4 +1,4 @@
-package events
+package eventstream
 
 import (
 	"encoding/json"

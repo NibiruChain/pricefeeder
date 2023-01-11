@@ -52,20 +52,20 @@ type VotingPeriod struct {
 	Height uint64
 }
 
-// EventsStream defines the asynchronous stream
+// EventStream defines the asynchronous stream
 // of events required by the feeder's Loop function.
-// EventsStream must handle failures by itself.
+// EventStream must handle failures by itself.
 //
-//go:generate mockgen --destination ../mocks/feeder/types/events_stream.go . EventsStream
-type EventsStream interface {
+//go:generate mockgen --destination ../mocks/feeder/types/events_stream.go . EventStream
+type EventStream interface {
 	// ParamsUpdate signals a new Params update.
-	// EventsStream must provide, on startup, the
+	// EventStream must provide, on startup, the
 	// initial Params found on the chain.
 	ParamsUpdate() <-chan Params
 	// VotingPeriodStarted signals a new x/oracle
 	// voting period has just started.
 	VotingPeriodStarted() <-chan VotingPeriod
-	// Close shuts down the EventsStream.
+	// Close shuts down the EventStream.
 	Close()
 }
 

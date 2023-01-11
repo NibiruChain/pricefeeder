@@ -1,4 +1,4 @@
-package events
+package eventstream
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var _ types.EventsStream = (*Stream)(nil)
+var _ types.EventStream = (*Stream)(nil)
 
 // wsI exists for testing purposes.
 type wsI interface {

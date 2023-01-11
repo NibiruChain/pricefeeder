@@ -20,7 +20,7 @@ func TestRun(t *testing.T) {
 		ps := mock_feeder.NewMockPricePoster(ctrl)
 		pp := mock_feeder.NewMockPriceProvider(ctrl)
 
-		es := mock_feeder.NewMockEventsStream(ctrl)
+		es := mock_feeder.NewMockEventStream(ctrl)
 
 		es.EXPECT().ParamsUpdate().
 			Return(make(chan types.Params))
@@ -76,7 +76,7 @@ func TestVotingPeriod(t *testing.T) {
 type testFeeder struct {
 	f                 *Feeder
 	mockPriceProvider *mock_feeder.MockPriceProvider
-	mockEventsStream  *mock_feeder.MockEventsStream
+	mockEventStream   *mock_feeder.MockEventStream
 	mockPricePoster   *mock_feeder.MockPricePoster
 	newVotingPeriod   chan types.VotingPeriod
 	paramsUpdate      chan types.Params
@@ -87,7 +87,7 @@ func initFeeder(t *testing.T) testFeeder {
 	ctrl := gomock.NewController(t)
 	ps := mock_feeder.NewMockPricePoster(ctrl)
 	pp := mock_feeder.NewMockPriceProvider(ctrl)
-	es := mock_feeder.NewMockEventsStream(ctrl)
+	es := mock_feeder.NewMockEventStream(ctrl)
 	params := make(chan types.Params, 1)
 	es.EXPECT().ParamsUpdate().AnyTimes().Return(params)
 	nvp := make(chan types.VotingPeriod, 1)
@@ -102,7 +102,7 @@ func initFeeder(t *testing.T) testFeeder {
 	return testFeeder{
 		f:                 f,
 		mockPriceProvider: pp,
-		mockEventsStream:  es,
+		mockEventStream:   es,
 		mockPricePoster:   ps,
 		newVotingPeriod:   nvp,
 		paramsUpdate:      params,

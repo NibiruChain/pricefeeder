@@ -13,7 +13,7 @@ import (
 	"github.com/NibiruChain/nibiru/x/common"
 	testutilcli "github.com/NibiruChain/nibiru/x/testutil/cli"
 	"github.com/NibiruChain/price-feeder/feeder"
-	"github.com/NibiruChain/price-feeder/feeder/events"
+	"github.com/NibiruChain/price-feeder/feeder/eventstream"
 	"github.com/NibiruChain/price-feeder/feeder/priceposter"
 	"github.com/NibiruChain/price-feeder/feeder/priceprovider"
 	"github.com/rs/zerolog"
@@ -49,13 +49,13 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.logs = new(bytes.Buffer)
 	log := zerolog.New(io.MultiWriter(os.Stderr, s.logs)).Level(zerolog.InfoLevel)
 
-	eventsStream := events.Dial(u.String(), grpcEndpoint, log)
+	eventStream := eventstream.Dial(u.String(), grpcEndpoint, log)
 	priceProvider := priceprovider.NewPriceProvider(priceprovider.Bitfinex, map[common.AssetPair]string{
 		common.Pair_BTC_NUSD: "tBTCUSD",
 		common.Pair_ETH_NUSD: "tETHUSD",
 	}, log)
 	pricePoster := priceposter.Dial(grpcEndpoint, s.cfg.ChainID, val.ClientCtx.Keyring, val.ValAddress, val.Address, log)
-	s.feeder = feeder.Run(eventsStream, pricePoster, priceProvider, log)
+	s.feeder = feeder.Run(eventStream, pricePoster, priceProvider, log)
 }
 
 func (s *IntegrationTestSuite) TestOk() {
