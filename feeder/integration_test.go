@@ -2,22 +2,23 @@ package feeder_test
 
 import (
 	"bytes"
+	"io"
+	"net/url"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/NibiruChain/nibiru/app"
 	"github.com/NibiruChain/nibiru/simapp"
 	"github.com/NibiruChain/nibiru/x/common"
 	testutilcli "github.com/NibiruChain/nibiru/x/testutil/cli"
 	"github.com/NibiruChain/price-feeder/feeder"
 	"github.com/NibiruChain/price-feeder/feeder/events"
+	"github.com/NibiruChain/price-feeder/feeder/priceposter"
 	"github.com/NibiruChain/price-feeder/feeder/priceprovider"
-	"github.com/NibiruChain/price-feeder/feeder/tx"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"io"
-	"net/url"
-	"os"
-	"testing"
-	"time"
 )
 
 type IntegrationTestSuite struct {
@@ -53,7 +54,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		common.Pair_BTC_NUSD: "tBTCUSD",
 		common.Pair_ETH_NUSD: "tETHUSD",
 	}, log)
-	pricePoster := tx.Dial(grpcEndpoint, s.cfg.ChainID, val.ClientCtx.Keyring, val.ValAddress, val.Address, log)
+	pricePoster := priceposter.Dial(grpcEndpoint, s.cfg.ChainID, val.ClientCtx.Keyring, val.ValAddress, val.Address, log)
 	s.feeder = feeder.Run(eventsStream, pricePoster, priceProvider, log)
 }
 
