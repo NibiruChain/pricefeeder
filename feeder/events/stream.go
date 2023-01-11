@@ -58,16 +58,16 @@ type Stream struct {
 func (s *Stream) votingPeriodStartedLoop(ws wsI, logger zerolog.Logger) {
 	defer func() {
 		logger.Info().Msg("exited loop")
+		s.waitGroup.Done()
+		ws.close()
 	}()
-	defer s.waitGroup.Done()
-	defer ws.close()
 
 	for {
 		select {
 		case <-s.stopSignal:
 			return
 		case msg := <-ws.message():
-			logger.Debug().Bytes("message", msg).Msg("received message from websocket")
+			logger.Debug().Bytes("payload", msg).Msg("received message from websocket")
 			blockHeight, err := getBlockHeight(msg)
 			if err != nil {
 				logger.Err(err).Msg("whilst getting block height")
@@ -96,13 +96,12 @@ func (s *Stream) votingPeriodStartedLoop(ws wsI, logger zerolog.Logger) {
 }
 
 func (s *Stream) paramsLoop(oracleClient oracletypes.QueryClient, logger zerolog.Logger) {
+	tick := time.NewTicker(10 * time.Second)
 	defer func() {
 		logger.Info().Msg("exited loop")
+		s.waitGroup.Done()
+		tick.Stop()
 	}()
-	defer s.waitGroup.Done()
-
-	tick := time.NewTicker(10 * time.Second)
-	defer tick.Stop()
 
 	updateParams := func() (types.Params, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
