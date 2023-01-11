@@ -1,8 +1,6 @@
 generate:
 	go generate ./...
 
-mocks: generate
-
 build-docker:
 	docker-compose build
 
