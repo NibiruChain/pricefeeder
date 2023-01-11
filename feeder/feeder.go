@@ -6,7 +6,7 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"github.com/NibiruChain/price-feeder/feeder/types"
+	"github.com/NibiruChain/price-feeder/types"
 )
 
 var (

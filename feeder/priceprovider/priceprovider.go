@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/NibiruChain/nibiru/x/common"
-	"github.com/NibiruChain/price-feeder/feeder/types"
+	"github.com/NibiruChain/price-feeder/types"
 	"github.com/rs/zerolog"
 )
 
