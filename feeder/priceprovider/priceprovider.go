@@ -28,7 +28,7 @@ func NewPriceProvider(exchangeName string, pairToSymbolMap map[common.AssetPair]
 func newPriceProvider(source Source, exchangeName string, pairToSymbolsMap map[common.AssetPair]string, logger zerolog.Logger) *PriceProvider {
 	pp := &PriceProvider{
 		logger:          logger.With().Str("component", "price-provider").Str("exchange", exchangeName).Logger(),
-		stop:            make(chan struct{}),
+		stopSignal:      make(chan struct{}),
 		done:            make(chan struct{}),
 		source:          source,
 		exchangeName:    exchangeName,
@@ -44,15 +44,12 @@ func newPriceProvider(source Source, exchangeName string, pairToSymbolsMap map[c
 // it wraps a Source and handles conversions between
 // nibiru asset pair to exchange symbols.
 type PriceProvider struct {
-	logger zerolog.Logger
-
-	stop chan struct{}
-	done chan struct{}
-
-	source       Source
-	exchangeName string
-	pairToSymbol map[common.AssetPair]string
-
+	logger          zerolog.Logger
+	stopSignal      chan struct{}
+	done            chan struct{}
+	source          Source
+	exchangeName    string
+	pairToSymbol    map[common.AssetPair]string
 	lastPricesMutex sync.Mutex
 	lastPrices      map[string]PriceUpdate
 }
@@ -91,7 +88,7 @@ func (p *PriceProvider) loop() {
 
 	for {
 		select {
-		case <-p.stop:
+		case <-p.stopSignal:
 			return
 		case updates := <-p.source.PriceUpdates():
 			p.lastPricesMutex.Lock()
@@ -104,7 +101,7 @@ func (p *PriceProvider) loop() {
 }
 
 func (p *PriceProvider) Close() {
-	close(p.stop)
+	close(p.stopSignal)
 	<-p.done
 }
 
