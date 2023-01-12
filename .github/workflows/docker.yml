@@ -38,7 +38,7 @@ jobs:
         with:
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ghcr.io/${{ github.repository }}:${{ steps.get_version.outputs.version-without-v }}
+          tags: ghcr.io/nibiruchain/pricefeeder:${{ steps.get_version.outputs.version-without-v }}
 
       # tag the image with :latest when pushing to master
       - name: Build and push latest image
@@ -47,4 +47,4 @@ jobs:
         with:
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/nibiruchain/pricefeeder:latest
