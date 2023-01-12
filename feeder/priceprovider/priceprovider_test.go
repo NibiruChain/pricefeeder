@@ -15,16 +15,16 @@ var _ types.Source = (*testAsyncSource)(nil)
 
 type testAsyncSource struct {
 	closeFn       func()
-	priceUpdatesC chan map[types.Symbol]types.Price
+	priceUpdatesC chan map[types.Symbol]types.RawPrice
 }
 
 func (t testAsyncSource) Close() { t.closeFn() }
-func (t testAsyncSource) PriceUpdates() <-chan map[types.Symbol]types.Price {
+func (t testAsyncSource) PriceUpdates() <-chan map[types.Symbol]types.RawPrice {
 	return t.priceUpdatesC
 }
 
 func TestPriceProvider(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
+	t.Run("bitfinex success", func(t *testing.T) {
 		pp := NewPriceProvider(Bitfinex, map[common.AssetPair]types.Symbol{common.Pair_BTC_NUSD: "tBTCUSD"}, zerolog.New(io.Discard))
 		defer pp.Close()
 		<-time.After(UpdateTick + 2*time.Second)
@@ -43,12 +43,29 @@ func TestPriceProvider(t *testing.T) {
 		pp := newPriceProvider(testAsyncSource{}, "test", map[common.AssetPair]types.Symbol{}, zerolog.New(io.Discard))
 		price := pp.GetPrice(common.Pair_BTC_NUSD)
 		require.False(t, price.Valid)
-		require.Zero(t, price.Price)
+		require.Equal(t, float64(-1), price.Price)
 		require.Equal(t, common.Pair_BTC_NUSD, price.Pair)
 	})
 
+	t.Run("returns correct price", func(t *testing.T) {
+		priceUpdatesC := make(chan map[types.Symbol]types.RawPrice)
+		source := testAsyncSource{
+			priceUpdatesC: priceUpdatesC,
+			closeFn:       func() { close(priceUpdatesC) },
+		}
+		pp := newPriceProvider(source, "test", map[common.AssetPair]types.Symbol{common.Pair_BTC_NUSD: "BTC:NUSD"}, zerolog.New(io.Discard))
+
+		priceUpdatesC <- map[types.Symbol]types.RawPrice{"BTC:NUSD": {Price: 10, UpdateTime: time.Now()}}
+		price := pp.GetPrice(common.Pair_BTC_NUSD)
+
+		require.True(t, price.Valid)
+		require.Equal(t, float64(10), price.Price)
+		require.Equal(t, common.Pair_BTC_NUSD, price.Pair)
+		require.Equal(t, "test", price.SourceName)
+	})
+
 	t.Run("Close assertions", func(t *testing.T) {
-		var closed bool
+		closed := false
 		pp := newPriceProvider(testAsyncSource{
 			closeFn: func() {
 				closed = true
@@ -60,23 +77,23 @@ func TestPriceProvider(t *testing.T) {
 	})
 }
 
-func Test_isValid(t *testing.T) {
+func TestIsValid(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
-		require.True(t, isValid(types.Price{
+		require.True(t, isValid(types.RawPrice{
 			Price:      10,
 			UpdateTime: time.Now(),
 		}, true))
 	})
 
 	t.Run("price not found", func(t *testing.T) {
-		require.False(t, isValid(types.Price{
+		require.False(t, isValid(types.RawPrice{
 			Price:      10,
 			UpdateTime: time.Now(),
 		}, false))
 	})
 
 	t.Run("price expired", func(t *testing.T) {
-		require.False(t, isValid(types.Price{
+		require.False(t, isValid(types.RawPrice{
 			Price:      20,
 			UpdateTime: time.Now().Add(-1 - 1*types.PriceTimeout),
 		}, true))

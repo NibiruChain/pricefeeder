@@ -13,22 +13,11 @@ var (
 	UpdateTick = 3 * time.Second
 )
 
-const (
-	Bitfinex = "bitfinex"
-)
-
 var _ types.Source = (*TickSource)(nil)
-
-// FetchPricesFunc is the function used to fetch updated prices.
-// The symbols passed are the symbols we require prices for.
-// The returned map must map symbol to its float64 price, or an error.
-// If there's a failure in updating only one price then the map can be returned
-// without the provided symbol.
-type FetchPricesFunc func(symbols types.Symbols) (map[types.Symbol]float64, error)
 
 // NewTickSource instantiates a new TickSource instance, given the symbols and a price updater function
 // which returns the latest prices for the provided symbols.
-func NewTickSource(symbols types.Symbols, fetchPricesFunc FetchPricesFunc, logger zerolog.Logger) *TickSource {
+func NewTickSource(symbols types.Symbols, fetchPricesFunc types.FetchPricesFunc, logger zerolog.Logger) *TickSource {
 	ts := &TickSource{
 		logger:             logger,
 		stopSignal:         make(chan struct{}),
@@ -36,9 +25,11 @@ func NewTickSource(symbols types.Symbols, fetchPricesFunc FetchPricesFunc, logge
 		tick:               time.NewTicker(UpdateTick),
 		symbols:            symbols,
 		fetchPrices:        fetchPricesFunc,
-		priceUpdateChannel: make(chan map[types.Symbol]types.Price),
+		priceUpdateChannel: make(chan map[types.Symbol]types.RawPrice),
 	}
+
 	go ts.loop()
+
 	return ts
 }
 
@@ -51,7 +42,7 @@ type TickSource struct {
 	tick               *time.Ticker
 	symbols            types.Symbols // symbols as named on the third party data source
 	fetchPrices        func(symbols types.Symbols) (map[types.Symbol]float64, error)
-	priceUpdateChannel chan map[types.Symbol]types.Price
+	priceUpdateChannel chan map[types.Symbol]types.RawPrice
 }
 
 func (s *TickSource) loop() {
@@ -65,15 +56,15 @@ func (s *TickSource) loop() {
 		case <-s.tick.C:
 			s.logger.Debug().Msg("received tick, updating prices")
 
-			prices, err := s.fetchPrices(s.symbols)
+			rawPrices, err := s.fetchPrices(s.symbols)
 			if err != nil {
 				s.logger.Err(err).Msg("failed to update prices")
 				break // breaks the current select case, not the for cycle
 			}
 
-			priceUpdate := make(map[types.Symbol]types.Price, len(prices))
-			for symbol, price := range prices {
-				priceUpdate[symbol] = types.Price{
+			priceUpdate := make(map[types.Symbol]types.RawPrice, len(rawPrices))
+			for symbol, price := range rawPrices {
+				priceUpdate[symbol] = types.RawPrice{
 					Price:      price,
 					UpdateTime: time.Now(),
 				}
@@ -91,7 +82,7 @@ func (s *TickSource) loop() {
 	}
 }
 
-func (s *TickSource) PriceUpdates() <-chan map[types.Symbol]types.Price {
+func (s *TickSource) PriceUpdates() <-chan map[types.Symbol]types.RawPrice {
 	return s.priceUpdateChannel
 }
 

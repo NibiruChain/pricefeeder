@@ -32,7 +32,7 @@ func TestTickSource(t *testing.T) {
 
 		defer ts.Close()
 
-		var gotPrices map[types.Symbol]types.Price
+		var gotPrices map[types.Symbol]types.RawPrice
 		select {
 		case gotPrices = <-ts.PriceUpdates():
 		case <-time.After(6 * time.Second): // timeout

@@ -9,6 +9,12 @@ import (
 	"github.com/NibiruChain/price-feeder/types"
 )
 
+const (
+	Bitfinex = "bitfinex"
+)
+
+var _ types.FetchPricesFunc = BitfinexPriceUpdate
+
 // BitfinexPriceUpdate returns the prices given the symbols or an error.
 func BitfinexPriceUpdate(symbols types.Symbols) (rawPrices map[types.Symbol]float64, err error) {
 	type ticker []interface{}

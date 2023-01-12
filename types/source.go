@@ -8,7 +8,7 @@ type Source interface {
 	// PriceUpdates is a readonly channel which provides
 	// the latest prices update. Updates can be provided
 	// for one asset only or in batches, hence the map.
-	PriceUpdates() <-chan map[Symbol]Price
+	PriceUpdates() <-chan map[Symbol]RawPrice
 	// Close closes the Source.
 	Close()
 }
