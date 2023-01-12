@@ -1,4 +1,4 @@
-package priceprovider
+package sources
 
 import (
 	"encoding/json"
@@ -13,7 +13,15 @@ const (
 	Bitfinex = "bitfinex"
 )
 
-var _ types.FetchPricesFunc = BitfinexPriceUpdate
+var _ types.FetchPricesFunc = BinancePriceUpdate
+
+func BitfinexSymbolCsv(symbols types.Symbols) string {
+	s := ""
+	for _, symbol := range symbols {
+		s += string(symbol) + ","
+	}
+	return s[:len(s)-1]
+}
 
 // BitfinexPriceUpdate returns the prices given the symbols or an error.
 func BitfinexPriceUpdate(symbols types.Symbols) (rawPrices map[types.Symbol]float64, err error) {
@@ -22,7 +30,8 @@ func BitfinexPriceUpdate(symbols types.Symbols) (rawPrices map[types.Symbol]floa
 	const lastPriceIndex = 7
 	const symbolNameIndex = 0
 
-	resp, err := http.Get("https://api-pub.bitfinex.com/v2/tickers?symbols=" + symbols.CSV())
+	var url string = "https://api-pub.bitfinex.com/v2/tickers?symbols=" + BitfinexSymbolCsv(symbols)
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/NibiruChain/nibiru/x/common"
+	"github.com/NibiruChain/price-feeder/feeder/priceprovider/sources"
 	"github.com/NibiruChain/price-feeder/types"
 	"github.com/rs/zerolog"
 )
@@ -30,8 +31,8 @@ type PriceProvider struct {
 func NewPriceProvider(sourceName string, pairToSymbolMap map[common.AssetPair]types.Symbol, logger zerolog.Logger) types.PriceProvider {
 	var source types.Source
 	switch sourceName {
-	case Bitfinex:
-		source = NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), BitfinexPriceUpdate, logger)
+	case sources.Bitfinex:
+		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.BinancePriceUpdate, logger)
 	default:
 		panic("unknown price provider: " + sourceName)
 	}

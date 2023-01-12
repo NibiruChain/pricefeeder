@@ -16,6 +16,7 @@ import (
 	"github.com/NibiruChain/price-feeder/feeder/eventstream"
 	"github.com/NibiruChain/price-feeder/feeder/priceposter"
 	"github.com/NibiruChain/price-feeder/feeder/priceprovider"
+	"github.com/NibiruChain/price-feeder/feeder/priceprovider/sources"
 	"github.com/NibiruChain/price-feeder/types"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
@@ -51,7 +52,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	log := zerolog.New(io.MultiWriter(os.Stderr, s.logs)).Level(zerolog.InfoLevel)
 
 	eventStream := eventstream.Dial(u.String(), grpcEndpoint, log)
-	priceProvider := priceprovider.NewPriceProvider(priceprovider.Bitfinex, map[common.AssetPair]types.Symbol{
+	priceProvider := priceprovider.NewPriceProvider(sources.Bitfinex, map[common.AssetPair]types.Symbol{
 		common.Pair_BTC_NUSD: "tBTCUSD",
 		common.Pair_ETH_NUSD: "tETHUSD",
 	}, log)

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/NibiruChain/nibiru/x/common"
+	"github.com/NibiruChain/price-feeder/feeder/priceprovider/sources"
 	"github.com/NibiruChain/price-feeder/types"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
@@ -25,12 +26,14 @@ func (t testAsyncSource) PriceUpdates() <-chan map[types.Symbol]types.RawPrice {
 
 func TestPriceProvider(t *testing.T) {
 	t.Run("bitfinex success", func(t *testing.T) {
-		pp := NewPriceProvider(Bitfinex, map[common.AssetPair]types.Symbol{common.Pair_BTC_NUSD: "tBTCUSD"}, zerolog.New(io.Discard))
+		pp := NewPriceProvider(sources.Bitfinex, map[common.AssetPair]types.Symbol{common.Pair_BTC_NUSD: "tBTCUSD"}, zerolog.New(io.Discard))
 		defer pp.Close()
-		<-time.After(UpdateTick + 2*time.Second)
+		<-time.After(sources.UpdateTick + 2*time.Second)
 
 		price := pp.GetPrice(common.Pair_BTC_NUSD)
 		require.True(t, price.Valid)
+		require.Equal(t, common.Pair_BTC_NUSD, price.Pair)
+		require.Equal(t, sources.Bitfinex, price.SourceName)
 	})
 
 	t.Run("panics on unknown price source", func(t *testing.T) {

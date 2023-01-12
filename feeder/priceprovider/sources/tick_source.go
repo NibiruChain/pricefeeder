@@ -1,4 +1,4 @@
-package priceprovider
+package sources
 
 import (
 	"time"
