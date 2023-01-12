@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/NibiruChain/nibiru/x/common"
+	"github.com/NibiruChain/price-feeder/types"
 	"github.com/joho/godotenv"
 )
 
@@ -33,18 +34,18 @@ func Get() (*Config, error) {
 		return nil, fmt.Errorf("failed to parse EXCHANGE_SYMBOLS_MAP: invalid json")
 	}
 
-	conf.ExchangesToPairToSymbolMap = map[string]map[common.AssetPair]string{}
+	conf.ExchangesToPairToSymbolMap = map[string]map[common.AssetPair]types.Symbol{}
 	for exchange, symbolMap := range exchangeSymbolsMap {
-		conf.ExchangesToPairToSymbolMap[exchange] = map[common.AssetPair]string{}
+		conf.ExchangesToPairToSymbolMap[exchange] = map[common.AssetPair]types.Symbol{}
 		for nibiAssetPair, tickerSymbol := range symbolMap {
-			conf.ExchangesToPairToSymbolMap[exchange][common.MustNewAssetPair(nibiAssetPair)] = tickerSymbol
+			conf.ExchangesToPairToSymbolMap[exchange][common.MustNewAssetPair(nibiAssetPair)] = types.Symbol(tickerSymbol)
 		}
 	}
 	return conf, conf.Validate()
 }
 
 type Config struct {
-	ExchangesToPairToSymbolMap map[string]map[common.AssetPair]string
+	ExchangesToPairToSymbolMap map[string]map[common.AssetPair]types.Symbol
 	GRPCEndpoint               string
 	WebsocketEndpoint          string
 	FeederMnemonic             string

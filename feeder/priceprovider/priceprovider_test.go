@@ -6,25 +6,26 @@ import (
 	"time"
 
 	"github.com/NibiruChain/nibiru/x/common"
+	"github.com/NibiruChain/price-feeder/types"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
 
-var _ Source = (*testAsyncSource)(nil)
+var _ types.Source = (*testAsyncSource)(nil)
 
 type testAsyncSource struct {
 	closeFn       func()
-	priceUpdatesC chan map[string]PriceUpdate
+	priceUpdatesC chan map[types.Symbol]types.Price
 }
 
 func (t testAsyncSource) Close() { t.closeFn() }
-func (t testAsyncSource) PriceUpdates() <-chan map[string]PriceUpdate {
+func (t testAsyncSource) PriceUpdates() <-chan map[types.Symbol]types.Price {
 	return t.priceUpdatesC
 }
 
 func TestPriceProvider(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		pp := NewPriceProvider(Bitfinex, map[common.AssetPair]string{common.Pair_BTC_NUSD: "tBTCUSD"}, zerolog.New(io.Discard))
+		pp := NewPriceProvider(Bitfinex, map[common.AssetPair]types.Symbol{common.Pair_BTC_NUSD: "tBTCUSD"}, zerolog.New(io.Discard))
 		defer pp.Close()
 		<-time.After(UpdateTick + 2*time.Second)
 
@@ -39,7 +40,7 @@ func TestPriceProvider(t *testing.T) {
 	})
 
 	t.Run("returns invalid price on unknown AssetPair", func(t *testing.T) {
-		pp := newPriceProvider(testAsyncSource{}, "test", map[common.AssetPair]string{}, zerolog.New(io.Discard))
+		pp := newPriceProvider(testAsyncSource{}, "test", map[common.AssetPair]types.Symbol{}, zerolog.New(io.Discard))
 		price := pp.GetPrice(common.Pair_BTC_NUSD)
 		require.False(t, price.Valid)
 		require.Zero(t, price.Price)
@@ -52,7 +53,7 @@ func TestPriceProvider(t *testing.T) {
 			closeFn: func() {
 				closed = true
 			},
-		}, "test", map[common.AssetPair]string{}, zerolog.New(io.Discard))
+		}, "test", map[common.AssetPair]types.Symbol{}, zerolog.New(io.Discard))
 
 		pp.Close()
 		require.True(t, closed)
@@ -61,23 +62,23 @@ func TestPriceProvider(t *testing.T) {
 
 func Test_isValid(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
-		require.True(t, isValid(PriceUpdate{
+		require.True(t, isValid(types.Price{
 			Price:      10,
 			UpdateTime: time.Now(),
 		}, true))
 	})
 
 	t.Run("price not found", func(t *testing.T) {
-		require.False(t, isValid(PriceUpdate{
+		require.False(t, isValid(types.Price{
 			Price:      10,
 			UpdateTime: time.Now(),
 		}, false))
 	})
 
 	t.Run("price expired", func(t *testing.T) {
-		require.False(t, isValid(PriceUpdate{
+		require.False(t, isValid(types.Price{
 			Price:      20,
-			UpdateTime: time.Now().Add(-1 - 1*PriceTimeout),
+			UpdateTime: time.Now().Add(-1 - 1*types.PriceTimeout),
 		}, true))
 	})
 }

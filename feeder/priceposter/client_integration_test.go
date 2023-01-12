@@ -72,10 +72,10 @@ func (s *IntegrationTestSuite) randomPrices() []types.Price {
 	prices := make([]types.Price, len(vt.VoteTargets))
 	for i, t := range vt.VoteTargets {
 		prices[i] = types.Price{
-			Pair:         common.MustNewAssetPair(t),
-			Price:        float64(i),
-			ExchangeName: "test",
-			Valid:        true,
+			Pair:       common.MustNewAssetPair(t),
+			Price:      float64(i),
+			SourceName: "test",
+			Valid:      true,
 		}
 	}
 	return prices

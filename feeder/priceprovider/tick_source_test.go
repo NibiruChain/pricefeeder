@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/NibiruChain/price-feeder/types"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
@@ -21,17 +22,17 @@ func (m mockWriter) Write(p []byte) (n int, err error) { return m.w(p) }
 
 func TestTickSource(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		expectedSymbols := []string{"tBTCUSDT"}
-		expectedPrices := map[string]float64{"tBTCUSDT": 250_000.56}
+		expectedSymbols := types.Symbols{"tBTCUSDT"}
+		expectedPrices := map[types.Symbol]float64{"tBTCUSDT": 250_000.56}
 
-		ts := NewTickSource(expectedSymbols, func(symbols []string) (map[string]float64, error) {
+		ts := NewTickSource(expectedSymbols, func(symbols types.Symbols) (map[types.Symbol]float64, error) {
 			require.Equal(t, expectedSymbols, symbols)
 			return expectedPrices, nil
 		}, zerolog.New(io.Discard))
 
 		defer ts.Close()
 
-		var gotPrices map[string]PriceUpdate
+		var gotPrices map[types.Symbol]types.Price
 		select {
 		case gotPrices = <-ts.PriceUpdates():
 		case <-time.After(6 * time.Second): // timeout
@@ -56,10 +57,10 @@ func TestTickSource(t *testing.T) {
 			},
 		}
 
-		expectedSymbols := []string{"tBTCUSDT"}
-		expectedPrices := map[string]float64{"tBTCUSDT": 250_000.56}
+		expectedSymbols := types.Symbols{"tBTCUSDT"}
+		expectedPrices := map[types.Symbol]float64{"tBTCUSDT": 250_000.56}
 
-		ts := NewTickSource(expectedSymbols, func(symbols []string) (map[string]float64, error) {
+		ts := NewTickSource(expectedSymbols, func(symbols types.Symbols) (map[types.Symbol]float64, error) {
 			return expectedPrices, nil
 		}, zerolog.New(mw))
 
@@ -78,7 +79,7 @@ func TestTickSource(t *testing.T) {
 			return written, nil
 		}}
 
-		ts := NewTickSource([]string{"tBTCUSDT"}, func(symbols []string) (map[string]float64, error) {
+		ts := NewTickSource(types.Symbols{"tBTCUSDT"}, func(symbols types.Symbols) (map[types.Symbol]float64, error) {
 			return nil, fmt.Errorf("sentinel error")
 		}, zerolog.New(mw))
 		defer ts.Close()

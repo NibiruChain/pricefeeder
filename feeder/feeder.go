@@ -92,7 +92,7 @@ func (f *Feeder) startNewVotingPeriod(vp types.VotingPeriod) {
 	for i, p := range f.params.Pairs {
 		price := f.priceProvider.GetPrice(p)
 		if !price.Valid {
-			f.logger.Err(fmt.Errorf("no valid price")).Str("asset", p.String()).Str("source", price.ExchangeName)
+			f.logger.Err(fmt.Errorf("no valid price")).Str("asset", p.String()).Str("source", price.SourceName)
 			price.Price = 0
 		}
 		prices[i] = price

@@ -6,32 +6,29 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func NewAggregatePriceProvider(exchangesToPairToSymbolMap map[string]map[common.AssetPair]string, logger zerolog.Logger) types.PriceProvider {
-	providers := make([]types.PriceProvider, 0, len(exchangesToPairToSymbolMap))
-	for exchangeName, pairToSymbolMap := range exchangesToPairToSymbolMap {
-		providers = append(providers, NewPriceProvider(exchangeName, pairToSymbolMap, logger))
-	}
-	return newAggregatePriceProvider(providers, logger)
-}
-
-// NewAggregatePriceProvider instantiates a new AggregatePriceProvider instance
-// given multiple PriceProvider.
-func newAggregatePriceProvider(providers []types.PriceProvider, logger zerolog.Logger) types.PriceProvider {
-	a := AggregatePriceProvider{
-		logger:    logger.With().Str("component", "aggregate-price-provider").Logger(),
-		providers: make(map[int]types.PriceProvider, len(providers)),
-	}
-	for i, p := range providers {
-		a.providers[i] = p
-	}
-	return a
-}
+var _ types.PriceProvider = (*AggregatePriceProvider)(nil)
 
 // AggregatePriceProvider aggregates multiple price providers
 // and queries them for prices.
 type AggregatePriceProvider struct {
 	logger    zerolog.Logger
 	providers map[int]types.PriceProvider // we use a map here to provide random ranging (since golang's map range is unordered)
+}
+
+// NewAggregatePriceProvider instantiates a new AggregatePriceProvider instance
+// given multiple PriceProvider.
+func NewAggregatePriceProvider(sourcesToPairSymbolMap map[string]map[common.AssetPair]types.Symbol, logger zerolog.Logger) types.PriceProvider {
+	providers := make(map[int]types.PriceProvider, len(sourcesToPairSymbolMap))
+	i := 0
+	for sourceName, pairSymbolMapping := range sourcesToPairSymbolMap {
+		providers[i] = NewPriceProvider(sourceName, pairSymbolMapping, logger)
+		i++
+	}
+
+	return AggregatePriceProvider{
+		logger:    logger.With().Str("component", "aggregate-price-provider").Logger(),
+		providers: providers,
+	}
 }
 
 // GetPrice fetches the first available and correct price from the wrapped PriceProviders.
@@ -57,7 +54,7 @@ func (a AggregatePriceProvider) GetPrice(pair common.AssetPair) types.Price {
 }
 
 func (a AggregatePriceProvider) Close() {
-	for _, pp := range a.providers {
-		pp.Close()
+	for _, p := range a.providers {
+		p.Close()
 	}
 }
