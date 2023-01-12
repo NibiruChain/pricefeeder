@@ -22,39 +22,41 @@ type Feeder struct {
 
 	params types.Params
 
-	eventsStream  types.EventStream
+	eventStream   types.EventStream
 	pricePoster   types.PricePoster
 	priceProvider types.PriceProvider
 }
 
-// Run instantiates a new Feeder instance.
-func Run(stream types.EventStream, poster types.PricePoster, provider types.PriceProvider, logger zerolog.Logger) *Feeder {
+func NewFeeder(eventStream types.EventStream, priceProvider types.PriceProvider, pricePoster types.PricePoster, logger zerolog.Logger) *Feeder {
 	f := &Feeder{
 		logger:        logger,
 		stop:          make(chan struct{}),
 		done:          make(chan struct{}),
 		params:        types.Params{},
-		eventsStream:  stream,
-		pricePoster:   poster,
-		priceProvider: provider,
+		eventStream:   eventStream,
+		pricePoster:   pricePoster,
+		priceProvider: priceProvider,
 	}
 
+	return f
+}
+
+// Run instantiates a new Feeder instance.
+func (f *Feeder) Run() {
 	// init params
 	select {
-	case initParams := <-stream.ParamsUpdate():
+	case initParams := <-f.eventStream.ParamsUpdate():
 		f.handleParamsUpdate(initParams)
 	case <-time.After(InitTimeout):
 		panic("init timeout deadline exceeded")
 	}
 
 	go f.loop()
-
-	return f
 }
 
 func (f *Feeder) loop() {
 	defer close(f.done)
-	defer f.eventsStream.Close()
+	defer f.eventStream.Close()
 	defer f.pricePoster.Close()
 	defer f.priceProvider.Close()
 	defer f.endLastVotingPeriod()
@@ -62,10 +64,10 @@ func (f *Feeder) loop() {
 		select {
 		case <-f.stop:
 			return
-		case params := <-f.eventsStream.ParamsUpdate():
+		case params := <-f.eventStream.ParamsUpdate():
 			f.logger.Info().Interface("changes", params).Msg("params changed")
 			f.handleParamsUpdate(params)
-		case vp := <-f.eventsStream.VotingPeriodStarted():
+		case vp := <-f.eventStream.VotingPeriodStarted():
 			f.logger.Info().Interface("voting-period", vp).Msg("new voting period")
 			f.handleVotingPeriod(vp)
 		}

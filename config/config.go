@@ -6,12 +6,7 @@ import (
 	"os"
 
 	"github.com/NibiruChain/nibiru/x/common"
-	"github.com/NibiruChain/price-feeder/feeder"
-	"github.com/NibiruChain/price-feeder/feeder/eventstream"
-	"github.com/NibiruChain/price-feeder/feeder/priceposter"
-	"github.com/NibiruChain/price-feeder/feeder/priceprovider"
 	"github.com/joho/godotenv"
-	"github.com/rs/zerolog"
 )
 
 func MustGet() *Config {
@@ -70,12 +65,4 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("no grpc endpoint")
 	}
 	return nil
-}
-
-func (c *Config) Feeder(logger zerolog.Logger) *feeder.Feeder {
-	eventStream := eventstream.Dial(c.WebsocketEndpoint, c.GRPCEndpoint, logger)
-	priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, logger)
-	kb, valAddr, feederAddr := getAuth(c.FeederMnemonic)
-	pricePoster := priceposter.Dial(c.GRPCEndpoint, c.ChainID, kb, valAddr, feederAddr, logger)
-	return feeder.Run(eventStream, pricePoster, priceProvider, logger)
 }

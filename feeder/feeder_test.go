@@ -11,42 +11,39 @@ import (
 
 	"github.com/NibiruChain/nibiru/x/common"
 	"github.com/NibiruChain/price-feeder/types"
-	mock_feeder "github.com/NibiruChain/price-feeder/types/mocks"
+	mocks "github.com/NibiruChain/price-feeder/types/mocks"
 )
 
-func TestRun(t *testing.T) {
+func TestRunPanics(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	t.Run("events stream params timeout", func(t *testing.T) {
-		ps := mock_feeder.NewMockPricePoster(ctrl)
-		pp := mock_feeder.NewMockPriceProvider(ctrl)
+	pricePoster := mocks.NewMockPricePoster(ctrl)
+	priceProvider := mocks.NewMockPriceProvider(ctrl)
+	eventStream := mocks.NewMockEventStream(ctrl)
+	eventStream.EXPECT().ParamsUpdate().Return(make(chan types.Params))
 
-		es := mock_feeder.NewMockEventStream(ctrl)
+	f := NewFeeder(eventStream, priceProvider, pricePoster, zerolog.New(io.Discard))
 
-		es.EXPECT().ParamsUpdate().
-			Return(make(chan types.Params))
-
-		require.Panics(t, func() {
-			Run(es, ps, pp, zerolog.New(io.Discard))
-		})
+	require.Panics(t, func() {
+		f.Run()
 	})
 }
 
 func TestParamsUpdate(t *testing.T) {
 	tf := initFeeder(t)
-	defer tf.close()
+	defer tf.feeder.Close()
 	p := types.Params{
 		Pairs:            []common.AssetPair{common.Pair_NIBI_NUSD},
 		VotePeriodBlocks: 50,
 	}
 
-	tf.paramsUpdate <- p
+	tf.paramsChannel <- p
 	time.Sleep(10 * time.Millisecond)
-	require.Equal(t, tf.f.params, p)
+	require.Equal(t, tf.feeder.params, p)
 }
 
 func TestVotingPeriod(t *testing.T) {
 	tf := initFeeder(t)
-	defer tf.close()
+	defer tf.feeder.Close()
 
 	validPrice := types.Price{
 		Pair:         common.Pair_BTC_NUSD,
@@ -73,41 +70,49 @@ func TestVotingPeriod(t *testing.T) {
 	time.Sleep(10 * time.Millisecond)
 }
 
-type testFeeder struct {
-	f                 *Feeder
-	mockPriceProvider *mock_feeder.MockPriceProvider
-	mockEventStream   *mock_feeder.MockEventStream
-	mockPricePoster   *mock_feeder.MockPricePoster
+type testFeederHarness struct {
+	feeder            *Feeder
+	mockPriceProvider *mocks.MockPriceProvider
+	mockEventStream   *mocks.MockEventStream
+	mockPricePoster   *mocks.MockPricePoster
 	newVotingPeriod   chan types.VotingPeriod
-	paramsUpdate      chan types.Params
-	close             func()
+	paramsChannel     chan types.Params
 }
 
-func initFeeder(t *testing.T) testFeeder {
+func initFeeder(t *testing.T) testFeederHarness {
 	ctrl := gomock.NewController(t)
-	ps := mock_feeder.NewMockPricePoster(ctrl)
-	pp := mock_feeder.NewMockPriceProvider(ctrl)
-	es := mock_feeder.NewMockEventStream(ctrl)
-	params := make(chan types.Params, 1)
-	es.EXPECT().ParamsUpdate().AnyTimes().Return(params)
-	nvp := make(chan types.VotingPeriod, 1)
-	es.EXPECT().VotingPeriodStarted().AnyTimes().Return(nvp)
+	pricePoster := mocks.NewMockPricePoster(ctrl)
+	priceProvider := mocks.NewMockPriceProvider(ctrl)
+	eventStream := mocks.NewMockEventStream(ctrl)
 
-	params <- types.Params{Pairs: []common.AssetPair{common.Pair_BTC_NUSD, common.Pair_ETH_NUSD}}
-	f := Run(es, ps, pp, zerolog.New(io.Discard))
-	es.EXPECT().Close()
-	pp.EXPECT().Close()
-	ps.EXPECT().Close()
+	paramsChannel := make(chan types.Params, 1)
+	eventStream.EXPECT().ParamsUpdate().AnyTimes().Return(paramsChannel)
+	paramsChannel <- types.Params{Pairs: []common.AssetPair{common.Pair_BTC_NUSD, common.Pair_ETH_NUSD}}
 
-	return testFeeder{
-		f:                 f,
-		mockPriceProvider: pp,
-		mockEventStream:   es,
-		mockPricePoster:   ps,
-		newVotingPeriod:   nvp,
-		paramsUpdate:      params,
-		close: func() {
-			f.Close()
-		},
+	votingPeriodChannel := make(chan types.VotingPeriod, 1)
+	eventStream.EXPECT().VotingPeriodStarted().AnyTimes().Return(votingPeriodChannel)
+
+	feeder := &Feeder{
+		stop:          make(chan struct{}),
+		done:          make(chan struct{}),
+		eventStream:   eventStream,
+		pricePoster:   pricePoster,
+		priceProvider: priceProvider,
+		params:        types.Params{},
+		logger:        zerolog.New(io.Discard),
+	}
+	feeder.Run()
+
+	eventStream.EXPECT().Close()
+	priceProvider.EXPECT().Close()
+	pricePoster.EXPECT().Close()
+
+	return testFeederHarness{
+		feeder:            feeder,
+		mockPriceProvider: priceProvider,
+		mockEventStream:   eventStream,
+		mockPricePoster:   pricePoster,
+		newVotingPeriod:   votingPeriodChannel,
+		paramsChannel:     paramsChannel,
 	}
 }

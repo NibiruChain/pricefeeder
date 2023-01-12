@@ -1,11 +1,16 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"os"
 
 	"github.com/NibiruChain/nibiru/app"
 	"github.com/NibiruChain/price-feeder/config"
+	"github.com/NibiruChain/price-feeder/feeder"
+	"github.com/NibiruChain/price-feeder/feeder/eventstream"
+	"github.com/NibiruChain/price-feeder/feeder/priceposter"
+	"github.com/NibiruChain/price-feeder/feeder/priceprovider"
 	"github.com/rs/zerolog"
 )
 
@@ -24,11 +29,21 @@ func setupLogger() zerolog.Logger {
 
 func main() {
 	logger := setupLogger()
-
 	app.SetPrefixes(app.AccountAddressPrefix)
-	conf := config.MustGet()
-	f := conf.Feeder(logger)
 
+	c := config.MustGet()
+	if c == nil {
+		panic(errors.New("invalid config"))
+	}
+
+	eventStream := eventstream.Dial(c.WebsocketEndpoint, c.GRPCEndpoint, logger)
+	priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, logger)
+	kb, valAddr, feederAddr := config.GetAuth(c.FeederMnemonic)
+	pricePoster := priceposter.Dial(c.GRPCEndpoint, c.ChainID, kb, valAddr, feederAddr, logger)
+
+	f := feeder.NewFeeder(eventStream, priceProvider, pricePoster, logger)
+	f.Run()
 	defer f.Close()
+
 	select {}
 }

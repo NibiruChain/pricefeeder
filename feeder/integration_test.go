@@ -55,7 +55,8 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		common.Pair_ETH_NUSD: "tETHUSD",
 	}, log)
 	pricePoster := priceposter.Dial(grpcEndpoint, s.cfg.ChainID, val.ClientCtx.Keyring, val.ValAddress, val.Address, log)
-	s.feeder = feeder.Run(eventStream, pricePoster, priceProvider, log)
+	s.feeder = feeder.NewFeeder(eventStream, priceProvider, pricePoster, log)
+	s.feeder.Run()
 }
 
 func (s *IntegrationTestSuite) TestOk() {

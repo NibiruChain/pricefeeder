@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -27,7 +28,7 @@ type privKeyKeyring struct {
 	privKey cryptotypes.PrivKey
 }
 
-func getAuth(mnemonic string) (keyring.Keyring, sdk.ValAddress, sdk.AccAddress) {
+func GetAuth(mnemonic string) (keyring.Keyring, sdk.ValAddress, sdk.AccAddress) {
 	seed := bip39.NewSeed(mnemonic, "")
 	master, ch := hd.ComputeMastersFromSeed(seed)
 	path := "m/44'/118'/0'/0/0"
