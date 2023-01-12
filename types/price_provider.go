@@ -6,7 +6,7 @@ import "github.com/NibiruChain/nibiru/x/common"
 // which provides prices for the given assets.
 // PriceProvider must handle failures by itself.
 //
-//go:generate mockgen --destination ../mocks/feeder/types/price_provider.go . PriceProvider
+//go:generate mockgen --destination mocks/price_provider.go . PriceProvider
 type PriceProvider interface {
 	// GetPrice returns the Price for the given symbol.
 	// Price.Pair, Price.Source must always be non-empty.

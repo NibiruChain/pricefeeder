@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/NibiruChain/nibiru/x/common"
-	mock_feeder "github.com/NibiruChain/price-feeder/mocks/feeder/types"
 	"github.com/NibiruChain/price-feeder/types"
+	mock_feeder "github.com/NibiruChain/price-feeder/types/mocks"
 )
 
 func TestRun(t *testing.T) {

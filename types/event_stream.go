@@ -4,7 +4,7 @@ package types
 // of events required by the feeder's Loop function.
 // EventStream must handle failures by itself.
 //
-//go:generate mockgen --destination ../mocks/feeder/types/events_stream.go . EventStream
+//go:generate mockgen --destination mocks/event_stream.go . EventStream
 type EventStream interface {
 	// ParamsUpdate signals a new Params update.
 	// EventStream must provide, on startup, the

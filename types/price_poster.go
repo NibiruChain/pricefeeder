@@ -6,7 +6,7 @@ import "github.com/cosmos/cosmos-sdk/types"
 // which sends new prices.
 // PricePoster must handle failures by itself.
 //
-//go:generate mockgen --destination ../mocks/feeder/types/price_poster.go . PricePoster
+//go:generate mockgen --destination mocks/price_poster.go . PricePoster
 type PricePoster interface {
 	// Whoami returns the validator address the PricePoster
 	// is sending prices for.
