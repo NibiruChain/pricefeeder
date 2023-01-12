@@ -71,8 +71,8 @@ func (s *IntegrationTestSuite) TestStreamWorks() {
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
-	s.network.Cleanup()
 	s.eventStream.Close()
+	s.network.Cleanup()
 }
 
 func TestIntegration(t *testing.T) {

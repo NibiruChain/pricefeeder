@@ -68,12 +68,13 @@ func (s *Stream) votingPeriodStartedLoop(ws wsI, logger zerolog.Logger) {
 			return
 		case msg := <-ws.message():
 			logger.Debug().Bytes("payload", msg).Msg("received message from websocket")
-			blockHeight, err := getBlockHeight(msg)
+			blockHeight, err := types.GetBlockHeight(msg)
 			if err != nil {
-				logger.Err(err).Msg("whilst getting block height")
+				logger.Err(err).Msg("could not obtain block height")
 				break
 			}
-			if blockHeight == 0 {
+			if blockHeight <= 0 {
+				logger.Err(err).Uint64("block-height", blockHeight).Msg("invalid block height")
 				break
 			}
 			p := s.params.Load()
@@ -103,8 +104,8 @@ func (s *Stream) paramsLoop(oracleClient oracletypes.QueryClient, logger zerolog
 		tick.Stop()
 	}()
 
-	updateParams := func() (types.Params, error) {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	fetchParams := func() (types.Params, error) {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
 		paramsResp, err := oracleClient.Params(ctx, &oracletypes.QueryParamsRequest{})
@@ -118,7 +119,7 @@ func (s *Stream) paramsLoop(oracleClient oracletypes.QueryClient, logger zerolog
 	for {
 		select {
 		case <-tick.C:
-			newParams, err := updateParams()
+			newParams, err := fetchParams()
 			if err != nil {
 				logger.Err(err).Msg("param update")
 				break

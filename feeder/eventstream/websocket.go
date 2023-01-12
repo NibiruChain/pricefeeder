@@ -10,31 +10,6 @@ import (
 
 type dianFn func() (*websocket.Conn, error)
 
-func NewWebsocket(url string, onOpenMsg []byte, logger zerolog.Logger) *ws {
-	return newWebsocket(func() (*websocket.Conn, error) {
-		connection, _, err := websocket.DefaultDialer.Dial(url, nil)
-		if err != nil {
-			return nil, err
-		}
-		return connection, connection.WriteMessage(websocket.BinaryMessage, onOpenMsg)
-	}, logger)
-}
-
-func newWebsocket(dialFn dianFn, logger zerolog.Logger) *ws {
-	ws := &ws{
-		logger:           logger.With().Str("component", "websocket").Logger(),
-		stopSignal:       make(chan struct{}),
-		done:             make(chan struct{}),
-		read:             make(chan []byte),
-		dial:             dialFn,
-		connection:       nil,
-		connectionClosed: new(atomic.Bool),
-	}
-
-	go ws.loop()
-	return ws
-}
-
 type ws struct {
 	logger           zerolog.Logger
 	stopSignal       chan struct{} // external signal to stop the ws
@@ -43,6 +18,29 @@ type ws struct {
 	dial             dianFn
 	connection       *websocket.Conn
 	connectionClosed *atomic.Bool
+}
+
+func NewWebsocket(url string, onOpenMsg []byte, logger zerolog.Logger) *ws {
+	dialFunction := func() (*websocket.Conn, error) {
+		conn, _, err := websocket.DefaultDialer.Dial(url, nil)
+		if err != nil {
+			return nil, err
+		}
+		return conn, conn.WriteMessage(websocket.BinaryMessage, onOpenMsg)
+	}
+
+	ws := &ws{
+		logger:           logger.With().Str("component", "websocket").Logger(),
+		stopSignal:       make(chan struct{}),
+		done:             make(chan struct{}),
+		read:             make(chan []byte),
+		dial:             dialFunction,
+		connection:       nil,
+		connectionClosed: new(atomic.Bool),
+	}
+
+	go ws.loop()
+	return ws
 }
 
 func (w *ws) loop() {
@@ -74,12 +72,13 @@ func (w *ws) loop() {
 		case w.read <- bytes:
 			w.logger.Debug().Str("payload", string(bytes)).Msg("message received")
 		case <-w.stopSignal:
-			w.logger.Warn().Str("message", string(bytes)).Msg("message dropped due to shutdown")
+			w.logger.Warn().Str("payload", string(bytes)).Msg("message dropped due to shutdown")
 			return
 		}
 	}
 }
 
+// attemps to dial the websocket using binary exponential backoff
 func (w *ws) connect() {
 	w.logger.Debug().Msg("connecting")
 
@@ -113,8 +112,10 @@ func (w *ws) message() <-chan []byte {
 func (w *ws) close() {
 	close(w.stopSignal)
 	w.connectionClosed.Store(true)
-	if err := w.connection.Close(); err != nil {
-		w.logger.Err(err).Msg("close error")
+	if w.connection != nil {
+		if err := w.connection.Close(); err != nil {
+			w.logger.Err(err).Msg("close error")
+		}
 	}
 	<-w.done
 }

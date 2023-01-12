@@ -1,4 +1,4 @@
-package eventstream
+package types
 
 import (
 	"encoding/json"
@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-func getBlockHeight(msg []byte) (uint64, error) {
-	t := new(newBlockJSON)
+func GetBlockHeight(msg []byte) (uint64, error) {
+	t := new(NewBlockJSON)
 	err := json.Unmarshal(msg, t)
 	if err != nil {
 		return 0, err
@@ -19,7 +19,7 @@ func getBlockHeight(msg []byte) (uint64, error) {
 }
 
 // todo mercilex split in concrete types instead of anonymous
-type newBlockJSON struct {
+type NewBlockJSON struct {
 	Jsonrpc string `json:"jsonrpc"`
 	ID      int    `json:"id"`
 	Result  struct {
@@ -39,23 +39,23 @@ type newBlockJSON struct {
 					} `json:"data"`
 				} `json:"block"`
 				ResultBeginBlock struct {
-					Events []tmEvent `json:"events"`
+					Events []TmEvent `json:"events"`
 				} `json:"result_begin_block"`
 				ResultEndBlock struct {
 					ValidatorUpdates []interface{} `json:"validator_updates"`
-					Events           []tmEvent     `json:"events"`
+					Events           []TmEvent     `json:"events"`
 				} `json:"result_end_block"`
 			} `json:"value"`
 		} `json:"data"`
 	} `json:"result"`
 }
 
-type tmEvent struct {
+type TmEvent struct {
 	Type       string `json:"type"`
-	Attributes []tmEventAttribute
+	Attributes []TmEventAttribute
 }
 
-type tmEventAttribute struct {
+type TmEventAttribute struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 	Index bool   `json:"index"`
