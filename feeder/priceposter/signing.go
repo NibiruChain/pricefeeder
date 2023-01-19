@@ -97,5 +97,5 @@ func getAccount(ctx context.Context, authClient Auth, ir codectypes.InterfaceReg
 }
 
 func getFee(_ []sdk.Msg) (sdk.Coins, uint64, error) {
-	return sdk.NewCoins(sdk.NewInt64Coin("unibi", 1_000)), 1_000_000, nil
+	return sdk.NewCoins(sdk.NewInt64Coin("unibi", 25_000)), 1_000_000, nil
 }
