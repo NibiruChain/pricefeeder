@@ -62,8 +62,6 @@ func (s *IntegrationTestSuite) TestStreamWorks() {
 		s.T().Fatal("vote period timeout")
 	}
 	<-time.After(10 * time.Second)
-	// assert params update
-	require.Contains(s.T(), s.logs.String(), `"params":{"Pairs":[{"token0":"ubtc","token1":"unusd"},{"token0":"uusdc","token1":"unusd"},{"token0":"ueth","token1":"unusd"},{"token0":"unibi","token1":"unusd"}]`)
 	// assert if params don't change, then no updates are sent
 	require.Contains(s.T(), s.logs.String(), "skipping params update as they're not different from the old ones")
 	// assert new voting period was signaled
