@@ -88,7 +88,7 @@ func (p *PriceProvider) GetPrice(pair common.AssetPair) types.Price {
 	// when for example we have a param update, then we return
 	// an abstain vote on the provided asset pair.
 	if !symbolExists {
-		p.logger.Warn().Str("pair", pair.String()).Msg("unknown nibiru pair")
+		p.logger.Warn().Str("pair", pair.String()).Msg("pair not configured for this pricefeeder")
 		return types.Price{
 			Pair:       pair,
 			Price:      -1, // abstain

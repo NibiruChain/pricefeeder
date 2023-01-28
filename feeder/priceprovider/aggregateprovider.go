@@ -2,6 +2,8 @@ package priceprovider
 
 import (
 	"github.com/NibiruChain/nibiru/x/common"
+	"github.com/NibiruChain/nibiru/x/common/asset"
+	"github.com/NibiruChain/nibiru/x/common/denoms"
 	"github.com/NibiruChain/price-feeder/types"
 	"github.com/rs/zerolog"
 )
@@ -20,8 +22,8 @@ type AggregatePriceProvider struct {
 func NewAggregatePriceProvider(sourcesToPairSymbolMap map[string]map[common.AssetPair]types.Symbol, logger zerolog.Logger) types.PriceProvider {
 	providers := make(map[int]types.PriceProvider, len(sourcesToPairSymbolMap))
 	i := 0
-	for sourceName, pairSymbolMapping := range sourcesToPairSymbolMap {
-		providers[i] = NewPriceProvider(sourceName, pairSymbolMapping, logger)
+	for sourceName, pairToSymbolMap := range sourcesToPairSymbolMap {
+		providers[i] = NewPriceProvider(sourceName, pairToSymbolMap, logger)
 		i++
 	}
 
@@ -35,6 +37,18 @@ func NewAggregatePriceProvider(sourcesToPairSymbolMap map[string]map[common.Asse
 // Iteration is exhaustive and random.
 // If no correct PriceResponse is found, then an invalid PriceResponse is returned.
 func (a AggregatePriceProvider) GetPrice(pair common.AssetPair) types.Price {
+
+	// Temporarily treat NUSD as perfectly pegged to the US fiat dollar
+	// TODO(k-yang): add the NUSD pricefeed once it's available on exchanges
+	if pair.Equal(asset.Registry.Pair(denoms.NUSD, denoms.USD)) {
+		return types.Price{
+			SourceName: "temporarily-hardcoded",
+			Pair:       pair,
+			Price:      1,
+			Valid:      true,
+		}
+	}
+
 	// iterate randomly, if we find a valid price, we return it
 	// otherwise we go onto the next PriceProvider to ask for prices.
 	for _, p := range a.providers {
@@ -45,11 +59,12 @@ func (a AggregatePriceProvider) GetPrice(pair common.AssetPair) types.Price {
 	}
 
 	// if we reach here no valid symbols were found
-	a.logger.Warn().Str("pair", pair.String()).Msg("no valid prices")
+	a.logger.Warn().Str("pair", pair.String()).Msg("no valid price found")
 	return types.Price{
-		Pair:  pair,
-		Price: 0,
-		Valid: false,
+		SourceName: "unknown",
+		Pair:       pair,
+		Price:      0,
+		Valid:      false,
 	}
 }
 
