@@ -11,7 +11,7 @@ func ParamsFromOracleParams(p oracletypes.Params) Params {
 	pairs := make([]common.AssetPair, len(p.Whitelist))
 	for i, pair := range p.Whitelist {
 		pair := pair
-		pairs[i] = common.MustNewAssetPair(pair)
+		pairs[i] = pair
 	}
 	return Params{
 		Pairs:            pairs,

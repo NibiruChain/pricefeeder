@@ -3,7 +3,7 @@ module github.com/NibiruChain/price-feeder
 go 1.19
 
 require (
-	github.com/NibiruChain/nibiru v0.16.3
+	github.com/NibiruChain/nibiru v0.18.0-rc3
 	github.com/cosmos/cosmos-sdk v0.45.11
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/golang/mock v1.6.0

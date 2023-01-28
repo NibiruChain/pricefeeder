@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/NibiruChain/nibiru/x/common"
+	"github.com/NibiruChain/nibiru/x/common/asset"
+	"github.com/NibiruChain/nibiru/x/common/denoms"
 	"github.com/NibiruChain/price-feeder/feeder/priceprovider/sources"
 	"github.com/NibiruChain/price-feeder/types"
 	"github.com/rs/zerolog"
@@ -26,13 +28,13 @@ func (t testAsyncSource) PriceUpdates() <-chan map[types.Symbol]types.RawPrice {
 
 func TestPriceProvider(t *testing.T) {
 	t.Run("bitfinex success", func(t *testing.T) {
-		pp := NewPriceProvider(sources.Bitfinex, map[common.AssetPair]types.Symbol{common.Pair_BTC_NUSD: "tBTCUSD"}, zerolog.New(io.Discard))
+		pp := NewPriceProvider(sources.Bitfinex, map[common.AssetPair]types.Symbol{asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD"}, zerolog.New(io.Discard))
 		defer pp.Close()
 		<-time.After(sources.UpdateTick + 2*time.Second)
 
-		price := pp.GetPrice(common.Pair_BTC_NUSD)
+		price := pp.GetPrice(asset.Registry.Pair(denoms.BTC, denoms.NUSD))
 		require.True(t, price.Valid)
-		require.Equal(t, common.Pair_BTC_NUSD, price.Pair)
+		require.Equal(t, asset.Registry.Pair(denoms.BTC, denoms.NUSD), price.Pair)
 		require.Equal(t, sources.Bitfinex, price.SourceName)
 	})
 
@@ -44,10 +46,10 @@ func TestPriceProvider(t *testing.T) {
 
 	t.Run("returns invalid price on unknown AssetPair", func(t *testing.T) {
 		pp := newPriceProvider(testAsyncSource{}, "test", map[common.AssetPair]types.Symbol{}, zerolog.New(io.Discard))
-		price := pp.GetPrice(common.Pair_BTC_NUSD)
+		price := pp.GetPrice(asset.Registry.Pair(denoms.BTC, denoms.NUSD))
 		require.False(t, price.Valid)
 		require.Equal(t, float64(-1), price.Price)
-		require.Equal(t, common.Pair_BTC_NUSD, price.Pair)
+		require.Equal(t, asset.Registry.Pair(denoms.BTC, denoms.NUSD), price.Pair)
 	})
 
 	t.Run("returns correct price", func(t *testing.T) {
@@ -56,14 +58,14 @@ func TestPriceProvider(t *testing.T) {
 			priceUpdatesC: priceUpdatesC,
 			closeFn:       func() { close(priceUpdatesC) },
 		}
-		pp := newPriceProvider(source, "test", map[common.AssetPair]types.Symbol{common.Pair_BTC_NUSD: "BTC:NUSD"}, zerolog.New(io.Discard))
+		pp := newPriceProvider(source, "test", map[common.AssetPair]types.Symbol{asset.Registry.Pair(denoms.BTC, denoms.NUSD): "BTC:NUSD"}, zerolog.New(io.Discard))
 
 		priceUpdatesC <- map[types.Symbol]types.RawPrice{"BTC:NUSD": {Price: 10, UpdateTime: time.Now()}}
-		price := pp.GetPrice(common.Pair_BTC_NUSD)
+		price := pp.GetPrice(asset.Registry.Pair(denoms.BTC, denoms.NUSD))
 
 		require.True(t, price.Valid)
 		require.Equal(t, float64(10), price.Price)
-		require.Equal(t, common.Pair_BTC_NUSD, price.Pair)
+		require.Equal(t, asset.Registry.Pair(denoms.BTC, denoms.NUSD), price.Pair)
 		require.Equal(t, "test", price.SourceName)
 	})
 

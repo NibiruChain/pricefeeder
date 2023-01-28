@@ -102,7 +102,7 @@ func newPrevote(prices []types.Price, validator sdk.ValAddress, feeder sdk.AccAd
 	tuple := make(oracletypes.ExchangeRateTuples, len(prices))
 	for i, price := range prices {
 		tuple[i] = oracletypes.ExchangeRateTuple{
-			Pair:         price.Pair.String(),
+			Pair:         price.Pair,
 			ExchangeRate: float64ToDec(price.Price),
 		}
 	}
