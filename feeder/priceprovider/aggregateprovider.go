@@ -49,6 +49,18 @@ func (a AggregatePriceProvider) GetPrice(pair common.AssetPair) types.Price {
 		}
 	}
 
+	// Temporarily provide NIBI price based on last raise, 1.5 billion token supply @ $100M
+	// TODO(k-yang): add the NUSD pricefeed once it's available on exchanges
+	if pair.Equal(asset.Registry.Pair(denoms.NIBI, denoms.USD)) ||
+		pair.Equal(asset.Registry.Pair(denoms.NIBI, denoms.NUSD)) {
+		return types.Price{
+			SourceName: "temporarily-hardcoded",
+			Pair:       pair,
+			Price:      0.06666666666666667,
+			Valid:      true,
+		}
+	}
+
 	// iterate randomly, if we find a valid price, we return it
 	// otherwise we go onto the next PriceProvider to ask for prices.
 	for _, p := range a.providers {
@@ -61,7 +73,7 @@ func (a AggregatePriceProvider) GetPrice(pair common.AssetPair) types.Price {
 	// if we reach here no valid symbols were found
 	a.logger.Warn().Str("pair", pair.String()).Msg("no valid price found")
 	return types.Price{
-		SourceName: "unknown",
+		SourceName: "missing",
 		Pair:       pair,
 		Price:      0,
 		Valid:      false,
