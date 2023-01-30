@@ -20,6 +20,7 @@ type wsI interface {
 	close()
 }
 
+// Dial opens two connections to the given endpoint, one for the websocket and one for the oracle grpc.
 func Dial(tendermintRPCEndpoint string, grpcEndpoint string, logger zerolog.Logger) *Stream {
 	grpcConn, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure())
 	if err != nil {
@@ -96,6 +97,7 @@ func (s *Stream) votingPeriodStartedLoop(ws wsI, logger zerolog.Logger) {
 	}
 }
 
+// paramsLoop calls every 10 seconds the oracle grpc to obtain the current params as a way to keep the params up to date.
 func (s *Stream) paramsLoop(oracleClient oracletypes.QueryClient, logger zerolog.Logger) {
 	tick := time.NewTicker(10 * time.Second)
 	defer func() {

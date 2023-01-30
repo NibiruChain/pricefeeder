@@ -18,6 +18,8 @@ func MustGet() *Config {
 	return conf
 }
 
+// Get loads the configuration from the .env file and returns a Config struct or an error
+// if the configuration is invalid.
 func Get() (*Config, error) {
 	_ = godotenv.Load() // .env is optional
 
