@@ -1,23 +1,81 @@
 package sources
 
 import (
-	"github.com/NibiruChain/nibiru/x/common"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+
 	"github.com/NibiruChain/price-feeder/types"
+	"github.com/tendermint/tendermint/libs/json"
 )
 
-type coingecko struct {
+var _ types.FetchPricesFunc = CoingeckoPriceUpdate
+
+type CoingeckoTicker struct {
+	Price float64 `json:"usd,string"`
 }
 
-func (c coingecko) GetPrice(pair common.AssetPair) types.Price {
-	//TODO implement me
-	panic("implement me")
+// CoingeckoPriceUpdate returns the prices given the symbols or an error.
+func CoingeckoPriceUpdate(symbols types.Symbols) (rawPrices map[types.Symbol]float64, err error) {
+	baseURL := buildURL(symbols)
+
+	res, err := http.Get(baseURL)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer res.Body.Close()
+
+	response, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	rawPrices, err = extractPricesFromResponse(symbols, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return rawPrices, nil
 }
 
-func (c coingecko) Close() {
-	//TODO implement me
-	panic("implement me")
+func extractPricesFromResponse(symbols types.Symbols, response []byte) (map[types.Symbol]float64, error) {
+	var result map[string]CoingeckoTicker
+	err := json.Unmarshal(response, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	rawPrices := make(map[types.Symbol]float64)
+	for _, symbol := range symbols {
+		if price, ok := result[string(symbol)]; ok {
+			rawPrices[symbol] = price.Price
+		} else {
+			return nil, fmt.Errorf("symbol %s not found in response", symbol)
+		}
+	}
+
+	return rawPrices, err
 }
 
-func NewCoingecko() types.PriceProvider {
-	return &coingecko{}
+func buildURL(symbols types.Symbols) string {
+	baseURL := "https://api.coingecko.com/api/v3/simple/price?"
+
+	params := url.Values{}
+	params.Add("ids", coingeckoSymbolCsv(symbols))
+	params.Add("vs_currencies", "usd")
+
+	baseURL = baseURL + params.Encode()
+	return baseURL
+}
+
+// coingeckoSymbolCsv returns the symbols as a comma separated string.
+func coingeckoSymbolCsv(symbols types.Symbols) string {
+	s := ""
+	for _, symbol := range symbols {
+		s += string(symbol) + ","
+	}
+
+	return s[:len(s)-1]
 }
