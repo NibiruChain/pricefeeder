@@ -59,7 +59,6 @@ func (f *Feeder) loop() {
 	defer f.eventStream.Close()
 	defer f.pricePoster.Close()
 	defer f.priceProvider.Close()
-	defer f.endLastVotingPeriod()
 	for {
 		select {
 		case <-f.stop:
@@ -79,10 +78,6 @@ func (f *Feeder) handleParamsUpdate(params types.Params) {
 }
 
 func (f *Feeder) handleVotingPeriod(vp types.VotingPeriod) {
-	f.startNewVotingPeriod(vp)
-}
-
-func (f *Feeder) startNewVotingPeriod(vp types.VotingPeriod) {
 	// gather prices
 	prices := make([]types.Price, len(f.params.Pairs))
 	for i, p := range f.params.Pairs {
