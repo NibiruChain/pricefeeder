@@ -2,6 +2,7 @@ package sources
 
 import (
 	"fmt"
+	"github.com/NibiruChain/nibiru/x/common/set"
 	"io"
 	"net/http"
 	"net/url"
@@ -17,7 +18,7 @@ type CoingeckoTicker struct {
 }
 
 // CoingeckoPriceUpdate returns the prices given the symbols or an error.
-func CoingeckoPriceUpdate(symbols types.Symbols) (rawPrices map[types.Symbol]float64, err error) {
+func CoingeckoPriceUpdate(symbols set.Set[types.Symbol]) (rawPrices map[types.Symbol]float64, err error) {
 	baseURL := buildURL(symbols)
 
 	res, err := http.Get(baseURL)
@@ -40,7 +41,7 @@ func CoingeckoPriceUpdate(symbols types.Symbols) (rawPrices map[types.Symbol]flo
 	return rawPrices, nil
 }
 
-func extractPricesFromResponse(symbols types.Symbols, response []byte) (map[types.Symbol]float64, error) {
+func extractPricesFromResponse(symbols []types.Symbol, response []byte) (map[types.Symbol]float64, error) {
 	var result map[string]CoingeckoTicker
 	err := json.Unmarshal(response, &result)
 	if err != nil {
@@ -59,7 +60,7 @@ func extractPricesFromResponse(symbols types.Symbols, response []byte) (map[type
 	return rawPrices, err
 }
 
-func buildURL(symbols types.Symbols) string {
+func buildURL(symbols []types.Symbol) string {
 	baseURL := "https://api.coingecko.com/api/v3/simple/price?"
 
 	params := url.Values{}
@@ -71,7 +72,7 @@ func buildURL(symbols types.Symbols) string {
 }
 
 // coingeckoSymbolCsv returns the symbols as a comma separated string.
-func coingeckoSymbolCsv(symbols types.Symbols) string {
+func coingeckoSymbolCsv(symbols []types.Symbol) string {
 	s := ""
 	for _, symbol := range symbols {
 		s += string(symbol) + ","
