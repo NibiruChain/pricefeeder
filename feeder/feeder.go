@@ -55,10 +55,8 @@ func (f *Feeder) Run() {
 }
 
 func (f *Feeder) loop() {
-	defer close(f.done)
-	defer f.eventStream.Close()
-	defer f.pricePoster.Close()
-	defer f.priceProvider.Close()
+	defer f.close()
+
 	for {
 		select {
 		case <-f.stop:
@@ -71,6 +69,14 @@ func (f *Feeder) loop() {
 			f.handleVotingPeriod(vp)
 		}
 	}
+}
+
+// close closes all the connections and components.
+func (f *Feeder) close() {
+	close(f.done)
+	f.eventStream.Close()
+	f.pricePoster.Close()
+	f.priceProvider.Close()
 }
 
 func (f *Feeder) handleParamsUpdate(params types.Params) {
