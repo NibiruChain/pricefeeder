@@ -10,6 +10,10 @@ import (
 	"github.com/tendermint/tendermint/libs/json"
 )
 
+const (
+	Coingecko = "coingecko"
+)
+
 var _ types.FetchPricesFunc = CoingeckoPriceUpdate
 
 type CoingeckoTicker struct {

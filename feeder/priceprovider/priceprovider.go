@@ -35,6 +35,8 @@ func NewPriceProvider(sourceName string, pairToSymbolMap map[common.AssetPair]ty
 		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.BitfinexPriceUpdate, logger)
 	case sources.Binance:
 		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.BinancePriceUpdate, logger)
+	case sources.Coingecko:
+		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.CoingeckoPriceUpdate, logger)
 	default:
 		panic("unknown price provider: " + sourceName)
 	}
