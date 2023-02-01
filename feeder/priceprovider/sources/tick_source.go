@@ -8,9 +8,8 @@ import (
 )
 
 var (
-	// PriceTimeout defines after how much time a price is considered expired.
 	// UpdateTick defines the wait time between price updates.
-	UpdateTick = 3 * time.Second
+	UpdateTick = 10 * time.Second
 )
 
 var _ types.Source = (*TickSource)(nil)

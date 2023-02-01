@@ -43,8 +43,10 @@ func newStream(ws wsI, oracle oracletypes.QueryClient, logger zerolog.Logger) *S
 	}
 
 	stream.waitGroup.Add(2)
+
 	go stream.votingPeriodStartedLoop(ws, logger.With().Str("component", "voting-period-started-loop").Logger())
 	go stream.paramsLoop(oracle, logger.With().Str("component", "params-loop").Logger())
+
 	return stream
 }
 
