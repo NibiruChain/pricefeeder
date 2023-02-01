@@ -46,6 +46,13 @@ func main() {
 	f.Run()
 	defer f.Close()
 
+	handleInterrupt(logger, f)
+
+	select {}
+}
+
+// handleInterrupt listens for SIGINT and gracefully shuts down the feeder.
+func handleInterrupt(logger zerolog.Logger, f *feeder.Feeder) {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
@@ -55,6 +62,4 @@ func main() {
 		f.Close()
 		os.Exit(1)
 	}()
-
-	select {}
 }
