@@ -73,10 +73,10 @@ func (f *Feeder) loop() {
 
 // close closes all the connections and components.
 func (f *Feeder) close() {
-	close(f.done)
 	f.eventStream.Close()
 	f.pricePoster.Close()
 	f.priceProvider.Close()
+	close(f.done)
 }
 
 func (f *Feeder) handleParamsUpdate(params types.Params) {
