@@ -43,15 +43,19 @@ func NewFeeder(eventStream types.EventStream, priceProvider types.PriceProvider,
 
 // Run instantiates a new Feeder instance.
 func (f *Feeder) Run() {
-	// init params
+	f.initParamsOrDie()
+
+	go f.loop()
+}
+
+// initParamsOrDie gets the initial params from the event stream or panics if the timeout is exceeded.
+func (f *Feeder) initParamsOrDie() {
 	select {
 	case initParams := <-f.eventStream.ParamsUpdate():
 		f.handleParamsUpdate(initParams)
 	case <-time.After(InitTimeout):
 		panic("init timeout deadline exceeded")
 	}
-
-	go f.loop()
 }
 
 func (f *Feeder) loop() {
