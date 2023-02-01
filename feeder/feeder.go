@@ -79,11 +79,7 @@ func (f *Feeder) handleParamsUpdate(params types.Params) {
 }
 
 func (f *Feeder) handleVotingPeriod(vp types.VotingPeriod) {
-	f.endLastVotingPeriod()
 	f.startNewVotingPeriod(vp)
-}
-
-func (f *Feeder) endLastVotingPeriod() {
 }
 
 func (f *Feeder) startNewVotingPeriod(vp types.VotingPeriod) {
