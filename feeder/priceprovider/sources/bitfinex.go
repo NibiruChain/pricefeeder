@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/price-feeder/types"
 )
 
@@ -16,16 +15,16 @@ const (
 
 var _ types.FetchPricesFunc = BinancePriceUpdate
 
-func BitfinexSymbolCsv(symbols set.Set[types.Symbol]) string {
+func BitfinexSymbolCsv(symbols []types.Symbol) string {
 	s := ""
-	for _, symbol := range symbols.ToSlice() {
+	for _, symbol := range symbols {
 		s += string(symbol) + ","
 	}
 	return s[:len(s)-1]
 }
 
 // BitfinexPriceUpdate returns the prices given the symbols or an error.
-func BitfinexPriceUpdate(symbols set.Set[types.Symbol]) (rawPrices map[types.Symbol]float64, err error) {
+func BitfinexPriceUpdate(symbols []types.Symbol) (rawPrices map[types.Symbol]float64, err error) {
 	type ticker []interface{}
 	const size = 11
 	const lastPriceIndex = 7
