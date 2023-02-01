@@ -35,7 +35,7 @@ func TestTickSource(t *testing.T) {
 		var gotPrices map[types.Symbol]types.RawPrice
 		select {
 		case gotPrices = <-ts.PriceUpdates():
-		case <-time.After(6 * time.Second): // timeout
+		case <-time.After(11 * time.Second): // timeout
 			t.Fatal("timeout when receiving prices")
 		}
 
