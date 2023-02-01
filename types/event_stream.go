@@ -16,3 +16,12 @@ type EventStream interface {
 	// Close shuts down the EventStream.
 	Close()
 }
+
+type ParamsStream interface {
+	// ParamsUpdate signals a new Params update.
+	// EventStream must provide, on startup, the
+	// initial Params found on the chain.
+	ParamsUpdate() <-chan Params
+	// Close shuts down the EventStream.
+	Close()
+}

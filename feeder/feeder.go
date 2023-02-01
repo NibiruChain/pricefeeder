@@ -58,6 +58,8 @@ func (f *Feeder) initParamsOrDie() {
 	}
 }
 
+// loop waits for events coming from the event stream and handles them. It also waits from stop signals
+// and closes all the connections and components.
 func (f *Feeder) loop() {
 	defer f.close()
 
