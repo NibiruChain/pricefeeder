@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/NibiruChain/nibiru/x/common"
+	"github.com/NibiruChain/nibiru/x/common/asset"
+	"github.com/NibiruChain/nibiru/x/common/denoms"
 	"github.com/NibiruChain/price-feeder/types"
 	mocks "github.com/NibiruChain/price-feeder/types/mocks"
 )
@@ -32,7 +34,7 @@ func TestParamsUpdate(t *testing.T) {
 	tf := initFeeder(t)
 	defer tf.feeder.Close()
 	p := types.Params{
-		Pairs:            []common.AssetPair{common.Pair_NIBI_NUSD},
+		Pairs:            []common.AssetPair{asset.Registry.Pair(denoms.NIBI, denoms.NUSD)},
 		VotePeriodBlocks: 50,
 	}
 
@@ -46,14 +48,14 @@ func TestVotingPeriod(t *testing.T) {
 	defer tf.feeder.Close()
 
 	validPrice := types.Price{
-		Pair:       common.Pair_BTC_NUSD,
+		Pair:       asset.Registry.Pair(denoms.BTC, denoms.NUSD),
 		Price:      100_000.8,
 		SourceName: "mock-source",
 		Valid:      true,
 	}
 
 	invalidPrice := types.Price{
-		Pair:       common.Pair_ETH_NUSD,
+		Pair:       asset.Registry.Pair(denoms.ETH, denoms.NUSD),
 		Price:      7000.11,
 		SourceName: "mock-source",
 		Valid:      false,
@@ -62,8 +64,8 @@ func TestVotingPeriod(t *testing.T) {
 	abstainPrice := invalidPrice
 	abstainPrice.Price = 0.0
 
-	tf.mockPriceProvider.EXPECT().GetPrice(common.Pair_BTC_NUSD).Return(validPrice)
-	tf.mockPriceProvider.EXPECT().GetPrice(common.Pair_ETH_NUSD).Return(invalidPrice)
+	tf.mockPriceProvider.EXPECT().GetPrice(asset.Registry.Pair(denoms.BTC, denoms.NUSD)).Return(validPrice)
+	tf.mockPriceProvider.EXPECT().GetPrice(asset.Registry.Pair(denoms.ETH, denoms.NUSD)).Return(invalidPrice)
 	tf.mockPricePoster.EXPECT().SendPrices(gomock.Any(), []types.Price{validPrice, abstainPrice})
 	// trigger voting period.
 	tf.newVotingPeriod <- types.VotingPeriod{Height: 100}
@@ -87,7 +89,7 @@ func initFeeder(t *testing.T) testFeederHarness {
 
 	paramsChannel := make(chan types.Params, 1)
 	eventStream.EXPECT().ParamsUpdate().AnyTimes().Return(paramsChannel)
-	paramsChannel <- types.Params{Pairs: []common.AssetPair{common.Pair_BTC_NUSD, common.Pair_ETH_NUSD}}
+	paramsChannel <- types.Params{Pairs: []common.AssetPair{asset.Registry.Pair(denoms.BTC, denoms.NUSD), asset.Registry.Pair(denoms.ETH, denoms.NUSD)}}
 
 	votingPeriodChannel := make(chan types.VotingPeriod, 1)
 	eventStream.EXPECT().VotingPeriodStarted().AnyTimes().Return(votingPeriodChannel)

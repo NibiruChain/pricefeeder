@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/price-feeder/types"
 )
 
@@ -19,17 +20,19 @@ type BinanceTicker struct {
 	Price  float64 `json:"price,string"`
 }
 
-func BinanceSymbolCsv(symbols types.Symbols) string {
+func BinanceSymbolCsv(symbols set.Set[types.Symbol]) string {
 	s := ""
-	for _, symbol := range symbols {
-		s += "\"" + string(symbol) + "\","
+	for _, symbol := range symbols.ToSlice() {
+		s += "%22" + string(symbol) + "%22,"
 	}
+	// chop off trailing comma
 	return s[:len(s)-1]
 }
 
 // BinancePriceUpdate returns the prices given the symbols or an error.
-func BinancePriceUpdate(symbols types.Symbols) (rawPrices map[types.Symbol]float64, err error) {
-	url := "https://api.binance.us/api/v3/ticker/price?symbols=[" + BinanceSymbolCsv(symbols) + "]"
+// Uses the Binance API at https://docs.binance.us/#price-data.
+func BinancePriceUpdate(symbols set.Set[types.Symbol]) (rawPrices map[types.Symbol]float64, err error) {
+	url := "https://api.binance.us/api/v3/ticker/price?symbols=%5B" + BinanceSymbolCsv(symbols) + "%5D"
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err

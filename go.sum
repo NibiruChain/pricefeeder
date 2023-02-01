@@ -70,8 +70,8 @@ github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go
 github.com/Microsoft/go-winio v0.6.0 h1:slsWYD/zyx7lCXoZVlvQrj0hPTM1HI4+v1sIda2yDvg=
 github.com/NibiruChain/collections v0.1.1 h1:6urGw4ephXwNKZ/cg6I5SGBBlIf9UPvRn6mFiAoX8Vk=
 github.com/NibiruChain/collections v0.1.1/go.mod h1:uWw2HTT4NxQaqC6Wmwyqbz8Fg7bGShMjZUx5unWRLNk=
-github.com/NibiruChain/nibiru v0.16.3 h1:AeITG4rVSGXpJK10+q78o7AlHQ/9F4eHSd2V8xHikTs=
-github.com/NibiruChain/nibiru v0.16.3/go.mod h1:ojqnZGcBrpRIqvPmOZd3Y7bRQnVdr/QtCI7xwlo7Y70=
+github.com/NibiruChain/nibiru v0.18.0-rc3 h1:qpXSmJikH4Og7ZgiwgmnoyMWUzRveGX/wssBz/KI9RM=
+github.com/NibiruChain/nibiru v0.18.0-rc3/go.mod h1:ojqnZGcBrpRIqvPmOZd3Y7bRQnVdr/QtCI7xwlo7Y70=
 github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 h1:TngWCqHvy9oXAN6lEVMRuU21PR1EtLVZJmdB18Gu3Rw=
 github.com/OneOfOne/xxhash v1.2.2 h1:KMrpdQIwFcEqXDklaen+P1axHaj9BSKzvpUUfnHldSE=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=

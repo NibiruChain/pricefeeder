@@ -10,7 +10,6 @@ import (
 
 	"github.com/NibiruChain/nibiru/app"
 	"github.com/NibiruChain/nibiru/simapp"
-	"github.com/NibiruChain/nibiru/x/common"
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
 	testutilcli "github.com/NibiruChain/nibiru/x/testutil/cli"
 	"github.com/NibiruChain/price-feeder/types"
@@ -70,9 +69,9 @@ func (s *IntegrationTestSuite) randomPrices() []types.Price {
 	vt, err := s.client.deps.oracleClient.(oracletypes.QueryClient).VoteTargets(context.Background(), &oracletypes.QueryVoteTargetsRequest{})
 	require.NoError(s.T(), err)
 	prices := make([]types.Price, len(vt.VoteTargets))
-	for i, t := range vt.VoteTargets {
+	for i, assetPair := range vt.VoteTargets {
 		prices[i] = types.Price{
-			Pair:       common.MustNewAssetPair(t),
+			Pair:       assetPair,
 			Price:      float64(i),
 			SourceName: "test",
 			Valid:      true,

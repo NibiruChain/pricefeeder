@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/NibiruChain/nibiru/x/common"
+	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/price-feeder/feeder/priceprovider/sources"
 	"github.com/NibiruChain/price-feeder/types"
 	"github.com/rs/zerolog"
@@ -88,7 +89,7 @@ func (p *PriceProvider) GetPrice(pair common.AssetPair) types.Price {
 	// when for example we have a param update, then we return
 	// an abstain vote on the provided asset pair.
 	if !symbolExists {
-		p.logger.Warn().Str("pair", pair.String()).Msg("unknown nibiru pair")
+		p.logger.Debug().Str("pair", pair.String()).Msg("pair not configured for this pricefeeder")
 		return types.Price{
 			Pair:       pair,
 			Price:      -1, // abstain
@@ -116,10 +117,11 @@ func (p *PriceProvider) Close() {
 
 // symbolsFromPairToSymbolMapping returns the symbols list
 // given the map which maps nibiru chain pairs to exchange symbols.
-func symbolsFromPairToSymbolMapping(m map[common.AssetPair]types.Symbol) types.Symbols {
-	s := make(types.Symbols, 0, len(m))
+func symbolsFromPairToSymbolMapping(m map[common.AssetPair]types.Symbol) set.Set[types.Symbol] {
+	// s := make(set.Set[types.Symbol], 0, len(m))
+	s := set.New[types.Symbol]()
 	for _, v := range m {
-		s = append(s, v)
+		s.Add(v)
 	}
 	return s
 }
