@@ -2,7 +2,6 @@ package sources
 
 import (
 	"fmt"
-	"github.com/NibiruChain/nibiru/x/common/set"
 	"io"
 	"net/http"
 	"net/url"
@@ -18,7 +17,7 @@ type CoingeckoTicker struct {
 }
 
 // CoingeckoPriceUpdate returns the prices given the symbols or an error.
-func CoingeckoPriceUpdate(symbols set.Set[types.Symbol]) (rawPrices map[types.Symbol]float64, err error) {
+func CoingeckoPriceUpdate(symbols []types.Symbol) (rawPrices map[types.Symbol]float64, err error) {
 	baseURL := buildURL(symbols)
 
 	res, err := http.Get(baseURL)
