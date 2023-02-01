@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/rs/zerolog"
-
 	"github.com/NibiruChain/price-feeder/types"
+	"github.com/rs/zerolog"
 )
 
 var (
@@ -66,6 +65,7 @@ func (f *Feeder) loop() {
 	for {
 		select {
 		case <-f.stop:
+			f.logger.Debug().Msg("stop signal received")
 			return
 		case params := <-f.eventStream.ParamsUpdate():
 			f.logger.Info().Interface("changes", params).Msg("params changed")

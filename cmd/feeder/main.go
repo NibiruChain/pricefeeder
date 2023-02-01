@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"os"
+	"os/signal"
 
 	"github.com/NibiruChain/nibiru/app"
 	"github.com/NibiruChain/price-feeder/config"
@@ -44,6 +45,16 @@ func main() {
 	f := feeder.NewFeeder(eventStream, priceProvider, pricePoster, logger)
 	f.Run()
 	defer f.Close()
+
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+
+	go func() {
+		<-interrupt
+		logger.Info().Msg("shutting down gracefully")
+		f.Close()
+		os.Exit(1)
+	}()
 
 	select {}
 }
