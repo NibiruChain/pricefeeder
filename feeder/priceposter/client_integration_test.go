@@ -38,10 +38,11 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	val := s.network.Validators[0]
 	grpcEndpoint, tmEndpoint := val.AppConfig.GRPC.Address, val.RPCAddress
-	u, err := url.Parse(tmEndpoint)
+	url, err := url.Parse(tmEndpoint)
 	require.NoError(s.T(), err)
-	u.Scheme = "ws"
-	u.Path = "/websocket"
+
+	url.Scheme = "ws"
+	url.Path = "/websocket"
 
 	s.logs = new(bytes.Buffer)
 	s.client = Dial(grpcEndpoint, s.cfg.ChainID, val.ClientCtx.Keyring, val.ValAddress, val.Address, zerolog.New(io.MultiWriter(os.Stderr, s.logs)))
