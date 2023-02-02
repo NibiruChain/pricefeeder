@@ -42,6 +42,16 @@ func Get() (*Config, error) {
 		return nil, fmt.Errorf("failed to parse EXCHANGE_SYMBOLS_MAP: invalid json")
 	}
 
+	exchangeConfigMapJson := os.Getenv("EXCHANGE_CONFIG_MAP")
+	exchangeConfigMap := map[string]json.RawMessage{}
+
+	if exchangeConfigMapJson != "" {
+		err = json.Unmarshal([]byte(exchangeConfigMapJson), &exchangeConfigMap)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse EXCHANGE_CONFIG_MAP: invalid json")
+		}
+	}
+
 	conf.ExchangesToPairToSymbolMap = map[string]map[common.AssetPair]types.Symbol{}
 	for exchange, symbolMap := range exchangeSymbolsMap {
 		conf.ExchangesToPairToSymbolMap[exchange] = map[common.AssetPair]types.Symbol{}
@@ -49,11 +59,14 @@ func Get() (*Config, error) {
 			conf.ExchangesToPairToSymbolMap[exchange][common.MustNewAssetPair(nibiAssetPair)] = types.Symbol(tickerSymbol)
 		}
 	}
+
+	conf.ExchangesToConfigMap = exchangeConfigMap
 	return conf, conf.Validate()
 }
 
 type Config struct {
 	ExchangesToPairToSymbolMap map[string]map[common.AssetPair]types.Symbol
+	ExchangesToConfigMap       map[string]json.RawMessage
 	GRPCEndpoint               string
 	WebsocketEndpoint          string
 	FeederMnemonic             string
