@@ -12,3 +12,6 @@ test:
 
 run:
 	go run ./cmd/feeder/main.go
+
+run-debug:
+	go run ./cmd/feeder/main.go -debug true

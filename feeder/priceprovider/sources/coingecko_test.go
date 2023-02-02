@@ -36,7 +36,7 @@ func TestCoingeckoWithConfig(t *testing.T) {
 
 	t.Run("providing valid config", func(t *testing.T) {
 		httpmock.RegisterResponder(
-			"GET", PaidLink+"simple/price?api_key=1234567890&ids=bitcoin%2Cethereum&vs_currencies=usd",
+			"GET", PaidLink+"simple/price?ids=bitcoin%2Cethereum&vs_currencies=usd&"+ApiKeyParam+"=1234567890",
 			httpmock.NewStringResponder(200, "{\"bitcoin\":{\"usd\":23829},\"ethereum\":{\"usd\":1676.85}}"),
 		)
 

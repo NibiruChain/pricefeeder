@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	Coingecko = "coingecko"
-	FreeLink  = "https://api.coingecko.com/api/v3/"
-	PaidLink  = "https://pro-api.coingecko.com/api/v3/"
+	Coingecko   = "coingecko"
+	FreeLink    = "https://api.coingecko.com/api/v3/"
+	PaidLink    = "https://pro-api.coingecko.com/api/v3/"
+	ApiKeyParam = "x_cg_pro_api_key"
 )
 
 type CoingeckoTicker struct {
@@ -89,7 +90,7 @@ func buildURL(symbols []types.Symbol, c *CoingeckoConfig) string {
 	params.Add("ids", coingeckoSymbolCsv(symbols))
 	params.Add("vs_currencies", "usd")
 	if c.ApiKey != "" {
-		params.Add("api_key", c.ApiKey)
+		params.Add(ApiKeyParam, c.ApiKey)
 	}
 
 	baseURL = baseURL + params.Encode()

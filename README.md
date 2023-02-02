@@ -15,6 +15,17 @@ FEEDER_MNEMONIC="guard cream sadness conduct invite crumble clock pudding hole g
 EXCHANGE_SYMBOLS_MAP='{"bitfinex": {"ubtc:unusd": "tBTCUSD", "ueth:unusd": "tETHUSD", "uusd:unusd": "tUSTUSD"}}'
 ```
 
+### Configuring specific exchanges
+
+#### CoinGecko
+
+Coingecko source allows to use paid api key to get more requests per minute. In order to configure it,
+you need to set env var:
+
+```ini
+EXCHANGE_CONFIG_MAP='{"coingecko": {"api_key": "0123456789"}}'
+```
+
 ## Build
 
 ```sh
