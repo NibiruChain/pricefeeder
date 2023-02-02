@@ -1,6 +1,7 @@
 package priceprovider
 
 import (
+	"encoding/json"
 	"github.com/NibiruChain/nibiru/x/common"
 	"github.com/NibiruChain/nibiru/x/common/asset"
 	"github.com/NibiruChain/nibiru/x/common/denoms"
@@ -19,11 +20,15 @@ type AggregatePriceProvider struct {
 
 // NewAggregatePriceProvider instantiates a new AggregatePriceProvider instance
 // given multiple PriceProvider.
-func NewAggregatePriceProvider(sourcesToPairSymbolMap map[string]map[common.AssetPair]types.Symbol, logger zerolog.Logger) types.PriceProvider {
+func NewAggregatePriceProvider(
+	sourcesToPairSymbolMap map[string]map[common.AssetPair]types.Symbol,
+	configToMap map[string]json.RawMessage,
+	logger zerolog.Logger,
+) types.PriceProvider {
 	providers := make(map[int]types.PriceProvider, len(sourcesToPairSymbolMap))
 	i := 0
 	for sourceName, pairToSymbolMap := range sourcesToPairSymbolMap {
-		providers[i] = NewPriceProvider(sourceName, pairToSymbolMap, logger)
+		providers[i] = NewPriceProvider(sourceName, pairToSymbolMap, configToMap[sourceName], logger)
 		i++
 	}
 

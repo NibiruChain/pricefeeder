@@ -1,6 +1,7 @@
 package sources
 
 import (
+	json2 "encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,34 +15,33 @@ const (
 	Coingecko = "coingecko"
 )
 
-var _ types.FetchPricesFunc = CoingeckoPriceUpdate
-
 type CoingeckoTicker struct {
 	Price float64 `json:"usd,string"`
 }
 
-// CoingeckoPriceUpdate returns the prices given the symbols or an error.
-func CoingeckoPriceUpdate(symbols []types.Symbol) (rawPrices map[types.Symbol]float64, err error) {
-	baseURL := buildURL(symbols)
+func CoingeckoPriceUpdate(config json2.RawMessage) types.FetchPricesFunc {
+	return func(symbols []types.Symbol) (map[types.Symbol]float64, error) {
+		baseURL := buildURL(symbols)
 
-	res, err := http.Get(baseURL)
-	if err != nil {
-		fmt.Println(err)
-		return
+		res, err := http.Get(baseURL)
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
+		defer res.Body.Close()
+
+		response, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		rawPrices, err := extractPricesFromResponse(symbols, response)
+		if err != nil {
+			return nil, err
+		}
+
+		return rawPrices, nil
 	}
-	defer res.Body.Close()
-
-	response, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	rawPrices, err = extractPricesFromResponse(symbols, response)
-	if err != nil {
-		return nil, err
-	}
-
-	return rawPrices, nil
 }
 
 func extractPricesFromResponse(symbols []types.Symbol, response []byte) (map[types.Symbol]float64, error) {

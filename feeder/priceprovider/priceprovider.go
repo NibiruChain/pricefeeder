@@ -1,6 +1,7 @@
 package priceprovider
 
 import (
+	"encoding/json"
 	"sync"
 	"time"
 
@@ -28,7 +29,12 @@ type PriceProvider struct {
 
 // NewPriceProvider returns a types.PriceProvider given the price source we want to gather prices from,
 // the mapping between nibiru common.AssetPair and the source's symbols, and a zerolog.Logger instance.
-func NewPriceProvider(sourceName string, pairToSymbolMap map[common.AssetPair]types.Symbol, logger zerolog.Logger) types.PriceProvider {
+func NewPriceProvider(
+	sourceName string,
+	pairToSymbolMap map[common.AssetPair]types.Symbol,
+	config json.RawMessage,
+	logger zerolog.Logger,
+) types.PriceProvider {
 	var source types.Source
 	switch sourceName {
 	case sources.Bitfinex:
@@ -36,10 +42,11 @@ func NewPriceProvider(sourceName string, pairToSymbolMap map[common.AssetPair]ty
 	case sources.Binance:
 		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.BinancePriceUpdate, logger)
 	case sources.Coingecko:
-		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.CoingeckoPriceUpdate, logger)
+		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.CoingeckoPriceUpdate(config), logger)
 	default:
 		panic("unknown price provider: " + sourceName)
 	}
+
 	return newPriceProvider(source, sourceName, pairToSymbolMap, logger)
 }
 
