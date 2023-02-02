@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"os"
+	"os/signal"
 
 	"github.com/NibiruChain/nibiru/app"
 	"github.com/NibiruChain/price-feeder/config"
@@ -45,5 +46,20 @@ func main() {
 	f.Run()
 	defer f.Close()
 
+	handleInterrupt(logger, f)
+
 	select {}
+}
+
+// handleInterrupt listens for SIGINT and gracefully shuts down the feeder.
+func handleInterrupt(logger zerolog.Logger, f *feeder.Feeder) {
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+
+	go func() {
+		<-interrupt
+		logger.Info().Msg("shutting down gracefully")
+		f.Close()
+		os.Exit(1)
+	}()
 }

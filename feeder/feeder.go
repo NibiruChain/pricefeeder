@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/rs/zerolog"
-
 	"github.com/NibiruChain/price-feeder/types"
+	"github.com/rs/zerolog"
 )
 
 var (
@@ -43,26 +42,30 @@ func NewFeeder(eventStream types.EventStream, priceProvider types.PriceProvider,
 
 // Run instantiates a new Feeder instance.
 func (f *Feeder) Run() {
-	// init params
+	f.initParamsOrDie()
+
+	go f.loop()
+}
+
+// initParamsOrDie gets the initial params from the event stream or panics if the timeout is exceeded.
+func (f *Feeder) initParamsOrDie() {
 	select {
 	case initParams := <-f.eventStream.ParamsUpdate():
 		f.handleParamsUpdate(initParams)
 	case <-time.After(InitTimeout):
 		panic("init timeout deadline exceeded")
 	}
-
-	go f.loop()
 }
 
+// loop waits for events coming from the event stream and handles them. It also waits from stop signals
+// and closes all the connections and components.
 func (f *Feeder) loop() {
-	defer close(f.done)
-	defer f.eventStream.Close()
-	defer f.pricePoster.Close()
-	defer f.priceProvider.Close()
-	defer f.endLastVotingPeriod()
+	defer f.close()
+
 	for {
 		select {
 		case <-f.stop:
+			f.logger.Debug().Msg("stop signal received")
 			return
 		case params := <-f.eventStream.ParamsUpdate():
 			f.logger.Info().Interface("changes", params).Msg("params changed")
@@ -74,19 +77,19 @@ func (f *Feeder) loop() {
 	}
 }
 
+// close closes all the connections and components.
+func (f *Feeder) close() {
+	f.eventStream.Close()
+	f.pricePoster.Close()
+	f.priceProvider.Close()
+	close(f.done)
+}
+
 func (f *Feeder) handleParamsUpdate(params types.Params) {
 	f.params = params
 }
 
 func (f *Feeder) handleVotingPeriod(vp types.VotingPeriod) {
-	f.endLastVotingPeriod()
-	f.startNewVotingPeriod(vp)
-}
-
-func (f *Feeder) endLastVotingPeriod() {
-}
-
-func (f *Feeder) startNewVotingPeriod(vp types.VotingPeriod) {
 	// gather prices
 	prices := make([]types.Price, len(f.params.Pairs))
 	for i, p := range f.params.Pairs {

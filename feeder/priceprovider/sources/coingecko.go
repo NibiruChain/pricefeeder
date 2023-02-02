@@ -10,6 +10,10 @@ import (
 	"github.com/tendermint/tendermint/libs/json"
 )
 
+const (
+	Coingecko = "coingecko"
+)
+
 var _ types.FetchPricesFunc = CoingeckoPriceUpdate
 
 type CoingeckoTicker struct {
@@ -52,7 +56,7 @@ func extractPricesFromResponse(symbols []types.Symbol, response []byte) (map[typ
 		if price, ok := result[string(symbol)]; ok {
 			rawPrices[symbol] = price.Price
 		} else {
-			return nil, fmt.Errorf("symbol %s not found in response", symbol)
+			return nil, fmt.Errorf("symbol %s not found in response: %s\n", symbol, response)
 		}
 	}
 
