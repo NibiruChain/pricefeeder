@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -15,6 +16,11 @@ func MustGet() *Config {
 	if err != nil {
 		panic(fmt.Sprintf("config error! check the environment: %v", err))
 	}
+
+	if conf == nil {
+		panic(errors.New("invalid config"))
+	}
+
 	return conf
 }
 
