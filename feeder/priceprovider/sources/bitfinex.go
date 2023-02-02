@@ -18,7 +18,7 @@ var _ types.FetchPricesFunc = BinancePriceUpdate
 
 func BitfinexSymbolCsv(symbols set.Set[types.Symbol]) string {
 	s := ""
-	for _, symbol := range symbols.ToSlice() {
+	for symbol := range symbols {
 		s += string(symbol) + ","
 	}
 	return s[:len(s)-1]

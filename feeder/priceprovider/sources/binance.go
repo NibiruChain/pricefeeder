@@ -22,7 +22,7 @@ type BinanceTicker struct {
 
 func BinanceSymbolCsv(symbols set.Set[types.Symbol]) string {
 	s := ""
-	for _, symbol := range symbols.ToSlice() {
+	for symbol := range symbols {
 		s += "%22" + string(symbol) + "%22,"
 	}
 	// chop off trailing comma

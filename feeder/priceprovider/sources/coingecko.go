@@ -53,7 +53,7 @@ func extractPricesFromResponse(symbols set.Set[types.Symbol], response []byte) (
 	}
 
 	rawPrices := make(map[types.Symbol]float64)
-	for _, symbol := range symbols.ToSlice() {
+	for symbol := range symbols {
 		if price, ok := result[string(symbol)]; ok {
 			rawPrices[symbol] = price.Price
 		} else {
@@ -78,7 +78,7 @@ func buildURL(symbols set.Set[types.Symbol]) string {
 // coingeckoSymbolCsv returns the symbols as a comma separated string.
 func coingeckoSymbolCsv(symbols set.Set[types.Symbol]) string {
 	s := ""
-	for _, symbol := range symbols.ToSlice() {
+	for symbol := range symbols {
 		s += string(symbol) + ","
 	}
 
