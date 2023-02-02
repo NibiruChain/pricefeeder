@@ -13,10 +13,16 @@ import (
 
 const (
 	Coingecko = "coingecko"
+	FreeLink  = "https://api.coingecko.com/api/v3/"
+	PaidLink  = "https://pro-api.coingecko.com/api/v3/"
 )
 
 type CoingeckoTicker struct {
 	Price float64 `json:"usd,string"`
+}
+
+type CoingeckoConfig struct {
+	ApiKey string `json:"api_key"`
 }
 
 func CoingeckoPriceUpdate(config json2.RawMessage) types.FetchPricesFunc {
@@ -64,7 +70,7 @@ func extractPricesFromResponse(symbols []types.Symbol, response []byte) (map[typ
 }
 
 func buildURL(symbols []types.Symbol) string {
-	baseURL := "https://api.coingecko.com/api/v3/simple/price?"
+	baseURL := fmt.Sprintf("%ssimple/price?", FreeLink)
 
 	params := url.Values{}
 	params.Add("ids", coingeckoSymbolCsv(symbols))
