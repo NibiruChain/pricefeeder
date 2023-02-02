@@ -9,7 +9,7 @@ import (
 
 var (
 	// UpdateTick defines the wait time between price updates.
-	UpdateTick = 10 * time.Second
+	UpdateTick = 8 * time.Second
 )
 
 var _ types.Source = (*TickSource)(nil)
