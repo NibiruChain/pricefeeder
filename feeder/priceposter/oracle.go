@@ -74,6 +74,7 @@ func prepareVote(
 			log.Warn().Msg("no aggregate prevote found for this voting period")
 			return nil, nil
 		} else {
+			log.Err(err).Msg("failed to get aggregate prevote from chain")
 			return nil, err
 		}
 	}
