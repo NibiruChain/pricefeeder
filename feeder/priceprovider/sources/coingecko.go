@@ -28,19 +28,15 @@ type CoingeckoConfig struct {
 
 func CoingeckoPriceUpdate(jsonConfig json2.RawMessage) types.FetchPricesFunc {
 	return func(symbols []types.Symbol) (map[types.Symbol]float64, error) {
-		c := &CoingeckoConfig{}
-		if len(jsonConfig) > 0 {
-			err := json.Unmarshal(jsonConfig, c)
-			if err != nil {
-				return nil, fmt.Errorf("invalid coingecko config: %w", err)
-			}
+		c, err := extractConfig(jsonConfig)
+		if err != nil {
+			return nil, err
 		}
 
 		baseURL := buildURL(symbols, c)
 
 		res, err := http.Get(baseURL)
 		if err != nil {
-			fmt.Println(err)
 			return nil, err
 		}
 		defer res.Body.Close()
@@ -57,6 +53,18 @@ func CoingeckoPriceUpdate(jsonConfig json2.RawMessage) types.FetchPricesFunc {
 
 		return rawPrices, nil
 	}
+}
+
+// extractConfig tries to get the configuration, if nothing is found, it returns an empty config.
+func extractConfig(jsonConfig json2.RawMessage) (*CoingeckoConfig, error) {
+	c := &CoingeckoConfig{}
+	if len(jsonConfig) > 0 {
+		err := json.Unmarshal(jsonConfig, c)
+		if err != nil {
+			return nil, fmt.Errorf("invalid coingecko config: %w", err)
+		}
+	}
+	return c, nil
 }
 
 func extractPricesFromResponse(symbols []types.Symbol, response []byte) (map[types.Symbol]float64, error) {
