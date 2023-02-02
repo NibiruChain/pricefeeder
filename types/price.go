@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/NibiruChain/nibiru/x/common"
+	"github.com/NibiruChain/nibiru/x/common/set"
 )
 
 const (
@@ -34,4 +35,4 @@ type Price struct {
 // The returned map must map symbol to its float64 price, or an error.
 // If there's a failure in updating only one price then the map can be returned
 // without the provided symbol.
-type FetchPricesFunc func(symbols []Symbol) (map[Symbol]float64, error)
+type FetchPricesFunc func(symbols set.Set[Symbol]) (map[Symbol]float64, error)
