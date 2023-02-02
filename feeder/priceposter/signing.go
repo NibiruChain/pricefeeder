@@ -17,9 +17,12 @@ import (
 func sendTx(
 	ctx context.Context,
 	keyBase keyring.Keyring,
-	authClient Auth, txClient TxService,
+	authClient Auth,
+	txClient TxService,
 	feeder sdk.AccAddress,
-	txConfig client.TxConfig, ir codectypes.InterfaceRegistry, chainID string,
+	txConfig client.TxConfig,
+	ir codectypes.InterfaceRegistry,
+	chainID string,
 	msgs ...sdk.Msg,
 ) (*sdk.TxResponse, error) {
 	// get key from keybase, can't fail

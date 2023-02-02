@@ -3,6 +3,7 @@ package sources
 import (
 	"time"
 
+	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/price-feeder/types"
 	"github.com/rs/zerolog"
 )
@@ -16,7 +17,7 @@ var _ types.Source = (*TickSource)(nil)
 
 // NewTickSource instantiates a new TickSource instance, given the symbols and a price updater function
 // which returns the latest prices for the provided symbols.
-func NewTickSource(symbols []types.Symbol, fetchPricesFunc types.FetchPricesFunc, logger zerolog.Logger) *TickSource {
+func NewTickSource(symbols set.Set[types.Symbol], fetchPricesFunc types.FetchPricesFunc, logger zerolog.Logger) *TickSource {
 	ts := &TickSource{
 		logger:             logger,
 		stopSignal:         make(chan struct{}),
@@ -39,8 +40,8 @@ type TickSource struct {
 	stopSignal         chan struct{} // external signal to stop the loop
 	done               chan struct{} // internal signal to wait for shutdown operations
 	tick               *time.Ticker
-	symbols            []types.Symbol // symbols as named on the third party data source
-	fetchPrices        func(symbols []types.Symbol) (map[types.Symbol]float64, error)
+	symbols            set.Set[types.Symbol] // symbols as named on the third party data source
+	fetchPrices        func(symbols set.Set[types.Symbol]) (map[types.Symbol]float64, error)
 	priceUpdateChannel chan map[types.Symbol]types.RawPrice
 }
 

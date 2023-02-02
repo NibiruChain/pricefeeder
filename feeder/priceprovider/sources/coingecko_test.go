@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/price-feeder/types"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/require"
@@ -18,10 +19,12 @@ func TestCoingeckoPriceUpdate(t *testing.T) {
 			"GET", FreeLink+"simple/price?ids=bitcoin%2Cethereum&vs_currencies=usd",
 			httpmock.NewStringResponder(200, "{\"bitcoin\":{\"usd\":23829},\"ethereum\":{\"usd\":1676.85}}"),
 		)
-		rawPrices, err := CoingeckoPriceUpdate(json.RawMessage{})([]types.Symbol{
-			"bitcoin",
-			"ethereum",
-		})
+		rawPrices, err := CoingeckoPriceUpdate(json.RawMessage{})(
+			set.New[types.Symbol](
+				"bitcoin",
+				"ethereum",
+			),
+		)
 		require.NoError(t, err)
 
 		require.Equal(t, 2, len(rawPrices))
@@ -45,10 +48,12 @@ func TestCoingeckoWithConfig(t *testing.T) {
 		err := json.Unmarshal([]byte(options), &jsonOptions)
 		require.NoError(t, err)
 
-		rawPrices, err := CoingeckoPriceUpdate(jsonOptions)([]types.Symbol{
-			"bitcoin",
-			"ethereum",
-		})
+		rawPrices, err := CoingeckoPriceUpdate(jsonOptions)(
+			set.New[types.Symbol](
+				"bitcoin",
+				"ethereum",
+			),
+		)
 		require.NoError(t, err)
 
 		require.Equal(t, 2, len(rawPrices))
@@ -67,10 +72,12 @@ func TestCoingeckoWithConfig(t *testing.T) {
 		err := json.Unmarshal([]byte(options), &jsonOptions)
 		require.NoError(t, err)
 
-		rawPrices, err := CoingeckoPriceUpdate(jsonOptions)([]types.Symbol{
-			"bitcoin",
-			"ethereum",
-		})
+		rawPrices, err := CoingeckoPriceUpdate(jsonOptions)(
+			set.New[types.Symbol](
+				"bitcoin",
+				"ethereum",
+			),
+		)
 		require.NoError(t, err)
 
 		require.Equal(t, 2, len(rawPrices))
