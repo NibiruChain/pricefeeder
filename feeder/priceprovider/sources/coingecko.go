@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/price-feeder/types"
 	"github.com/tendermint/tendermint/libs/json"
 )
@@ -21,7 +22,7 @@ type CoingeckoTicker struct {
 }
 
 // CoingeckoPriceUpdate returns the prices given the symbols or an error.
-func CoingeckoPriceUpdate(symbols []types.Symbol) (rawPrices map[types.Symbol]float64, err error) {
+func CoingeckoPriceUpdate(symbols set.Set[types.Symbol]) (rawPrices map[types.Symbol]float64, err error) {
 	baseURL := buildURL(symbols)
 
 	res, err := http.Get(baseURL)
@@ -44,7 +45,7 @@ func CoingeckoPriceUpdate(symbols []types.Symbol) (rawPrices map[types.Symbol]fl
 	return rawPrices, nil
 }
 
-func extractPricesFromResponse(symbols []types.Symbol, response []byte) (map[types.Symbol]float64, error) {
+func extractPricesFromResponse(symbols set.Set[types.Symbol], response []byte) (map[types.Symbol]float64, error) {
 	var result map[string]CoingeckoTicker
 	err := json.Unmarshal(response, &result)
 	if err != nil {
@@ -52,7 +53,7 @@ func extractPricesFromResponse(symbols []types.Symbol, response []byte) (map[typ
 	}
 
 	rawPrices := make(map[types.Symbol]float64)
-	for _, symbol := range symbols {
+	for _, symbol := range symbols.ToSlice() {
 		if price, ok := result[string(symbol)]; ok {
 			rawPrices[symbol] = price.Price
 		} else {
@@ -63,7 +64,7 @@ func extractPricesFromResponse(symbols []types.Symbol, response []byte) (map[typ
 	return rawPrices, err
 }
 
-func buildURL(symbols []types.Symbol) string {
+func buildURL(symbols set.Set[types.Symbol]) string {
 	baseURL := "https://api.coingecko.com/api/v3/simple/price?"
 
 	params := url.Values{}
@@ -75,9 +76,9 @@ func buildURL(symbols []types.Symbol) string {
 }
 
 // coingeckoSymbolCsv returns the symbols as a comma separated string.
-func coingeckoSymbolCsv(symbols []types.Symbol) string {
+func coingeckoSymbolCsv(symbols set.Set[types.Symbol]) string {
 	s := ""
-	for _, symbol := range symbols {
+	for _, symbol := range symbols.ToSlice() {
 		s += string(symbol) + ","
 	}
 
