@@ -1,6 +1,7 @@
 package priceprovider
 
 import (
+	"encoding/json"
 	"io"
 	"testing"
 	"time"
@@ -28,7 +29,12 @@ func (t testAsyncSource) PriceUpdates() <-chan map[types.Symbol]types.RawPrice {
 
 func TestPriceProvider(t *testing.T) {
 	t.Run("bitfinex success", func(t *testing.T) {
-		pp := NewPriceProvider(sources.Bitfinex, map[common.AssetPair]types.Symbol{asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD"}, zerolog.New(io.Discard))
+		pp := NewPriceProvider(
+			sources.Bitfinex,
+			map[common.AssetPair]types.Symbol{asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD"},
+			json.RawMessage{},
+			zerolog.New(io.Discard),
+		)
 		defer pp.Close()
 		<-time.After(sources.UpdateTick + 2*time.Second)
 
@@ -40,7 +46,12 @@ func TestPriceProvider(t *testing.T) {
 
 	t.Run("panics on unknown price source", func(t *testing.T) {
 		require.Panics(t, func() {
-			NewPriceProvider("unknown", nil, zerolog.New(io.Discard))
+			NewPriceProvider(
+				"unknown",
+				nil,
+				nil,
+				zerolog.New(io.Discard),
+			)
 		})
 	})
 

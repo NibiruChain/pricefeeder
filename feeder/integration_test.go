@@ -2,6 +2,7 @@ package feeder_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/url"
 	"os"
@@ -57,7 +58,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	priceProvider := priceprovider.NewPriceProvider(sources.Bitfinex, map[common.AssetPair]types.Symbol{
 		asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD",
 		asset.Registry.Pair(denoms.ETH, denoms.NUSD): "tETHUSD",
-	}, log)
+	}, json.RawMessage{}, log)
 	pricePoster := priceposter.Dial(grpcEndpoint, s.cfg.ChainID, val.ClientCtx.Keyring, val.ValAddress, val.Address, log)
 	s.feeder = feeder.NewFeeder(eventStream, priceProvider, pricePoster, log)
 	s.feeder.Run()

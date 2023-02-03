@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"os"
 	"os/signal"
@@ -33,12 +32,9 @@ func main() {
 	app.SetPrefixes(app.AccountAddressPrefix)
 
 	c := config.MustGet()
-	if c == nil {
-		panic(errors.New("invalid config"))
-	}
 
 	eventStream := eventstream.Dial(c.WebsocketEndpoint, c.GRPCEndpoint, logger)
-	priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, logger)
+	priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, c.ExchangesToConfigMap, logger)
 	kb, valAddr, feederAddr := config.GetAuth(c.FeederMnemonic)
 	pricePoster := priceposter.Dial(c.GRPCEndpoint, c.ChainID, kb, valAddr, feederAddr, logger)
 

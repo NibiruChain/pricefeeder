@@ -1,6 +1,7 @@
 package sources
 
 import (
+	json2 "encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,37 +13,59 @@ import (
 )
 
 const (
-	Coingecko = "coingecko"
+	Coingecko   = "coingecko"
+	FreeLink    = "https://api.coingecko.com/api/v3/"
+	PaidLink    = "https://pro-api.coingecko.com/api/v3/"
+	ApiKeyParam = "x_cg_pro_api_key"
 )
-
-var _ types.FetchPricesFunc = CoingeckoPriceUpdate
 
 type CoingeckoTicker struct {
 	Price float64 `json:"usd,string"`
 }
 
-// CoingeckoPriceUpdate returns the prices given the symbols or an error.
-func CoingeckoPriceUpdate(symbols set.Set[types.Symbol]) (rawPrices map[types.Symbol]float64, err error) {
-	baseURL := buildURL(symbols)
+type CoingeckoConfig struct {
+	ApiKey string `json:"api_key"`
+}
 
-	res, err := http.Get(baseURL)
-	if err != nil {
-		fmt.Println(err)
-		return
+func CoingeckoPriceUpdate(jsonConfig json2.RawMessage) types.FetchPricesFunc {
+	return func(symbols set.Set[types.Symbol]) (map[types.Symbol]float64, error) {
+		c, err := extractConfig(jsonConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		baseURL := buildURL(symbols, c)
+
+		res, err := http.Get(baseURL)
+		if err != nil {
+			return nil, err
+		}
+		defer res.Body.Close()
+
+		response, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		rawPrices, err := extractPricesFromResponse(symbols, response)
+		if err != nil {
+			return nil, err
+		}
+
+		return rawPrices, nil
 	}
-	defer res.Body.Close()
+}
 
-	response, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
+// extractConfig tries to get the configuration, if nothing is found, it returns an empty config.
+func extractConfig(jsonConfig json2.RawMessage) (*CoingeckoConfig, error) {
+	c := &CoingeckoConfig{}
+	if len(jsonConfig) > 0 {
+		err := json.Unmarshal(jsonConfig, c)
+		if err != nil {
+			return nil, fmt.Errorf("invalid coingecko config: %w", err)
+		}
 	}
-
-	rawPrices, err = extractPricesFromResponse(symbols, response)
-	if err != nil {
-		return nil, err
-	}
-
-	return rawPrices, nil
+	return c, nil
 }
 
 func extractPricesFromResponse(symbols set.Set[types.Symbol], response []byte) (map[types.Symbol]float64, error) {
@@ -64,12 +87,20 @@ func extractPricesFromResponse(symbols set.Set[types.Symbol], response []byte) (
 	return rawPrices, err
 }
 
-func buildURL(symbols set.Set[types.Symbol]) string {
-	baseURL := "https://api.coingecko.com/api/v3/simple/price?"
+func buildURL(symbols set.Set[types.Symbol], c *CoingeckoConfig) string {
+	link := FreeLink
+	if c.ApiKey != "" {
+		link = PaidLink
+	}
+
+	baseURL := fmt.Sprintf("%ssimple/price?", link)
 
 	params := url.Values{}
 	params.Add("ids", coingeckoSymbolCsv(symbols))
 	params.Add("vs_currencies", "usd")
+	if c.ApiKey != "" {
+		params.Add(ApiKeyParam, c.ApiKey)
+	}
 
 	baseURL = baseURL + params.Encode()
 	return baseURL
