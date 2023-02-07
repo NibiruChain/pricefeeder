@@ -1,17 +1,31 @@
 project_name: pricefeeder
 
 builds:
-#  - id: darwin
-#    main: ./cmd/feeder
-#    binary: pricefeeder
-#    goos:
-#      - darwin
-#    goarch:
-#      - amd64
-#      - arm64
-#    flags:
-#      - -mod=readonly
-#
+  - id: darwin
+    main: ./cmd/feeder
+    binary: pricefeeder
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CC=o64-clang
+    flags:
+      - -mod=readonly
+    ldflags:
+      - -s -w -X main.commit={{.Commit}} -X main.date={{ .CommitDate }} -X github.com/cosmos/cosmos-sdk/version.Name=nibiru -X github.com/cosmos/cosmos-sdk/version.AppName=nibid -X github.com/cosmos/cosmos-sdk/version.Version={{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }} -X github.com/tendermint/tendermint/version.TMCoreSemVer={{ .Env.TM_VERSION }}
+      - -linkmode=external
+    tags:
+      - netgo
+      - ledger
+      - static_wasm
+    overrides:
+      - goos: darwin
+        goarch: arm64
+        env:
+          - CC=oa64-clang
+
   - id: linux
     main: ./cmd/feeder
     binary: pricefeeder
