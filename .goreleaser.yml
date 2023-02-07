@@ -2,7 +2,7 @@ project_name: pricefeeder
 
 builds:
   - id: darwin
-    main: ./cmd/pricefeeder
+    main: ./cmd/feeder
     binary: pricefeeder
     goos:
       - darwin
@@ -13,7 +13,7 @@ builds:
       - -mod=readonly
 
   - id: linux
-    main: ./cmd/pricefeeder
+    main: ./cmd/feeder
     binary: pricefeeder
     goos:
       - linux
