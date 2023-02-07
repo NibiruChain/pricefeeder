@@ -1,17 +1,17 @@
 project_name: pricefeeder
 
 builds:
-  - id: darwin
-    main: ./cmd/feeder
-    binary: pricefeeder
-    goos:
-      - darwin
-    goarch:
-      - amd64
-      - arm64
-    flags:
-      - -mod=readonly
-
+#  - id: darwin
+#    main: ./cmd/feeder
+#    binary: pricefeeder
+#    goos:
+#      - darwin
+#    goarch:
+#      - amd64
+#      - arm64
+#    flags:
+#      - -mod=readonly
+#
   - id: linux
     main: ./cmd/feeder
     binary: pricefeeder

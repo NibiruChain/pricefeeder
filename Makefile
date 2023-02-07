@@ -21,3 +21,4 @@ cycle: # remove from PR
 	git tag -d v0.1.1-rc
 	git tag v0.1.1-rc
 	git push origin HEAD --tags
+	gh pr view --web
