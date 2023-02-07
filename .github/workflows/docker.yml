@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - "v*"
+      - "no-v*" # Revert this to "v*" before approving the PR
 
 jobs:
   docker:
