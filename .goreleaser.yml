@@ -55,3 +55,6 @@ builds:
         goarch: arm64
         env:
           - CC=aarch64-linux-gnu-gcc
+
+universal_binaries:
+  - id: darwin
