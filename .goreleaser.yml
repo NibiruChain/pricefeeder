@@ -7,9 +7,6 @@ builds:
   - id: darwin
     main: ./cmd/feeder
     binary: pricefeeder
-    hooks:
-      pre:
-        - ldconfig
     goos:
       - darwin
     goarch:
