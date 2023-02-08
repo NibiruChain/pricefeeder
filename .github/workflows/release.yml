@@ -1,10 +1,9 @@
 name: Goreleaser
 
-on: [push]
-# on:
-#   push:
-#     tags:
-#       - "v*"
+on:
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   goreleaser:
