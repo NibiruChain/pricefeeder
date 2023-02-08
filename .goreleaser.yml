@@ -7,6 +7,9 @@ builds:
   - id: darwin
     main: ./cmd/feeder
     binary: pricefeeder
+    hooks:
+      pre:
+        - apt update && apt install -yq automake libxml2-dev libtool libssl1.0-dev && rm -rf /var/lib/apt/lists/* && git clone https://github.com/mackyle/xar.git /tmp/xar && cd /tmp/xar/xar && ./autogen.sh --prefix=/osxcross/target && make -j8 && make install && ./autogen.sh --prefix=/usr && make -j8 && make install && cd / && rm -rf /tmp/xar
     goos:
       - darwin
     goarch:
