@@ -28,7 +28,7 @@ cycle: # remove from PR
 ###############################################################################
 
 PACKAGE_NAME		  := github.com/NibiruChain/pricefeeder
-GOLANG_CROSS_VERSION  ?= v1.19
+GOLANG_CROSS_VERSION  ?= v1.19.4
 
 release:
 	docker run \
@@ -39,7 +39,7 @@ release:
 		-v "$(CURDIR)":/go/src/$(PACKAGE_NAME) \
 		-w /go/src/$(PACKAGE_NAME) \
 		-e CGO_ENABLED=1 \
-		-e TM_VERSION="$(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')" \
+		-e TM_VERSION=$(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::') \
 		-e GITHUB_TOKEN=${GITHUB_TOKEN} \
 		goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
 		release --rm-dist --snapshot
