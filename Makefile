@@ -42,4 +42,4 @@ release:
 		-e TM_VERSION="$(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')" \
 		-e GITHUB_TOKEN=${GITHUB_TOKEN} \
 		goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
-		release --rm-dist
+		release --rm-dist --snapshot

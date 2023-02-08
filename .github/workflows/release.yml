@@ -1,11 +1,10 @@
 name: Goreleaser
 
-on:
-  push:
-    tags:
-      - "v*"
-#    branches:
-#      - main
+on: [push]
+# on:
+#   push:
+#     tags:
+#       - "v*"
 
 jobs:
   goreleaser:
