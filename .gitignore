@@ -13,3 +13,4 @@ build
 mockdata/
 docs
 .env
+dist
