@@ -4,6 +4,9 @@ builds:
   - id: darwin
     main: ./cmd/feeder
     binary: pricefeeder
+    hooks:
+      pre:
+        - sudo ldconfig
     goos:
       - darwin
     goarch:
