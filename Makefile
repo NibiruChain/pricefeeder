@@ -16,6 +16,12 @@ run:
 run-debug:
 	go run ./cmd/feeder/main.go -debug true
 
+cycle: # remove from PR
+	git tag -d v0.1.1-rc
+	git tag v0.1.1-rc
+	git push origin HEAD --tags
+	gh pr view --web
+
 ###############################################################################
 ###                               Release                                   ###
 ###############################################################################
@@ -35,4 +41,4 @@ release:
 		-e TM_VERSION=$(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::') \
 		-e GITHUB_TOKEN=${GITHUB_TOKEN} \
 		goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
-		release --rm-dist --snapshot
+		release --rm-dist
