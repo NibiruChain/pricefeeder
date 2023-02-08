@@ -6,7 +6,7 @@ builds:
     binary: pricefeeder
     hooks:
       pre:
-        - sudo ldconfig
+        - ldconfig
     goos:
       - darwin
     goarch:
