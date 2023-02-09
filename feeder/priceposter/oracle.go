@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
-	"strings"
 
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
 	"github.com/NibiruChain/price-feeder/types"
@@ -69,14 +68,8 @@ func prepareVote(
 		ValidatorAddr: validator.String(),
 	})
 	if err != nil {
-		// TODO(mercilex): a better way?
-		if strings.Contains(err.Error(), oracletypes.ErrNoAggregatePrevote.Error()) {
-			log.Warn().Msg("no aggregate prevote found for this voting period")
-			return nil, nil
-		} else {
-			log.Err(err).Msg("failed to get aggregate prevote from chain")
-			return nil, err
-		}
+		log.Err(err).Msg("failed to get aggregate prevote from chain")
+		return nil, nil
 	}
 
 	// assert equality between feeder's prevote and chain's prevote
