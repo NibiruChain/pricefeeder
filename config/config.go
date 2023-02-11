@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/NibiruChain/nibiru/x/common"
+	"github.com/NibiruChain/nibiru/x/common/asset"
 	"github.com/NibiruChain/price-feeder/types"
 	"github.com/joho/godotenv"
 )
@@ -52,11 +52,11 @@ func Get() (*Config, error) {
 		}
 	}
 
-	conf.ExchangesToPairToSymbolMap = map[string]map[common.AssetPair]types.Symbol{}
+	conf.ExchangesToPairToSymbolMap = map[string]map[asset.Pair]types.Symbol{}
 	for exchange, symbolMap := range exchangeSymbolsMap {
-		conf.ExchangesToPairToSymbolMap[exchange] = map[common.AssetPair]types.Symbol{}
+		conf.ExchangesToPairToSymbolMap[exchange] = map[asset.Pair]types.Symbol{}
 		for nibiAssetPair, tickerSymbol := range symbolMap {
-			conf.ExchangesToPairToSymbolMap[exchange][common.MustNewAssetPair(nibiAssetPair)] = types.Symbol(tickerSymbol)
+			conf.ExchangesToPairToSymbolMap[exchange][asset.MustNewPair(nibiAssetPair)] = types.Symbol(tickerSymbol)
 		}
 	}
 
@@ -65,7 +65,7 @@ func Get() (*Config, error) {
 }
 
 type Config struct {
-	ExchangesToPairToSymbolMap map[string]map[common.AssetPair]types.Symbol
+	ExchangesToPairToSymbolMap map[string]map[asset.Pair]types.Symbol
 	ExchangesToConfigMap       map[string]json.RawMessage
 	GRPCEndpoint               string
 	WebsocketEndpoint          string

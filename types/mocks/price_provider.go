@@ -7,7 +7,7 @@ package mock_types
 import (
 	reflect "reflect"
 
-	common "github.com/NibiruChain/nibiru/x/common"
+	asset "github.com/NibiruChain/nibiru/x/common/asset"
 	types "github.com/NibiruChain/price-feeder/types"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -48,7 +48,7 @@ func (mr *MockPriceProviderMockRecorder) Close() *gomock.Call {
 }
 
 // GetPrice mocks base method.
-func (m *MockPriceProvider) GetPrice(arg0 common.AssetPair) types.Price {
+func (m *MockPriceProvider) GetPrice(arg0 asset.Pair) types.Price {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPrice", arg0)
 	ret0, _ := ret[0].(types.Price)

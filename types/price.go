@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	"github.com/NibiruChain/nibiru/x/common"
+	"github.com/NibiruChain/nibiru/x/common/asset"
 	"github.com/NibiruChain/nibiru/x/common/set"
 )
 
@@ -19,7 +19,7 @@ type RawPrice struct {
 // Price defines the price of a symbol.
 type Price struct {
 	// Pair defines the symbol we're posting prices for.
-	Pair common.AssetPair
+	Pair asset.Pair
 	// Price defines the symbol's price.
 	Price float64
 	// SourceName defines the source which is providing the prices.

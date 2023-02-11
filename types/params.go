@@ -1,14 +1,14 @@
 package types
 
 import (
-	"github.com/NibiruChain/nibiru/x/common"
+	"github.com/NibiruChain/nibiru/x/common/asset"
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
 )
 
 // ParamsFromOracleParams converts oracletypes.Params into
 // Params. Panics on invalid whitelist pairs.
 func ParamsFromOracleParams(p oracletypes.Params) Params {
-	pairs := make([]common.AssetPair, len(p.Whitelist))
+	pairs := make([]asset.Pair, len(p.Whitelist))
 	for i, pair := range p.Whitelist {
 		pair := pair
 		pairs[i] = pair
@@ -22,7 +22,7 @@ func ParamsFromOracleParams(p oracletypes.Params) Params {
 // Params is the x/oracle specific subset of parameters required for price feeding.
 type Params struct {
 	// Pairs are the symbols we need to provide prices for.
-	Pairs []common.AssetPair
+	Pairs []asset.Pair
 	// VotePeriodBlocks is how
 	VotePeriodBlocks uint64
 }

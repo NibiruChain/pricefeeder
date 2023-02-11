@@ -11,10 +11,9 @@ import (
 
 	"github.com/NibiruChain/nibiru/app"
 	"github.com/NibiruChain/nibiru/simapp"
-	"github.com/NibiruChain/nibiru/x/common"
 	"github.com/NibiruChain/nibiru/x/common/asset"
 	"github.com/NibiruChain/nibiru/x/common/denoms"
-	testutilcli "github.com/NibiruChain/nibiru/x/testutil/cli"
+	testutilcli "github.com/NibiruChain/nibiru/x/common/testutil/cli"
 	"github.com/NibiruChain/price-feeder/feeder"
 	"github.com/NibiruChain/price-feeder/feeder/eventstream"
 	"github.com/NibiruChain/price-feeder/feeder/priceposter"
@@ -55,7 +54,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	log := zerolog.New(io.MultiWriter(os.Stderr, s.logs)).Level(zerolog.InfoLevel)
 
 	eventStream := eventstream.Dial(u.String(), grpcEndpoint, log)
-	priceProvider := priceprovider.NewPriceProvider(sources.Bitfinex, map[common.AssetPair]types.Symbol{
+	priceProvider := priceprovider.NewPriceProvider(sources.Bitfinex, map[asset.Pair]types.Symbol{
 		asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD",
 		asset.Registry.Pair(denoms.ETH, denoms.NUSD): "tETHUSD",
 	}, json.RawMessage{}, log)

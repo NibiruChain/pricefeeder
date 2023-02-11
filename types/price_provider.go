@@ -1,6 +1,6 @@
 package types
 
-import "github.com/NibiruChain/nibiru/x/common"
+import "github.com/NibiruChain/nibiru/x/common/asset"
 
 // PriceProvider defines an exchange API
 // which provides prices for the given assets.
@@ -12,7 +12,7 @@ type PriceProvider interface {
 	// Price.Pair, Price.Source must always be non-empty.
 	// If there are errors whilst fetching prices, then
 	// Price.Valid must be set to false.
-	GetPrice(pair common.AssetPair) Price
+	GetPrice(pair asset.Pair) Price
 	// Close shuts down the PriceProvider.
 	Close()
 }

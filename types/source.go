@@ -2,7 +2,7 @@ package types
 
 // Source defines a source for price provision.
 // This source has no knowledge of nibiru internals
-// and mappings across common.AssetPair and the Source
+// and mappings across asset.Pair and the Source
 // symbols.
 type Source interface {
 	// PriceUpdates is a readonly channel which provides
