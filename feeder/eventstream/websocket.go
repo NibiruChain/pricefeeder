@@ -53,7 +53,6 @@ func (w *ws) loop() {
 	// read messages and also handles reconnection.
 	for {
 		_, bytes, err := w.connection.ReadMessage()
-		w.logger.Debug().Bytes("ws connection bytes", bytes).Msg("received message from ws connection")
 		if err != nil {
 			if w.connectionClosed.Load() {
 				// if the connection was closed, then we exit

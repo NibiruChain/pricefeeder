@@ -2,7 +2,6 @@ package eventstream
 
 import (
 	"context"
-	"crypto/tls"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -11,7 +10,6 @@ import (
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 var _ types.EventStream = (*Stream)(nil)
@@ -24,12 +22,7 @@ type wsI interface {
 
 // Dial opens two connections to the given endpoint, one for the websocket and one for the oracle grpc.
 func Dial(tendermintRPCEndpoint string, grpcEndpoint string, logger zerolog.Logger) *Stream {
-	// TODO(k-yang): do proper certificate checking
-	grpcCreds := credentials.NewTLS(&tls.Config{
-		InsecureSkipVerify: true,
-	})
-	grpcConn, err := grpc.Dial(grpcEndpoint, grpc.WithTransportCredentials(grpcCreds))
-
+	grpcConn, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}
@@ -132,7 +125,7 @@ func (s *Stream) paramsLoop(oracleClient oracletypes.QueryClient, logger zerolog
 		case <-tick.C:
 			newParams, err := fetchParams()
 			if err != nil {
-				logger.Err(err).Msg("param update failed")
+				logger.Err(err).Msg("param update")
 				break
 			}
 
