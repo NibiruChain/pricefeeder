@@ -1,4 +1,4 @@
-module github.com/NibiruChain/price-feeder
+module github.com/NibiruChain/pricefeeder
 
 go 1.19
 

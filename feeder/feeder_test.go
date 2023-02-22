@@ -11,8 +11,8 @@ import (
 
 	"github.com/NibiruChain/nibiru/x/common/asset"
 	"github.com/NibiruChain/nibiru/x/common/denoms"
-	"github.com/NibiruChain/price-feeder/types"
-	mocks "github.com/NibiruChain/price-feeder/types/mocks"
+	"github.com/NibiruChain/pricefeeder/types"
+	mocks "github.com/NibiruChain/pricefeeder/types/mocks"
 )
 
 func TestRunPanics(t *testing.T) {

@@ -6,11 +6,11 @@ import (
 	"os/signal"
 
 	"github.com/NibiruChain/nibiru/app"
-	"github.com/NibiruChain/price-feeder/config"
-	"github.com/NibiruChain/price-feeder/feeder"
-	"github.com/NibiruChain/price-feeder/feeder/eventstream"
-	"github.com/NibiruChain/price-feeder/feeder/priceposter"
-	"github.com/NibiruChain/price-feeder/feeder/priceprovider"
+	"github.com/NibiruChain/pricefeeder/config"
+	"github.com/NibiruChain/pricefeeder/feeder"
+	"github.com/NibiruChain/pricefeeder/feeder/eventstream"
+	"github.com/NibiruChain/pricefeeder/feeder/priceposter"
+	"github.com/NibiruChain/pricefeeder/feeder/priceprovider"
 	"github.com/rs/zerolog"
 )
 

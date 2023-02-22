@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/NibiruChain/nibiru/x/common/asset"
-	"github.com/NibiruChain/price-feeder/types"
+	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/joho/godotenv"
 )
 
