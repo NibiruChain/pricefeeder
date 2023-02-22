@@ -43,6 +43,12 @@ func TestCoingeckoWithConfig(t *testing.T) {
 			httpmock.NewStringResponder(200, "{\"bitcoin\":{\"usd\":23829},\"ethereum\":{\"usd\":1676.85}}"),
 		)
 
+		// TODO(k-yang): set iteration is non-deterministic, so we need to account for both orderings of the coin ids
+		httpmock.RegisterResponder(
+			"GET", PaidLink+"simple/price?ids=ethereum%2Cbitcoin&vs_currencies=usd&"+ApiKeyParam+"=1234567890",
+			httpmock.NewStringResponder(200, "{\"bitcoin\":{\"usd\":23829},\"ethereum\":{\"usd\":1676.85}}"),
+		)
+
 		options := "{\"api_key\": \"1234567890\"}"
 		jsonOptions := json.RawMessage{}
 		err := json.Unmarshal([]byte(options), &jsonOptions)
