@@ -36,6 +36,9 @@ func main() {
 	eventStream := eventstream.Dial(c.WebsocketEndpoint, c.GRPCEndpoint, logger)
 	priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, c.DataSourceConfigMap, logger)
 	kb, valAddr, feederAddr := config.GetAuth(c.FeederMnemonic)
+	if c.ValidatorAddr != nil {
+		valAddr = *c.ValidatorAddr
+	}
 	pricePoster := priceposter.Dial(c.GRPCEndpoint, c.ChainID, kb, valAddr, feederAddr, logger)
 
 	f := feeder.NewFeeder(eventStream, priceProvider, pricePoster, logger)

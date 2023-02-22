@@ -8,6 +8,7 @@ import (
 
 	"github.com/NibiruChain/nibiru/x/common/asset"
 	"github.com/NibiruChain/pricefeeder/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/joho/godotenv"
 )
 
@@ -34,14 +35,24 @@ func Get() (*Config, error) {
 	conf.GRPCEndpoint = os.Getenv("GRPC_ENDPOINT")
 	conf.WebsocketEndpoint = os.Getenv("WEBSOCKET_ENDPOINT")
 	conf.FeederMnemonic = os.Getenv("FEEDER_MNEMONIC")
+
+	// exchange symbols map
 	exchangeSymbolsMapJson := os.Getenv("EXCHANGE_SYMBOLS_MAP")
 	exchangeSymbolsMap := map[string]map[string]string{}
-
 	err := json.Unmarshal([]byte(exchangeSymbolsMapJson), &exchangeSymbolsMap)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse EXCHANGE_SYMBOLS_MAP: invalid json")
 	}
 
+	conf.ExchangesToPairToSymbolMap = map[string]map[asset.Pair]types.Symbol{}
+	for exchange, symbolMap := range exchangeSymbolsMap {
+		conf.ExchangesToPairToSymbolMap[exchange] = map[asset.Pair]types.Symbol{}
+		for nibiAssetPair, tickerSymbol := range symbolMap {
+			conf.ExchangesToPairToSymbolMap[exchange][asset.MustNewPair(nibiAssetPair)] = types.Symbol(tickerSymbol)
+		}
+	}
+
+	// datasource config map
 	datasourceConfigMapJson := os.Getenv("DATASOURCE_CONFIG_MAP")
 	datasourceConfigMap := map[string]json.RawMessage{}
 
@@ -53,11 +64,12 @@ func Get() (*Config, error) {
 	}
 	conf.DataSourceConfigMap = datasourceConfigMap
 
-	conf.ExchangesToPairToSymbolMap = map[string]map[asset.Pair]types.Symbol{}
-	for exchange, symbolMap := range exchangeSymbolsMap {
-		conf.ExchangesToPairToSymbolMap[exchange] = map[asset.Pair]types.Symbol{}
-		for nibiAssetPair, tickerSymbol := range symbolMap {
-			conf.ExchangesToPairToSymbolMap[exchange][asset.MustNewPair(nibiAssetPair)] = types.Symbol(tickerSymbol)
+	// optional validator address (for delegated feeders)
+	valAddrStr := os.Getenv("VALIDATOR_ADDRESS")
+	if valAddrStr != "" {
+		valAddr, err := sdk.ValAddressFromBech32(valAddrStr)
+		if err == nil {
+			conf.ValidatorAddr = &valAddr
 		}
 	}
 
@@ -71,6 +83,7 @@ type Config struct {
 	WebsocketEndpoint          string
 	FeederMnemonic             string
 	ChainID                    string
+	ValidatorAddr              *sdk.ValAddress
 }
 
 func (c *Config) Validate() error {
