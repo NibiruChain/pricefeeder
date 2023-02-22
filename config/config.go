@@ -42,15 +42,16 @@ func Get() (*Config, error) {
 		return nil, fmt.Errorf("failed to parse EXCHANGE_SYMBOLS_MAP: invalid json")
 	}
 
-	exchangeConfigMapJson := os.Getenv("EXCHANGE_CONFIG_MAP")
-	exchangeConfigMap := map[string]json.RawMessage{}
+	datasourceConfigMapJson := os.Getenv("DATASOURCE_CONFIG_MAP")
+	datasourceConfigMap := map[string]json.RawMessage{}
 
-	if exchangeConfigMapJson != "" {
-		err = json.Unmarshal([]byte(exchangeConfigMapJson), &exchangeConfigMap)
+	if datasourceConfigMapJson != "" {
+		err = json.Unmarshal([]byte(datasourceConfigMapJson), &datasourceConfigMap)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse EXCHANGE_CONFIG_MAP: invalid json")
+			return nil, fmt.Errorf("failed to parse DATASOURCE_CONFIG_MAP: invalid json")
 		}
 	}
+	conf.DataSourceConfigMap = datasourceConfigMap
 
 	conf.ExchangesToPairToSymbolMap = map[string]map[asset.Pair]types.Symbol{}
 	for exchange, symbolMap := range exchangeSymbolsMap {
@@ -60,13 +61,12 @@ func Get() (*Config, error) {
 		}
 	}
 
-	conf.ExchangesToConfigMap = exchangeConfigMap
 	return conf, conf.Validate()
 }
 
 type Config struct {
 	ExchangesToPairToSymbolMap map[string]map[asset.Pair]types.Symbol
-	ExchangesToConfigMap       map[string]json.RawMessage
+	DataSourceConfigMap        map[string]json.RawMessage
 	GRPCEndpoint               string
 	WebsocketEndpoint          string
 	FeederMnemonic             string

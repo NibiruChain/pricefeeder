@@ -23,7 +23,7 @@ Coingecko source allows to use paid api key to get more requests per minute. In 
 you need to set env var:
 
 ```ini
-EXCHANGE_CONFIG_MAP='{"coingecko": {"api_key": "0123456789"}}'
+DATASOURCE_CONFIG_MAP='{"coingecko": {"api_key": "0123456789"}}'
 ```
 
 ## Build
