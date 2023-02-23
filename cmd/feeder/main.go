@@ -6,12 +6,14 @@ import (
 	"os/signal"
 
 	"github.com/NibiruChain/nibiru/app"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/rs/zerolog"
+
 	"github.com/NibiruChain/price-feeder/config"
 	"github.com/NibiruChain/price-feeder/feeder"
 	"github.com/NibiruChain/price-feeder/feeder/eventstream"
 	"github.com/NibiruChain/price-feeder/feeder/priceposter"
 	"github.com/NibiruChain/price-feeder/feeder/priceprovider"
-	"github.com/rs/zerolog"
 )
 
 func setupLogger() zerolog.Logger {
@@ -36,6 +38,15 @@ func main() {
 	eventStream := eventstream.Dial(c.WebsocketEndpoint, c.GRPCEndpoint, logger)
 	priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, c.ExchangesToConfigMap, logger)
 	kb, valAddr, feederAddr := config.GetAuth(c.FeederMnemonic)
+
+	if c.ValidatorAddress != "" {
+		v, err := sdk.ValAddressFromBech32(c.ValidatorAddress)
+		if err != nil {
+			panic("invalid validator address")
+		}
+		valAddr = v
+	}
+
 	pricePoster := priceposter.Dial(c.GRPCEndpoint, c.ChainID, kb, valAddr, feederAddr, logger)
 
 	f := feeder.NewFeeder(eventStream, priceProvider, pricePoster, logger)
