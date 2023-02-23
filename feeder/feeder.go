@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NibiruChain/price-feeder/types"
+	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 )
 

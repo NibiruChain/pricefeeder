@@ -6,7 +6,7 @@ import (
 
 	"github.com/NibiruChain/nibiru/app"
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
-	"github.com/NibiruChain/price-feeder/types"
+	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"

@@ -9,11 +9,10 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 
-	"github.com/NibiruChain/nibiru/x/common"
 	"github.com/NibiruChain/nibiru/x/common/asset"
 	"github.com/NibiruChain/nibiru/x/common/denoms"
-	"github.com/NibiruChain/price-feeder/types"
-	mocks "github.com/NibiruChain/price-feeder/types/mocks"
+	"github.com/NibiruChain/pricefeeder/types"
+	mocks "github.com/NibiruChain/pricefeeder/types/mocks"
 )
 
 func TestRunPanics(t *testing.T) {
@@ -34,7 +33,7 @@ func TestParamsUpdate(t *testing.T) {
 	tf := initFeeder(t)
 	defer tf.feeder.Close()
 	p := types.Params{
-		Pairs:            []common.AssetPair{asset.Registry.Pair(denoms.NIBI, denoms.NUSD)},
+		Pairs:            []asset.Pair{asset.Registry.Pair(denoms.NIBI, denoms.NUSD)},
 		VotePeriodBlocks: 50,
 	}
 
@@ -89,7 +88,7 @@ func initFeeder(t *testing.T) testFeederHarness {
 
 	paramsChannel := make(chan types.Params, 1)
 	eventStream.EXPECT().ParamsUpdate().AnyTimes().Return(paramsChannel)
-	paramsChannel <- types.Params{Pairs: []common.AssetPair{asset.Registry.Pair(denoms.BTC, denoms.NUSD), asset.Registry.Pair(denoms.ETH, denoms.NUSD)}}
+	paramsChannel <- types.Params{Pairs: []asset.Pair{asset.Registry.Pair(denoms.BTC, denoms.NUSD), asset.Registry.Pair(denoms.ETH, denoms.NUSD)}}
 
 	votingPeriodChannel := make(chan types.VotingPeriod, 1)
 	eventStream.EXPECT().VotingPeriodStarted().AnyTimes().Return(votingPeriodChannel)

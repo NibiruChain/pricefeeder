@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/NibiruChain/nibiru/x/common"
-	"github.com/NibiruChain/price-feeder/types"
+	"github.com/NibiruChain/nibiru/x/common/asset"
+	"github.com/NibiruChain/pricefeeder/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/joho/godotenv"
 )
 
@@ -37,42 +38,52 @@ func Get() (*Config, error) {
 	conf.ValidatorAddress = os.Getenv("VALIDATOR_ADDRESS")
 	exchangeSymbolsMapJson := os.Getenv("EXCHANGE_SYMBOLS_MAP")
 	exchangeSymbolsMap := map[string]map[string]string{}
-
 	err := json.Unmarshal([]byte(exchangeSymbolsMapJson), &exchangeSymbolsMap)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse EXCHANGE_SYMBOLS_MAP: invalid json")
 	}
 
-	exchangeConfigMapJson := os.Getenv("EXCHANGE_CONFIG_MAP")
-	exchangeConfigMap := map[string]json.RawMessage{}
-
-	if exchangeConfigMapJson != "" {
-		err = json.Unmarshal([]byte(exchangeConfigMapJson), &exchangeConfigMap)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse EXCHANGE_CONFIG_MAP: invalid json")
-		}
-	}
-
-	conf.ExchangesToPairToSymbolMap = map[string]map[common.AssetPair]types.Symbol{}
+	conf.ExchangesToPairToSymbolMap = map[string]map[asset.Pair]types.Symbol{}
 	for exchange, symbolMap := range exchangeSymbolsMap {
-		conf.ExchangesToPairToSymbolMap[exchange] = map[common.AssetPair]types.Symbol{}
+		conf.ExchangesToPairToSymbolMap[exchange] = map[asset.Pair]types.Symbol{}
 		for nibiAssetPair, tickerSymbol := range symbolMap {
-			conf.ExchangesToPairToSymbolMap[exchange][common.MustNewAssetPair(nibiAssetPair)] = types.Symbol(tickerSymbol)
+			conf.ExchangesToPairToSymbolMap[exchange][asset.MustNewPair(nibiAssetPair)] = types.Symbol(tickerSymbol)
 		}
 	}
 
-	conf.ExchangesToConfigMap = exchangeConfigMap
+	// datasource config map
+	datasourceConfigMapJson := os.Getenv("DATASOURCE_CONFIG_MAP")
+	datasourceConfigMap := map[string]json.RawMessage{}
+
+	if datasourceConfigMapJson != "" {
+		err = json.Unmarshal([]byte(datasourceConfigMapJson), &datasourceConfigMap)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse DATASOURCE_CONFIG_MAP: invalid json")
+		}
+	}
+	conf.DataSourceConfigMap = datasourceConfigMap
+
+	// optional validator address (for delegated feeders)
+	valAddrStr := os.Getenv("VALIDATOR_ADDRESS")
+	if valAddrStr != "" {
+		valAddr, err := sdk.ValAddressFromBech32(valAddrStr)
+		if err == nil {
+			conf.ValidatorAddr = &valAddr
+		}
+	}
+
 	return conf, conf.Validate()
 }
 
 type Config struct {
-	ExchangesToPairToSymbolMap map[string]map[common.AssetPair]types.Symbol
-	ExchangesToConfigMap       map[string]json.RawMessage
+	ExchangesToPairToSymbolMap map[string]map[asset.Pair]types.Symbol
+	DataSourceConfigMap        map[string]json.RawMessage
 	GRPCEndpoint               string
 	WebsocketEndpoint          string
 	FeederMnemonic             string
 	ValidatorAddress           string // Optional
 	ChainID                    string
+	ValidatorAddr              *sdk.ValAddress
 }
 
 func (c *Config) Validate() error {

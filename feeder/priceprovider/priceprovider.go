@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/NibiruChain/nibiru/x/common"
+	"github.com/NibiruChain/nibiru/x/common/asset"
 	"github.com/NibiruChain/nibiru/x/common/set"
-	"github.com/NibiruChain/price-feeder/feeder/priceprovider/sources"
-	"github.com/NibiruChain/price-feeder/types"
+	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
+	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 )
 
@@ -23,16 +23,16 @@ type PriceProvider struct {
 	done                chan struct{}
 	source              types.Source
 	sourceName          string
-	pairToSymbolMapping map[common.AssetPair]types.Symbol
+	pairToSymbolMapping map[asset.Pair]types.Symbol
 	lastPricesMutex     sync.Mutex
 	lastPrices          map[types.Symbol]types.RawPrice
 }
 
 // NewPriceProvider returns a types.PriceProvider given the price source we want to gather prices from,
-// the mapping between nibiru common.AssetPair and the source's symbols, and a zerolog.Logger instance.
+// the mapping between nibiru asset.Pair and the source's symbols, and a zerolog.Logger instance.
 func NewPriceProvider(
 	sourceName string,
-	pairToSymbolMap map[common.AssetPair]types.Symbol,
+	pairToSymbolMap map[asset.Pair]types.Symbol,
 	config json.RawMessage,
 	logger zerolog.Logger,
 ) types.PriceProvider {
@@ -52,9 +52,9 @@ func NewPriceProvider(
 }
 
 // newPriceProvider returns a raw *PriceProvider given a Source implementer, the source name and the
-// map of nibiru common.AssetPair to Source's symbols, plus the zerolog.Logger instance.
+// map of nibiru asset.Pair to Source's symbols, plus the zerolog.Logger instance.
 // Exists for testing purposes.
-func newPriceProvider(source types.Source, sourceName string, pairToSymbolsMap map[common.AssetPair]types.Symbol, logger zerolog.Logger) *PriceProvider {
+func newPriceProvider(source types.Source, sourceName string, pairToSymbolsMap map[asset.Pair]types.Symbol, logger zerolog.Logger) *PriceProvider {
 	pp := &PriceProvider{
 		logger:              logger.With().Str("component", "price-provider").Str("source", sourceName).Logger(),
 		stopSignal:          make(chan struct{}),
@@ -89,10 +89,10 @@ func (p *PriceProvider) loop() {
 	}
 }
 
-// GetPrice returns the types.Price for the given common.AssetPair
+// GetPrice returns the types.Price for the given asset.Pair
 // in case price has expired, or for some reason it's impossible to
 // get the last available price, then an invalid types.Price is returned.
-func (p *PriceProvider) GetPrice(pair common.AssetPair) types.Price {
+func (p *PriceProvider) GetPrice(pair asset.Pair) types.Price {
 	symbol, symbolExists := p.pairToSymbolMapping[pair]
 	// in case this is an unknown symbol, which might happen
 	// when for example we have a param update, then we return
@@ -126,7 +126,7 @@ func (p *PriceProvider) Close() {
 
 // symbolsFromPairToSymbolMapping returns the symbols list
 // given the map which maps nibiru chain pairs to exchange symbols.
-func symbolsFromPairToSymbolMapping(m map[common.AssetPair]types.Symbol) set.Set[types.Symbol] {
+func symbolsFromPairToSymbolMapping(m map[asset.Pair]types.Symbol) set.Set[types.Symbol] {
 	// s := make(set.Set[types.Symbol], 0, len(m))
 	s := set.New[types.Symbol]()
 	for _, v := range m {

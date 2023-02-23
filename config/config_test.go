@@ -1,9 +1,11 @@
 package config
 
 import (
-	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
+
+	"github.com/NibiruChain/nibiru/app"
+	"github.com/stretchr/testify/require"
 )
 
 func TestConfig_Get(t *testing.T) {
@@ -16,6 +18,8 @@ func TestConfig_Get(t *testing.T) {
 		"EXCHANGE_SYMBOLS_MAP",
 		"{\"bitfinex\": {\"ubtc:unusd\": \"tBTCUSD\", \"ueth:unusd\": \"tETHUSD\", \"uusd:unusd\": \"tUSTUSD\"}}",
 	)
+	app.SetPrefixes(app.AccountAddressPrefix)
+	os.Setenv("VALIDATOR_ADDRESS", "nibivaloper1d7zygazerfwx4l362tnpcp0ramzm97xvv9ryxr")
 	_, err := Get()
 	require.NoError(t, err)
 }

@@ -9,11 +9,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/rs/zerolog"
 
-	"github.com/NibiruChain/price-feeder/config"
-	"github.com/NibiruChain/price-feeder/feeder"
-	"github.com/NibiruChain/price-feeder/feeder/eventstream"
-	"github.com/NibiruChain/price-feeder/feeder/priceposter"
-	"github.com/NibiruChain/price-feeder/feeder/priceprovider"
+	"github.com/NibiruChain/pricefeeder/config"
+	"github.com/NibiruChain/pricefeeder/feeder"
+	"github.com/NibiruChain/pricefeeder/feeder/eventstream"
+	"github.com/NibiruChain/pricefeeder/feeder/priceposter"
+	"github.com/NibiruChain/pricefeeder/feeder/priceprovider"
 )
 
 func setupLogger() zerolog.Logger {
@@ -36,7 +36,7 @@ func main() {
 	c := config.MustGet()
 
 	eventStream := eventstream.Dial(c.WebsocketEndpoint, c.GRPCEndpoint, logger)
-	priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, c.ExchangesToConfigMap, logger)
+	priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, c.DataSourceConfigMap, logger)
 	kb, valAddr, feederAddr := config.GetAuth(c.FeederMnemonic)
 
 	if c.ValidatorAddress != "" {
@@ -47,6 +47,9 @@ func main() {
 		valAddr = v
 	}
 
+	if c.ValidatorAddr != nil {
+		valAddr = *c.ValidatorAddr
+	}
 	pricePoster := priceposter.Dial(c.GRPCEndpoint, c.ChainID, kb, valAddr, feederAddr, logger)
 
 	f := feeder.NewFeeder(eventStream, priceProvider, pricePoster, logger)

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
-	"github.com/NibiruChain/price-feeder/types"
+	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/require"
 )
@@ -40,6 +40,12 @@ func TestCoingeckoWithConfig(t *testing.T) {
 	t.Run("providing valid config", func(t *testing.T) {
 		httpmock.RegisterResponder(
 			"GET", PaidLink+"simple/price?ids=bitcoin%2Cethereum&vs_currencies=usd&"+ApiKeyParam+"=1234567890",
+			httpmock.NewStringResponder(200, "{\"bitcoin\":{\"usd\":23829},\"ethereum\":{\"usd\":1676.85}}"),
+		)
+
+		// TODO(k-yang): set iteration is non-deterministic, so we need to account for both orderings of the coin ids
+		httpmock.RegisterResponder(
+			"GET", PaidLink+"simple/price?ids=ethereum%2Cbitcoin&vs_currencies=usd&"+ApiKeyParam+"=1234567890",
 			httpmock.NewStringResponder(200, "{\"bitcoin\":{\"usd\":23829},\"ethereum\":{\"usd\":1676.85}}"),
 		)
 

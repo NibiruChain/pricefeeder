@@ -6,11 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NibiruChain/nibiru/x/common"
 	"github.com/NibiruChain/nibiru/x/common/asset"
 	"github.com/NibiruChain/nibiru/x/common/denoms"
-	"github.com/NibiruChain/price-feeder/feeder/priceprovider/sources"
-	"github.com/NibiruChain/price-feeder/types"
+	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
+	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
@@ -31,7 +30,7 @@ func TestPriceProvider(t *testing.T) {
 	t.Run("bitfinex success", func(t *testing.T) {
 		pp := NewPriceProvider(
 			sources.Bitfinex,
-			map[common.AssetPair]types.Symbol{asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD"},
+			map[asset.Pair]types.Symbol{asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD"},
 			json.RawMessage{},
 			zerolog.New(io.Discard),
 		)
@@ -56,7 +55,7 @@ func TestPriceProvider(t *testing.T) {
 	})
 
 	t.Run("returns invalid price on unknown AssetPair", func(t *testing.T) {
-		pp := newPriceProvider(testAsyncSource{}, "test", map[common.AssetPair]types.Symbol{}, zerolog.New(io.Discard))
+		pp := newPriceProvider(testAsyncSource{}, "test", map[asset.Pair]types.Symbol{}, zerolog.New(io.Discard))
 		price := pp.GetPrice(asset.Registry.Pair(denoms.BTC, denoms.NUSD))
 		require.False(t, price.Valid)
 		require.Equal(t, float64(-1), price.Price)
@@ -69,7 +68,7 @@ func TestPriceProvider(t *testing.T) {
 			priceUpdatesC: priceUpdatesC,
 			closeFn:       func() { close(priceUpdatesC) },
 		}
-		pp := newPriceProvider(source, "test", map[common.AssetPair]types.Symbol{asset.Registry.Pair(denoms.BTC, denoms.NUSD): "BTC:NUSD"}, zerolog.New(io.Discard))
+		pp := newPriceProvider(source, "test", map[asset.Pair]types.Symbol{asset.Registry.Pair(denoms.BTC, denoms.NUSD): "BTC:NUSD"}, zerolog.New(io.Discard))
 
 		priceUpdatesC <- map[types.Symbol]types.RawPrice{"BTC:NUSD": {Price: 10, UpdateTime: time.Now()}}
 		price := pp.GetPrice(asset.Registry.Pair(denoms.BTC, denoms.NUSD))
@@ -86,7 +85,7 @@ func TestPriceProvider(t *testing.T) {
 			closeFn: func() {
 				closed = true
 			},
-		}, "test", map[common.AssetPair]types.Symbol{}, zerolog.New(io.Discard))
+		}, "test", map[asset.Pair]types.Symbol{}, zerolog.New(io.Discard))
 
 		pp.Close()
 		require.True(t, closed)

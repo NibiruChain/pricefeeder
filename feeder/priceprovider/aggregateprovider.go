@@ -2,10 +2,10 @@ package priceprovider
 
 import (
 	"encoding/json"
-	"github.com/NibiruChain/nibiru/x/common"
+
 	"github.com/NibiruChain/nibiru/x/common/asset"
 	"github.com/NibiruChain/nibiru/x/common/denoms"
-	"github.com/NibiruChain/price-feeder/types"
+	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 )
 
@@ -21,7 +21,7 @@ type AggregatePriceProvider struct {
 // NewAggregatePriceProvider instantiates a new AggregatePriceProvider instance
 // given multiple PriceProvider.
 func NewAggregatePriceProvider(
-	sourcesToPairSymbolMap map[string]map[common.AssetPair]types.Symbol,
+	sourcesToPairSymbolMap map[string]map[asset.Pair]types.Symbol,
 	configToMap map[string]json.RawMessage,
 	logger zerolog.Logger,
 ) types.PriceProvider {
@@ -41,7 +41,7 @@ func NewAggregatePriceProvider(
 // GetPrice fetches the first available and correct price from the wrapped PriceProviders.
 // Iteration is exhaustive and random.
 // If no correct PriceResponse is found, then an invalid PriceResponse is returned.
-func (a AggregatePriceProvider) GetPrice(pair common.AssetPair) types.Price {
+func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 
 	// Temporarily treat NUSD as perfectly pegged to the US fiat dollar
 	// TODO(k-yang): add the NUSD pricefeed once it's available on exchanges

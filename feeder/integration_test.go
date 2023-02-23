@@ -10,17 +10,16 @@ import (
 	"time"
 
 	"github.com/NibiruChain/nibiru/app"
-	"github.com/NibiruChain/nibiru/simapp"
-	"github.com/NibiruChain/nibiru/x/common"
 	"github.com/NibiruChain/nibiru/x/common/asset"
 	"github.com/NibiruChain/nibiru/x/common/denoms"
-	testutilcli "github.com/NibiruChain/nibiru/x/testutil/cli"
-	"github.com/NibiruChain/price-feeder/feeder"
-	"github.com/NibiruChain/price-feeder/feeder/eventstream"
-	"github.com/NibiruChain/price-feeder/feeder/priceposter"
-	"github.com/NibiruChain/price-feeder/feeder/priceprovider"
-	"github.com/NibiruChain/price-feeder/feeder/priceprovider/sources"
-	"github.com/NibiruChain/price-feeder/types"
+	testutilcli "github.com/NibiruChain/nibiru/x/common/testutil/cli"
+	"github.com/NibiruChain/nibiru/x/common/testutil/genesis"
+	"github.com/NibiruChain/pricefeeder/feeder"
+	"github.com/NibiruChain/pricefeeder/feeder/eventstream"
+	"github.com/NibiruChain/pricefeeder/feeder/priceposter"
+	"github.com/NibiruChain/pricefeeder/feeder/priceprovider"
+	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
+	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -38,7 +37,7 @@ type IntegrationTestSuite struct {
 
 func (s *IntegrationTestSuite) SetupSuite() {
 	app.SetPrefixes(app.AccountAddressPrefix)
-	s.cfg = testutilcli.BuildNetworkConfig(simapp.NewTestGenesisStateFromDefault())
+	s.cfg = testutilcli.BuildNetworkConfig(genesis.NewTestGenesisState())
 	s.network = testutilcli.NewNetwork(s.T(), s.cfg)
 
 	_, err := s.network.WaitForHeight(1)
@@ -55,7 +54,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	log := zerolog.New(io.MultiWriter(os.Stderr, s.logs)).Level(zerolog.InfoLevel)
 
 	eventStream := eventstream.Dial(u.String(), grpcEndpoint, log)
-	priceProvider := priceprovider.NewPriceProvider(sources.Bitfinex, map[common.AssetPair]types.Symbol{
+	priceProvider := priceprovider.NewPriceProvider(sources.Bitfinex, map[asset.Pair]types.Symbol{
 		asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD",
 		asset.Registry.Pair(denoms.ETH, denoms.NUSD): "tETHUSD",
 	}, json.RawMessage{}, log)

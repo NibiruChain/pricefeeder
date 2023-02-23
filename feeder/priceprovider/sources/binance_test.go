@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
-	"github.com/NibiruChain/price-feeder/types"
+	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/stretchr/testify/require"
 )
 

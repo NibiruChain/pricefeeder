@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
-	"github.com/NibiruChain/price-feeder/types"
+	"github.com/NibiruChain/pricefeeder/types"
 )
 
 const (
