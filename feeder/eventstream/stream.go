@@ -2,6 +2,8 @@ package eventstream
 
 import (
 	"context"
+	"crypto/tls"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -10,6 +12,7 @@ import (
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 var _ types.EventStream = (*Stream)(nil)
@@ -22,11 +25,26 @@ type wsI interface {
 
 // Dial opens two connections to the given endpoint, one for the websocket and one for the oracle grpc.
 func Dial(tendermintRPCEndpoint string, grpcEndpoint string, logger zerolog.Logger) *Stream {
-	grpcConn, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure())
+	transportDialOpt := grpc.WithTransportCredentials(
+		credentials.NewTLS(
+			&tls.Config{
+				InsecureSkipVerify: false,
+			},
+		),
+	)
+	if strings.Contains(grpcEndpoint, "localhost") {
+		transportDialOpt = grpc.WithInsecure()
+	}
+
+	conn, err := grpc.Dial(grpcEndpoint, transportDialOpt)
 	if err != nil {
 		panic(err)
 	}
-	oracleClient := oracletypes.NewQueryClient(grpcConn)
+
+	if err != nil {
+		panic(err)
+	}
+	oracleClient := oracletypes.NewQueryClient(conn)
 
 	const newBlockSubscribe = `{"jsonrpc":"2.0","method":"subscribe","id":0,"params":{"query":"tm.event='NewBlock'"}}`
 	ws := NewWebsocket(tendermintRPCEndpoint, []byte(newBlockSubscribe), logger)
@@ -125,7 +143,7 @@ func (s *Stream) paramsLoop(oracleClient oracletypes.QueryClient, logger zerolog
 		case <-tick.C:
 			newParams, err := fetchParams()
 			if err != nil {
-				logger.Err(err).Msg("param update")
+				logger.Err(err).Msg("param update failed")
 				break
 			}
 
