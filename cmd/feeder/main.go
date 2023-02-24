@@ -6,7 +6,6 @@ import (
 	"os/signal"
 
 	"github.com/NibiruChain/nibiru/app"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/rs/zerolog"
 
 	"github.com/NibiruChain/pricefeeder/config"
@@ -38,14 +37,6 @@ func main() {
 	eventStream := eventstream.Dial(c.WebsocketEndpoint, c.GRPCEndpoint, logger)
 	priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, c.DataSourceConfigMap, logger)
 	kb, valAddr, feederAddr := config.GetAuth(c.FeederMnemonic)
-
-	if c.ValidatorAddress != "" {
-		v, err := sdk.ValAddressFromBech32(c.ValidatorAddress)
-		if err != nil {
-			panic("invalid validator address")
-		}
-		valAddr = v
-	}
 
 	if c.ValidatorAddr != nil {
 		valAddr = *c.ValidatorAddr

@@ -2,7 +2,6 @@
 
 Submits prices to the nibiru decentralized oracle.
 
-
 ## Configuration using `.env`
 
 Feeder requires the following environment variables to run:
@@ -17,11 +16,17 @@ EXCHANGE_SYMBOLS_MAP='{"bitfinex": {"ubtc:unusd": "tBTCUSD", "ueth:unusd": "tETH
 
 ### Delegating post pricing
 
-In order to be able to delegate the post pricing you need to set the 
+In order to be able to delegate the post pricing you need to set the
 env variable for the validator that delegated you the post pricing:
 
 ```ini
 VALIDATOR_ADDRESS="nibiruvaloper1..."
+```
+
+And from your validator node, you need to delegate responsibilites to the feeder address
+
+```sh
+nibid tx oracle set-feeder <feeder address> --from validator
 ```
 
 ### Configuring specific exchanges
@@ -52,5 +57,3 @@ or to run as a daemon:
 ```sh
 make docker-compose up -d price_feeder
 ```
-
-
