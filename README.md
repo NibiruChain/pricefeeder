@@ -15,6 +15,15 @@ FEEDER_MNEMONIC="guard cream sadness conduct invite crumble clock pudding hole g
 EXCHANGE_SYMBOLS_MAP='{"bitfinex": {"ubtc:unusd": "tBTCUSD", "ueth:unusd": "tETHUSD", "uusd:unusd": "tUSTUSD"}}'
 ```
 
+### Delegating post pricing
+
+In order to be able to delegate the post pricing you need to set the 
+env variable for the validator that delegated you the post pricing:
+
+```ini
+VALIDATOR_ADDRESS="nibiruvaloper1..."
+```
+
 ### Configuring specific exchanges
 
 #### CoinGecko

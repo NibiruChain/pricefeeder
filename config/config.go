@@ -35,8 +35,7 @@ func Get() (*Config, error) {
 	conf.GRPCEndpoint = os.Getenv("GRPC_ENDPOINT")
 	conf.WebsocketEndpoint = os.Getenv("WEBSOCKET_ENDPOINT")
 	conf.FeederMnemonic = os.Getenv("FEEDER_MNEMONIC")
-
-	// exchange symbols map
+	conf.ValidatorAddress = os.Getenv("VALIDATOR_ADDRESS")
 	exchangeSymbolsMapJson := os.Getenv("EXCHANGE_SYMBOLS_MAP")
 	exchangeSymbolsMap := map[string]map[string]string{}
 	err := json.Unmarshal([]byte(exchangeSymbolsMapJson), &exchangeSymbolsMap)
@@ -82,6 +81,7 @@ type Config struct {
 	GRPCEndpoint               string
 	WebsocketEndpoint          string
 	FeederMnemonic             string
+	ValidatorAddress           string // Optional
 	ChainID                    string
 	ValidatorAddr              *sdk.ValAddress
 }
