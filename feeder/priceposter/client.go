@@ -2,6 +2,8 @@ package priceposter
 
 import (
 	"context"
+	"crypto/tls"
+	"strings"
 	"time"
 
 	"github.com/NibiruChain/nibiru/app"
@@ -15,6 +17,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 var _ types.PricePoster = (*Client)(nil)
@@ -42,7 +45,19 @@ type deps struct {
 }
 
 func Dial(grpcEndpoint string, chainID string, keyBase keyring.Keyring, validator sdk.ValAddress, feeder sdk.AccAddress, logger zerolog.Logger) *Client {
-	conn, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure())
+
+	transportDialOpt := grpc.WithTransportCredentials(
+		credentials.NewTLS(
+			&tls.Config{
+				InsecureSkipVerify: false,
+			},
+		),
+	)
+	if strings.Contains(grpcEndpoint, "localhost") {
+		transportDialOpt = grpc.WithInsecure()
+	}
+
+	conn, err := grpc.Dial(grpcEndpoint, transportDialOpt)
 	if err != nil {
 		panic(err)
 	}
