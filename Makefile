@@ -39,8 +39,6 @@ release:
 	docker run \
 		--rm \
 		--platform=linux/amd64 \
-		--privileged \
-		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v "$(CURDIR)":/go/src/$(PACKAGE_NAME) \
 		-w /go/src/$(PACKAGE_NAME) \
 		-e CGO_ENABLED=1 \
