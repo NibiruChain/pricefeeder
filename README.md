@@ -7,7 +7,7 @@ Submits prices to the nibiru decentralized oracle.
 Feeder requires the following environment variables to run:
 
 ```ini
-CHAIN_ID="nibiru-itn-1"
+CHAIN_ID="nibiru-localnet-0"
 GRPC_ENDPOINT="localhost:9090"
 WEBSOCKET_ENDPOINT="ws://localhost:26657/websocket"
 FEEDER_MNEMONIC="guard cream sadness conduct invite crumble clock pudding hole grit liar hotel maid produce squeeze return argue turtle know drive eight casino maze host"
