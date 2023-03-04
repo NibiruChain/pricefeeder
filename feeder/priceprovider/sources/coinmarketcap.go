@@ -9,13 +9,12 @@ import (
 
 	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/pricefeeder/types"
-	"github.com/tendermint/tendermint/libs/json"
 )
 
 const (
-	CoiCoinmarketcap   = "coinmarketcap"
+	Coinmarketcap   = "coinmarketcap"
 	Link    = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest"
-	ApiKeyParam = "X-CMC_PRO_API_KEY"
+	CMCApiKeyParam = "X-CMC_PRO_API_KEY"
 )
 
 type Cmcquoteprice struct {
@@ -39,15 +38,11 @@ type CoinmarketcapConfig struct {
 	ApiKey string `json:"api_key"`
 }
 
-type CmcTicker struct {
-	Price float64 
-}
-
 func CoinmarketcapPriceUpdate(jsonConfig json2.RawMessage) types.FetchPricesFunc {
 	return func(symbols set.Set[types.Symbol]) (map[types.Symbol]float64, error) {
 		client := &http.Client{}
 
-		c, err := extractConfig(jsonConfig)
+		c, err := getConfig(jsonConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +63,7 @@ func CoinmarketcapPriceUpdate(jsonConfig json2.RawMessage) types.FetchPricesFunc
 			return nil, err
 		}
 
-		rawPrices, err := extractPricesFromResponse(symbols, response)
+		rawPrices, err := getPricesFromResponse(symbols, response)
 		if err != nil {
 			return nil, err
 		}
@@ -78,10 +73,10 @@ func CoinmarketcapPriceUpdate(jsonConfig json2.RawMessage) types.FetchPricesFunc
 }
 
 // extractConfig tries to get the configuration, if nothing is found, it returns an empty config.
-func extractConfig(jsonConfig json2.RawMessage) (*CoinmarketcapConfig, error) {
+func getConfig(jsonConfig json2.RawMessage) (*CoinmarketcapConfig, error) {
 	c := &CoinmarketcapConfig{}
 	if len(jsonConfig) > 0 {
-		err := json.Unmarshal(jsonConfig, c)
+		err := json2.Unmarshal(jsonConfig, c)
 		if err != nil {
 			return nil, fmt.Errorf("invalid coinmarketcap config: %w", err)
 		}
@@ -89,15 +84,15 @@ func extractConfig(jsonConfig json2.RawMessage) (*CoinmarketcapConfig, error) {
 	return c, nil
 }
 
-func extractPricesFromResponse(symbols set.Set[types.Symbol], response []byte) (map[types.Symbol]float64, error) {
+func getPricesFromResponse(symbols set.Set[types.Symbol], response []byte) (map[types.Symbol]float64, error) {
 	var respCmc CmcResponse
-	err := json.Unmarshal(response, &respCmc)
+	err := json2.Unmarshal(response, &respCmc)
 	if err != nil {
 		return nil, err
 	}
-
+	
 	cmcPrice := make(map[string]float64)
-	for _,value  := range result.Data {
+	for _,value  := range respCmc.Data {
 			cmcPrice[value.Slug] = value.Quote.USD.Price
 	}
 
@@ -113,7 +108,7 @@ func extractPricesFromResponse(symbols set.Set[types.Symbol], response []byte) (
 	return rawPrices, err
 }
 
-func buildReq(symbols set.Set[types.Symbol], c *CoinmarketcapConfig) string {
+func buildReq(symbols set.Set[types.Symbol], c *CoinmarketcapConfig) (*http.Request, error) {
 
 	req, err := http.NewRequest("GET", Link, nil)
 	if err != nil {
@@ -121,13 +116,13 @@ func buildReq(symbols set.Set[types.Symbol], c *CoinmarketcapConfig) string {
 	}
 
 	params := url.Values{}
-	params.Add("symbol", coinmarketcapSymbolCsv(symbols))
+	params.Add("slug", coinmarketcapSymbolCsv(symbols))
 
 	req.Header.Set("Accepts", "application/json")
-	req.Header.Add(ApiKeyParam, c.ApiKey)
-	req.URL.RawQuery = q.Encode()
+	req.Header.Add(CMCApiKeyParam, c.ApiKey)
+	req.URL.RawQuery = params.Encode()
 
-	return req
+	return req, nil
 }
 
 // coinmarketcapSymbolCsv returns the symbols as a comma separated string.
