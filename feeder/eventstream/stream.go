@@ -3,7 +3,6 @@ package eventstream
 import (
 	"context"
 	"crypto/tls"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -24,16 +23,17 @@ type wsI interface {
 }
 
 // Dial opens two connections to the given endpoint, one for the websocket and one for the oracle grpc.
-func Dial(tendermintRPCEndpoint string, grpcEndpoint string, logger zerolog.Logger) *Stream {
-	transportDialOpt := grpc.WithTransportCredentials(
-		credentials.NewTLS(
-			&tls.Config{
-				InsecureSkipVerify: false,
-			},
-		),
-	)
-	if strings.Contains(grpcEndpoint, "localhost") {
-		transportDialOpt = grpc.WithInsecure()
+func Dial(tendermintRPCEndpoint string, grpcEndpoint string, enableTLS bool, logger zerolog.Logger) *Stream {
+	transportDialOpt := grpc.WithInsecure()
+
+	if !enableTLS {
+		transportDialOpt = grpc.WithTransportCredentials(
+			credentials.NewTLS(
+				&tls.Config{
+					InsecureSkipVerify: false,
+				},
+			),
+		)
 	}
 
 	conn, err := grpc.Dial(grpcEndpoint, transportDialOpt)
