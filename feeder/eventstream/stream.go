@@ -26,7 +26,7 @@ type wsI interface {
 func Dial(tendermintRPCEndpoint string, grpcEndpoint string, enableTLS bool, logger zerolog.Logger) *Stream {
 	transportDialOpt := grpc.WithInsecure()
 
-	if !enableTLS {
+	if enableTLS {
 		transportDialOpt = grpc.WithTransportCredentials(
 			credentials.NewTLS(
 				&tls.Config{
