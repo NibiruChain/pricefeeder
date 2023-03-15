@@ -14,6 +14,14 @@ FEEDER_MNEMONIC="guard cream sadness conduct invite crumble clock pudding hole g
 EXCHANGE_SYMBOLS_MAP='{"bitfinex": {"ubtc:unusd": "tBTCUSD", "ueth:unusd": "tETHUSD", "uusd:unusd": "tUSTUSD"}}'
 ```
 
+### Enabling TLS
+
+To enable TLS, you need to set the following env vars:
+
+```ini
+TLS_ENABLED="true"
+```
+
 ### Delegating post pricing
 
 In order to be able to delegate the post pricing you need to set the

@@ -35,6 +35,7 @@ func Get() (*Config, error) {
 	conf.GRPCEndpoint = os.Getenv("GRPC_ENDPOINT")
 	conf.WebsocketEndpoint = os.Getenv("WEBSOCKET_ENDPOINT")
 	conf.FeederMnemonic = os.Getenv("FEEDER_MNEMONIC")
+	conf.EnableTLS = os.Getenv("ENABLE_TLS") == "true"
 	exchangeSymbolsMapJson := os.Getenv("EXCHANGE_SYMBOLS_MAP")
 	exchangeSymbolsMap := map[string]map[string]string{}
 	err := json.Unmarshal([]byte(exchangeSymbolsMapJson), &exchangeSymbolsMap)
@@ -82,6 +83,7 @@ type Config struct {
 	FeederMnemonic             string
 	ChainID                    string
 	ValidatorAddr              *sdk.ValAddress
+	EnableTLS                  bool
 }
 
 func (c *Config) Validate() error {

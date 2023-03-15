@@ -34,14 +34,14 @@ func main() {
 
 	c := config.MustGet()
 
-	eventStream := eventstream.Dial(c.WebsocketEndpoint, c.GRPCEndpoint, logger)
+	eventStream := eventstream.Dial(c.WebsocketEndpoint, c.GRPCEndpoint, c.EnableTLS, logger)
 	priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, c.DataSourceConfigMap, logger)
 	kb, valAddr, feederAddr := config.GetAuth(c.FeederMnemonic)
 
 	if c.ValidatorAddr != nil {
 		valAddr = *c.ValidatorAddr
 	}
-	pricePoster := priceposter.Dial(c.GRPCEndpoint, c.ChainID, kb, valAddr, feederAddr, logger)
+	pricePoster := priceposter.Dial(c.GRPCEndpoint, c.ChainID, c.EnableTLS, kb, valAddr, feederAddr, logger)
 
 	f := feeder.NewFeeder(eventStream, priceProvider, pricePoster, logger)
 	f.Run()
