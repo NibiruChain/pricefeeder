@@ -1,7 +1,6 @@
 package sources
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
@@ -17,8 +16,5 @@ func TestBybitPriceUpdate(t *testing.T) {
 		require.Equal(t, 2, len(rawPrices))
 		require.NotZero(t, rawPrices["BTCUSDT"])
 		require.NotZero(t, rawPrices["ETHUSDT"])
-		fmt.Println(rawPrices)
-		fmt.Printf("BTC Price: %f\n", rawPrices["BTCUSDT"])
-		fmt.Printf("ETH Price: %f\n", rawPrices["ETHUSDT"])
 	})
 }
