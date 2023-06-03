@@ -45,7 +45,16 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	url.Path = "/websocket"
 
 	s.logs = new(bytes.Buffer)
-	s.client = Dial(grpcEndpoint, s.cfg.ChainID, val.ClientCtx.Keyring, val.ValAddress, val.Address, zerolog.New(io.MultiWriter(os.Stderr, s.logs)))
+
+	enableTLS := false
+	s.client = Dial(
+		grpcEndpoint,
+		s.cfg.ChainID,
+		enableTLS,
+		val.ClientCtx.Keyring,
+		val.ValAddress,
+		val.Address,
+		zerolog.New(io.MultiWriter(os.Stderr, s.logs)))
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {

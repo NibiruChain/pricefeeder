@@ -53,12 +53,17 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.logs = new(bytes.Buffer)
 	log := zerolog.New(io.MultiWriter(os.Stderr, s.logs)).Level(zerolog.InfoLevel)
 
-	eventStream := eventstream.Dial(u.String(), grpcEndpoint, log)
+	enableTLS := false
+	eventStream := eventstream.Dial(u.String(), grpcEndpoint, enableTLS, log)
 	priceProvider := priceprovider.NewPriceProvider(sources.Bitfinex, map[asset.Pair]types.Symbol{
 		asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD",
 		asset.Registry.Pair(denoms.ETH, denoms.NUSD): "tETHUSD",
 	}, json.RawMessage{}, log)
-	pricePoster := priceposter.Dial(grpcEndpoint, s.cfg.ChainID, val.ClientCtx.Keyring, val.ValAddress, val.Address, log)
+	pricePoster := priceposter.Dial(
+		grpcEndpoint,
+		s.cfg.ChainID,
+		enableTLS,
+		val.ClientCtx.Keyring, val.ValAddress, val.Address, log)
 	s.feeder = feeder.NewFeeder(eventStream, priceProvider, pricePoster, log)
 	s.feeder.Run()
 }

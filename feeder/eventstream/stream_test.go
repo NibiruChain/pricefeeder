@@ -43,7 +43,12 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	u.Path = "/websocket"
 
 	s.logs = new(bytes.Buffer)
-	s.eventStream = Dial(u.String(), grpcEndpoint, zerolog.New(s.logs))
+	enableTLS := false
+	s.eventStream = Dial(
+		u.String(),
+		grpcEndpoint,
+		enableTLS,
+		zerolog.New(s.logs))
 
 	conn, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure())
 	require.NoError(s.T(), err)
