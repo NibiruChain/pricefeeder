@@ -29,10 +29,17 @@ type IntegrationTestSuite struct {
 
 func (s *IntegrationTestSuite) SetupSuite() {
 	app.SetPrefixes(app.AccountAddressPrefix)
-	s.cfg = testutilcli.BuildNetworkConfig(genesis.NewTestGenesisState())
-	s.network = testutilcli.NewNetwork(s.T(), s.cfg)
 
-	_, err := s.network.WaitForHeight(1)
+	s.cfg = testutilcli.BuildNetworkConfig(genesis.NewTestGenesisState(app.MakeEncodingConfig()))
+	network, err := testutilcli.New(
+		s.T(),
+		s.T().TempDir(),
+		s.cfg,
+	)
+	s.Require().NoError(err)
+	s.network = network
+
+	_, err = s.network.WaitForHeight(1)
 	require.NoError(s.T(), err)
 
 	val := s.network.Validators[0]

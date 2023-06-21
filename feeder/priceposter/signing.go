@@ -73,7 +73,7 @@ func sendTx(
 
 	resp, err := txClient.BroadcastTx(ctx, &txservice.BroadcastTxRequest{
 		TxBytes: txBytes,
-		Mode:    txservice.BroadcastMode_BROADCAST_MODE_BLOCK,
+		Mode:    txservice.BroadcastMode_BROADCAST_MODE_SYNC,
 	})
 	if err != nil {
 		return nil, err
