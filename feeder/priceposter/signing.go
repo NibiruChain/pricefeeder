@@ -61,7 +61,7 @@ func sendTx(
 		WithSequence(sequence)
 
 	// sign tx, can't fail
-	err = tx.Sign(txFactory, keyInfo.GetName(), txBuilder, true)
+	err = tx.Sign(txFactory, keyInfo.Name, txBuilder, true)
 	if err != nil {
 		panic(err)
 	}
