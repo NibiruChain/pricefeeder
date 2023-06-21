@@ -61,7 +61,7 @@ func sendTx(
 		WithSequence(sequence)
 
 	// sign tx, can't fail
-	err = tx.Sign(txFactory, keyInfo.GetName(), txBuilder, true)
+	err = tx.Sign(txFactory, keyInfo.Name, txBuilder, true)
 	if err != nil {
 		panic(err)
 	}
@@ -73,7 +73,7 @@ func sendTx(
 
 	resp, err := txClient.BroadcastTx(ctx, &txservice.BroadcastTxRequest{
 		TxBytes: txBytes,
-		Mode:    txservice.BroadcastMode_BROADCAST_MODE_BLOCK,
+		Mode:    txservice.BroadcastMode_BROADCAST_MODE_SYNC,
 	})
 	if err != nil {
 		return nil, err
