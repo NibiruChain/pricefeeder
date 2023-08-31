@@ -69,7 +69,7 @@ func Dial(
 		panic(err)
 	}
 
-	encoding := app.MakeEncodingConfig()
+	encoding := app.MakeEncodingConfigAndRegister()
 	deps := deps{
 		oracleClient: oracletypes.NewQueryClient(conn),
 		authClient:   authtypes.NewQueryClient(conn),

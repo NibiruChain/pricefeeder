@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -11,7 +12,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txservice "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	abcitypes "github.com/tendermint/tendermint/abci/types"
 )
 
 func sendTx(
