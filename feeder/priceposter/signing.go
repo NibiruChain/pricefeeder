@@ -38,8 +38,8 @@ func sendTx(
 		panic(err)
 	}
 
-	txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewInt64Coin("unibi", 25)))
-	txBuilder.SetGasLimit(10_000)
+	txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewInt64Coin("unibi", 125)))
+	txBuilder.SetGasLimit(5_000)
 
 	// get acc info, can fail
 	accNum, sequence, err := getAccount(ctx, authClient, ir, feeder)
