@@ -38,14 +38,8 @@ func sendTx(
 		panic(err)
 	}
 
-	// get fee, can fail
-	fee, gasLimit, err := getFee(msgs)
-	if err != nil {
-		return nil, err
-	}
-
-	txBuilder.SetFeeAmount(fee)
-	txBuilder.SetGasLimit(gasLimit)
+	txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewInt64Coin("unibi", 25)))
+	txBuilder.SetGasLimit(500)
 
 	// get acc info, can fail
 	accNum, sequence, err := getAccount(ctx, authClient, ir, feeder)
@@ -97,8 +91,4 @@ func getAccount(ctx context.Context, authClient Auth, ir codectypes.InterfaceReg
 	}
 
 	return acc.GetAccountNumber(), acc.GetSequence(), nil
-}
-
-func getFee(_ []sdk.Msg) (sdk.Coins, uint64, error) {
-	return sdk.NewCoins(sdk.NewInt64Coin("unibi", 25_000)), 1_000_000, nil
 }
