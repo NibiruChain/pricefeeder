@@ -22,13 +22,13 @@ type AggregatePriceProvider struct {
 // given multiple PriceProvider.
 func NewAggregatePriceProvider(
 	sourcesToPairSymbolMap map[string]map[asset.Pair]types.Symbol,
-	configToMap map[string]json.RawMessage,
+	sourceConfigMap map[string]json.RawMessage,
 	logger zerolog.Logger,
 ) types.PriceProvider {
 	providers := make(map[int]types.PriceProvider, len(sourcesToPairSymbolMap))
 	i := 0
 	for sourceName, pairToSymbolMap := range sourcesToPairSymbolMap {
-		providers[i] = NewPriceProvider(sourceName, pairToSymbolMap, configToMap[sourceName], logger)
+		providers[i] = NewPriceProvider(sourceName, pairToSymbolMap, sourceConfigMap[sourceName], logger)
 		i++
 	}
 
@@ -42,7 +42,6 @@ func NewAggregatePriceProvider(
 // Iteration is exhaustive and random.
 // If no correct PriceResponse is found, then an invalid PriceResponse is returned.
 func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
-
 	// Temporarily treat NUSD as perfectly pegged to the US fiat dollar
 	// TODO(k-yang): add the NUSD pricefeed once it's available on exchanges
 	if pair.Equal(asset.Registry.Pair(denoms.NUSD, denoms.USD)) {
