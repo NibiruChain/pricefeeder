@@ -12,6 +12,37 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
+	"coingecko": {
+		"ubtc:uusd":   "bitcoin",
+		"ueth:uusd":   "ethereum",
+		"uusdt:uusd":  "tether",
+		"uusdc:uusd":  "usd-coin",
+		"uatom:uusd":  "cosmos",
+		"ubnb:uusd":   "binancecoin",
+		"uavax:uusd":  "avalanche-2",
+		"usol:uusd":   "solana",
+		"uada:uusd":   "cardano",
+		"ubtc:unusd":  "bitcoin",
+		"ueth:unusd":  "ethereum",
+		"uusdt:unusd": "tether",
+		"uusdc:unusd": "usd-coin",
+		"uatom:unusd": "cosmos",
+		"ubnb:unusd":  "binancecoin",
+		"uavax:unusd": "avalanche-2",
+		"usol:unusd":  "solana",
+		"uada:unusd":  "cardano",
+	},
+	"bitfinex": {
+		"ubtc:uusd":   "tBTCUSD",
+		"ueth:uusd":   "tETHUSD",
+		"uusdc:uusd":  "tUDCUSD",
+		"ubtc:unusd":  "tBTCUSD",
+		"ueth:unusd":  "tETHUSD",
+		"uusdc:unusd": "tUDCUSD",
+	},
+}
+
 func MustGet() *Config {
 	conf, err := Get()
 	if err != nil {
@@ -36,15 +67,15 @@ func Get() (*Config, error) {
 	conf.WebsocketEndpoint = os.Getenv("WEBSOCKET_ENDPOINT")
 	conf.FeederMnemonic = os.Getenv("FEEDER_MNEMONIC")
 	conf.EnableTLS = os.Getenv("ENABLE_TLS") == "true"
-	exchangeSymbolsMapJson := os.Getenv("EXCHANGE_SYMBOLS_MAP")
-	exchangeSymbolsMap := map[string]map[string]string{}
-	err := json.Unmarshal([]byte(exchangeSymbolsMapJson), &exchangeSymbolsMap)
+	overrideExchangeSymbolsMapJson := os.Getenv("EXCHANGE_SYMBOLS_MAP")
+	overrideExchangeSymbolsMap := map[string]map[string]string{}
+	err := json.Unmarshal([]byte(overrideExchangeSymbolsMapJson), &overrideExchangeSymbolsMap)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse EXCHANGE_SYMBOLS_MAP: invalid json")
 	}
 
-	conf.ExchangesToPairToSymbolMap = map[string]map[asset.Pair]types.Symbol{}
-	for exchange, symbolMap := range exchangeSymbolsMap {
+	conf.ExchangesToPairToSymbolMap = defaultExchangeSymbolsMap
+	for exchange, symbolMap := range overrideExchangeSymbolsMap {
 		conf.ExchangesToPairToSymbolMap[exchange] = map[asset.Pair]types.Symbol{}
 		for nibiAssetPair, tickerSymbol := range symbolMap {
 			conf.ExchangesToPairToSymbolMap[exchange][asset.MustNewPair(nibiAssetPair)] = types.Symbol(tickerSymbol)
