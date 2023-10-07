@@ -17,8 +17,8 @@ const (
 
 var _ types.FetchPricesFunc = GateIoPriceUpdate
 
-// BinancePriceUpdate returns the prices given the symbols or an error.
-// Uses the Binance API at https://docs.binance.us/#price-data.
+// GateIoPriceUpdate returns the prices given the symbols or an error.
+// Uses the GateIo API at https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-currency-pair.
 func GateIoPriceUpdate(symbols set.Set[types.Symbol]) (rawPrices map[types.Symbol]float64, err error) {
 	url := "https://api.gateio.ws/api/v4/spot/tickers"
 	resp, err := http.Get(url)
