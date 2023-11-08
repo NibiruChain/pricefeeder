@@ -12,9 +12,7 @@ import (
 	"github.com/cosmos/go-bip39"
 )
 
-var (
-	_ keyring.Keyring = (*privKeyKeyring)(nil)
-)
+var _ keyring.Keyring = (*privKeyKeyring)(nil)
 
 // privKeyKeyring partially implements the keyring.Keyring
 // interface, the functionality which is implemented covers
@@ -153,6 +151,10 @@ var _ keyring.Importer = (*ImporterNull)(nil)
 type ImporterNull struct{}
 
 func (i ImporterNull) ImportPrivKey(uid, armor, passphrase string) error {
+	panic("must never be called")
+}
+
+func (i ImporterNull) ImportPrivKeyHex(uid, privKey, algoStr string) error {
 	panic("must never be called")
 }
 

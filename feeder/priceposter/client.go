@@ -69,7 +69,7 @@ func Dial(
 		panic(err)
 	}
 
-	encoding := app.MakeEncodingConfigAndRegister()
+	encoding := app.MakeEncodingConfig()
 	deps := deps{
 		oracleClient: oracletypes.NewQueryClient(conn),
 		authClient:   authtypes.NewQueryClient(conn),
@@ -117,7 +117,6 @@ func (c *Client) SendPrices(vp types.VotingPeriod, prices []types.Price) {
 
 	c.previousPrevote = newPrevote
 	logger.Info().Str("tx-hash", resp.TxHash).Msg("successfully forwarded prices")
-
 }
 
 func (c *Client) Close() {
