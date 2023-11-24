@@ -7,6 +7,7 @@ import (
 
 	"github.com/NibiruChain/nibiru/app"
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
+	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -117,6 +118,8 @@ func (c *Client) SendPrices(vp types.VotingPeriod, prices []types.Price) {
 
 	c.previousPrevote = newPrevote
 	logger.Info().Str("tx-hash", resp.TxHash).Msg("successfully forwarded prices")
+
+	metrics.NumVotingPeriods.Inc()
 }
 
 func (c *Client) Close() {

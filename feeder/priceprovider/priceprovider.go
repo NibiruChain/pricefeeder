@@ -39,13 +39,13 @@ func NewPriceProvider(
 	var source types.Source
 	switch sourceName {
 	case sources.Bitfinex:
-		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.BitfinexPriceUpdate, logger)
+		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.BitfinexPriceUpdate, logger, sources.Bitfinex)
 	case sources.Binance:
-		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.BinancePriceUpdate, logger)
+		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.BinancePriceUpdate, logger, sources.Binance)
 	case sources.Coingecko:
-		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.CoingeckoPriceUpdate(config), logger)
+		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.CoingeckoPriceUpdate(config), logger, sources.Coingecko)
 	case sources.CoinMarketCap:
-		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.CoinmarketcapPriceUpdate(config), logger)
+		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.CoinmarketcapPriceUpdate(config), logger, sources.CoinMarketCap)
 	default:
 		panic("unknown price provider: " + sourceName)
 	}

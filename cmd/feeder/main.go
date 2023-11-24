@@ -2,10 +2,12 @@ package main
 
 import (
 	"flag"
+	"net/http"
 	"os"
 	"os/signal"
 
 	"github.com/NibiruChain/nibiru/app"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 
 	"github.com/NibiruChain/pricefeeder/config"
@@ -48,6 +50,13 @@ func main() {
 	defer f.Close()
 
 	handleInterrupt(logger, f)
+
+	http.Handle("/metrics", promhttp.Handler())
+	go func() {
+		if err := http.ListenAndServe(":3000", nil); err != nil {
+			logger.Error().Err(err).Msg("Metrics HTTP server failed")
+		}
+	}()
 
 	select {}
 }

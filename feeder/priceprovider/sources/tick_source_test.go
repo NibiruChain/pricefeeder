@@ -29,7 +29,7 @@ func TestTickSource(t *testing.T) {
 		ts := NewTickSource(expectedSymbols, func(symbols set.Set[types.Symbol]) (map[types.Symbol]float64, error) {
 			require.Equal(t, expectedSymbols, symbols)
 			return expectedPrices, nil
-		}, zerolog.New(io.Discard))
+		}, zerolog.New(io.Discard), "test_source")
 
 		defer ts.Close()
 
@@ -63,7 +63,7 @@ func TestTickSource(t *testing.T) {
 
 		ts := NewTickSource(expectedSymbols, func(symbols set.Set[types.Symbol]) (map[types.Symbol]float64, error) {
 			return expectedPrices, nil
-		}, zerolog.New(mw))
+		}, zerolog.New(mw), "test_source")
 
 		<-time.After(UpdateTick + 1*time.Second) // wait for a tick update
 		ts.Close()                               // make the update be dropped because of close
@@ -82,7 +82,7 @@ func TestTickSource(t *testing.T) {
 
 		ts := NewTickSource(set.New[types.Symbol]("tBTCUSDT"), func(symbols set.Set[types.Symbol]) (map[types.Symbol]float64, error) {
 			return nil, fmt.Errorf("sentinel error")
-		}, zerolog.New(mw))
+		}, zerolog.New(mw), "test_source")
 		defer ts.Close()
 
 		<-time.After(UpdateTick + 1*time.Second) // wait for a tick update

@@ -4,20 +4,19 @@ import (
 	"time"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 )
 
-var (
-	// UpdateTick defines the wait time between price updates.
-	UpdateTick = 8 * time.Second
-)
+// UpdateTick defines the wait time between price updates.
+var UpdateTick = 8 * time.Second
 
 var _ types.Source = (*TickSource)(nil)
 
 // NewTickSource instantiates a new TickSource instance, given the symbols and a price updater function
 // which returns the latest prices for the provided symbols.
-func NewTickSource(symbols set.Set[types.Symbol], fetchPricesFunc types.FetchPricesFunc, logger zerolog.Logger) *TickSource {
+func NewTickSource(symbols set.Set[types.Symbol], fetchPricesFunc types.FetchPricesFunc, logger zerolog.Logger, source string) *TickSource {
 	ts := &TickSource{
 		logger:             logger,
 		stopSignal:         make(chan struct{}),
@@ -26,6 +25,7 @@ func NewTickSource(symbols set.Set[types.Symbol], fetchPricesFunc types.FetchPri
 		symbols:            symbols,
 		fetchPrices:        fetchPricesFunc,
 		priceUpdateChannel: make(chan map[types.Symbol]types.RawPrice),
+		source:             source,
 	}
 
 	go ts.loop()
@@ -43,6 +43,7 @@ type TickSource struct {
 	symbols            set.Set[types.Symbol] // symbols as named on the third party data source
 	fetchPrices        func(symbols set.Set[types.Symbol]) (map[types.Symbol]float64, error)
 	priceUpdateChannel chan map[types.Symbol]types.RawPrice
+	source             string
 }
 
 func (s *TickSource) loop() {
@@ -56,11 +57,14 @@ func (s *TickSource) loop() {
 		case <-s.tick.C:
 			s.logger.Debug().Msg("received tick, updating prices")
 
+			start := time.Now()
 			rawPrices, err := s.fetchPrices(s.symbols)
 			if err != nil {
 				s.logger.Err(err).Msg("failed to update prices")
 				break // breaks the current select case, not the for cycle
 			}
+			duration := time.Since(start)
+			metrics.PriceSourceLatency.WithLabelValues(s.source).Observe(duration.Seconds())
 
 			priceUpdate := make(map[types.Symbol]types.RawPrice, len(rawPrices))
 			for symbol, price := range rawPrices {
