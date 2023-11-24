@@ -2,10 +2,12 @@ package main
 
 import (
 	"flag"
+	"net/http"
 	"os"
 	"os/signal"
 
 	"github.com/NibiruChain/nibiru/app"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 
 	"github.com/NibiruChain/pricefeeder/config"
@@ -49,7 +51,8 @@ func main() {
 
 	handleInterrupt(logger, f)
 
-	select {}
+	http.Handle("/metrics", promhttp.Handler())
+	http.ListenAndServe(":3000", nil)
 }
 
 // handleInterrupt listens for SIGINT and gracefully shuts down the feeder.
