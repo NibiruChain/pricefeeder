@@ -52,7 +52,13 @@ func main() {
 	handleInterrupt(logger, f)
 
 	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(":3000", nil)
+	go func() {
+		if err := http.ListenAndServe(":3000", nil); err != nil {
+			logger.Error().Err(err).Msg("Metrics HTTP server failed")
+		}
+	}()
+
+	select {}
 }
 
 // handleInterrupt listens for SIGINT and gracefully shuts down the feeder.
