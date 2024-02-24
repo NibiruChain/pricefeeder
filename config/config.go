@@ -14,13 +14,14 @@ import (
 )
 
 var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
-	sources.Coingecko: {
-		"ubtc:uusd":  "bitcoin",
-		"ueth:uusd":  "ethereum",
-		"uusdt:uusd": "tether",
-		"uusdc:uusd": "usd-coin",
-		"uatom:uusd": "cosmos",
-	},
+	// k-yang: default disable Coingecko because they have aggressive rate limiting
+	// sources.Coingecko: {
+	// 	"ubtc:uusd":  "bitcoin",
+	// 	"ueth:uusd":  "ethereum",
+	// 	"uusdt:uusd": "tether",
+	// 	"uusdc:uusd": "usd-coin",
+	// 	"uatom:uusd": "cosmos",
+	// },
 	sources.Bitfinex: {
 		"ubtc:uusd":  "tBTCUSD",
 		"ueth:uusd":  "tETHUSD",
