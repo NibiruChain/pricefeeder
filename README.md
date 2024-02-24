@@ -36,7 +36,7 @@ This would allow you to run `pricefeeder` using a local instance of the network.
 ```bash
 git clone git@github.com:NibiruChain/nibiru.git
 cd nibiru
-git checkout v0.19.2
+git checkout v1.0.0
 make localnet
 ```
 
