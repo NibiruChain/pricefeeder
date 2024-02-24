@@ -7,6 +7,9 @@ builds:
   - id: darwin
     main: ./cmd/feeder
     binary: pricefeeder
+    hooks:
+      pre:
+        - wget https://github.com/CosmWasm/wasmvm/releases/download/v1.3.0/libwasmvmstatic_darwin.a -O /osxcross/target/SDK/MacOSX12.0.sdk/usr/lib/libwasmvmstatic_darwin.a
     goos:
       - darwin
     goarch:
@@ -18,7 +21,7 @@ builds:
       - -mod=readonly
       - -trimpath
     ldflags:
-      - -s -w -X main.commit={{.Commit}} -X main.date={{ .CommitDate }} -X github.com/cosmos/cosmos-sdk/version.Name=nibiru -X github.com/cosmos/cosmos-sdk/version.AppName=nibid -X github.com/cosmos/cosmos-sdk/version.Version={{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }} -X github.com/tendermint/tendermint/version.TMCoreSemVer={{ .Env.TM_VERSION }}
+      - -s -w -X main.commit={{.Commit}} -X main.date={{ .CommitDate }} -X github.com/cosmos/cosmos-sdk/version.Name=nibiru -X github.com/cosmos/cosmos-sdk/version.AppName=nibid -X github.com/cosmos/cosmos-sdk/version.Version={{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
       - -linkmode=external
     tags:
       - netgo
@@ -36,8 +39,8 @@ builds:
     binary: pricefeeder
     hooks:
       pre:
-        - wget https://github.com/CosmWasm/wasmvm/releases/download/v1.1.1/libwasmvm_muslc.x86_64.a -O /usr/lib/x86_64-linux-gnu/libwasmvm_muslc.a
-        - wget https://github.com/CosmWasm/wasmvm/releases/download/v1.1.1/libwasmvm_muslc.aarch64.a -O /usr/lib/aarch64-linux-gnu/libwasmvm_muslc.a
+        - wget https://github.com/CosmWasm/wasmvm/releases/download/v1.3.0/libwasmvm_muslc.x86_64.a -O /usr/lib/x86_64-linux-gnu/libwasmvm_muslc.a
+        - wget https://github.com/CosmWasm/wasmvm/releases/download/v1.3.0/libwasmvm_muslc.aarch64.a -O /usr/lib/aarch64-linux-gnu/libwasmvm_muslc.a
     goos:
       - linux
     goarch:
@@ -49,7 +52,7 @@ builds:
       - -mod=readonly
       - -trimpath
     ldflags:
-      - -s -w -X main.commit={{.Commit}} -X main.date={{ .CommitDate }} -X github.com/cosmos/cosmos-sdk/version.Name=nibiru -X github.com/cosmos/cosmos-sdk/version.AppName=nibid -X github.com/cosmos/cosmos-sdk/version.Version={{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }} -X github.com/tendermint/tendermint/version.TMCoreSemVer={{ .Env.TM_VERSION }}
+      - -s -w -X main.commit={{.Commit}} -X main.date={{ .CommitDate }} -X github.com/cosmos/cosmos-sdk/version.Name=nibiru -X github.com/cosmos/cosmos-sdk/version.AppName=nibid -X github.com/cosmos/cosmos-sdk/version.Version={{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
       - -linkmode=external
       - -extldflags '-Wl,-z,muldefs -static -lm'
     tags:

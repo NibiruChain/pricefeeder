@@ -43,7 +43,15 @@ type deps struct {
 	chainID      string
 }
 
-func Dial(grpcEndpoint string, chainID string, enableTLS bool, keyBase keyring.Keyring, validator sdk.ValAddress, feeder sdk.AccAddress, logger zerolog.Logger) *Client {
+func Dial(
+	grpcEndpoint string,
+	chainID string,
+	enableTLS bool,
+	keyBase keyring.Keyring,
+	validator sdk.ValAddress,
+	feeder sdk.AccAddress,
+	logger zerolog.Logger,
+) *Client {
 	transportDialOpt := grpc.WithInsecure()
 
 	if enableTLS {
@@ -61,7 +69,7 @@ func Dial(grpcEndpoint string, chainID string, enableTLS bool, keyBase keyring.K
 		panic(err)
 	}
 
-	encoding := app.MakeTestEncodingConfig()
+	encoding := app.MakeEncodingConfig()
 	deps := deps{
 		oracleClient: oracletypes.NewQueryClient(conn),
 		authClient:   authtypes.NewQueryClient(conn),
@@ -109,7 +117,6 @@ func (c *Client) SendPrices(vp types.VotingPeriod, prices []types.Price) {
 
 	c.previousPrevote = newPrevote
 	logger.Info().Str("tx-hash", resp.TxHash).Msg("successfully forwarded prices")
-
 }
 
 func (c *Client) Close() {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -11,7 +12,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txservice "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	abcitypes "github.com/tendermint/tendermint/abci/types"
 )
 
 func sendTx(
@@ -38,14 +38,8 @@ func sendTx(
 		panic(err)
 	}
 
-	// get fee, can fail
-	fee, gasLimit, err := getFee(msgs)
-	if err != nil {
-		return nil, err
-	}
-
-	txBuilder.SetFeeAmount(fee)
-	txBuilder.SetGasLimit(gasLimit)
+	txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewInt64Coin("unibi", 125)))
+	txBuilder.SetGasLimit(5_000)
 
 	// get acc info, can fail
 	accNum, sequence, err := getAccount(ctx, authClient, ir, feeder)
@@ -61,7 +55,7 @@ func sendTx(
 		WithSequence(sequence)
 
 	// sign tx, can't fail
-	err = tx.Sign(txFactory, keyInfo.GetName(), txBuilder, true)
+	err = tx.Sign(txFactory, keyInfo.Name, txBuilder, true)
 	if err != nil {
 		panic(err)
 	}
@@ -73,7 +67,7 @@ func sendTx(
 
 	resp, err := txClient.BroadcastTx(ctx, &txservice.BroadcastTxRequest{
 		TxBytes: txBytes,
-		Mode:    txservice.BroadcastMode_BROADCAST_MODE_BLOCK,
+		Mode:    txservice.BroadcastMode_BROADCAST_MODE_SYNC,
 	})
 	if err != nil {
 		return nil, err
@@ -97,8 +91,4 @@ func getAccount(ctx context.Context, authClient Auth, ir codectypes.InterfaceReg
 	}
 
 	return acc.GetAccountNumber(), acc.GetSequence(), nil
-}
-
-func getFee(_ []sdk.Msg) (sdk.Coins, uint64, error) {
-	return sdk.NewCoins(sdk.NewInt64Coin("unibi", 25_000)), 1_000_000, nil
 }
