@@ -39,17 +39,17 @@ func NewPriceProvider(
 	var source types.Source
 	switch sourceName {
 	case sources.Bitfinex:
-		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.BitfinexPriceUpdate, logger)
+		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.BitfinexPriceUpdate, logger)
 	case sources.Binance:
-		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.BinancePriceUpdate, logger)
+		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.BinancePriceUpdate, logger)
 	case sources.Coingecko:
-		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.CoingeckoPriceUpdate(config), logger)
+		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.CoingeckoPriceUpdate(config), logger)
 	case sources.Okex:
-		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.OkexPriceUpdate, logger)
+		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.OkexPriceUpdate, logger)
 	case sources.GateIo:
-		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.GateIoPriceUpdate, logger)
+		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.GateIoPriceUpdate, logger)
 	case sources.CoinMarketCap:
-		source = sources.NewTickSource(symbolsFromPairToSymbolMapping(pairToSymbolMap), sources.CoinmarketcapPriceUpdate(config), logger)
+		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.CoinmarketcapPriceUpdate(config), logger)
 	default:
 		panic("unknown price provider: " + sourceName)
 	}
@@ -130,9 +130,8 @@ func (p *PriceProvider) Close() {
 	<-p.done
 }
 
-// symbolsFromPairToSymbolMapping returns the symbols set
-// given the map which maps nibiru chain pairs to exchange symbols.
-func symbolsFromPairToSymbolMapping(m map[asset.Pair]types.Symbol) set.Set[types.Symbol] {
+// mapValues returns a set of the input map's values
+func mapValues(m map[asset.Pair]types.Symbol) set.Set[types.Symbol] {
 	s := set.New[types.Symbol]()
 	for _, v := range m {
 		s.Add(v)
