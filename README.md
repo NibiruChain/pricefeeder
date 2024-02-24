@@ -2,17 +2,20 @@
 
 <img src="./repo-banner.png">
 
-The `pricefeeder` is a tool developed for Nibiru's [Oracle Module consensus](https://nibiru.fi/docs/ecosystem/oracle/) that runs a process to pull data from various external sources and then broadcasts transactions to vote on exchange rates. 
+The `pricefeeder` is a tool developed for Nibiru's [Oracle Module consensus](https://nibiru.fi/docs/ecosystem/oracle/) that runs a process to pull data from various external sources and then broadcasts transactions to vote on exchange rates.
 
 - [NibiruChain/pricefeeder for the Oracle Module](#nibiruchainpricefeeder-for-the-oracle-module)
   - [Quick Start - Local Development](#quick-start---local-development)
     - [Configuration for the `.env`](#configuration-for-the-env)
     - [Run](#run)
+      - [Or, to run the tool as a daemon](#or-to-run-the-tool-as-a-daemon)
   - [Hacking](#hacking)
     - [Build](#build)
     - [Delegating "feeder" consent](#delegating-feeder-consent)
     - [Enabling TLS](#enabling-tls)
     - [Configuring specific exchanges](#configuring-specific-exchanges)
+      - [CoinGecko](#coingecko)
+  - [Glossary](#glossary)
 
 ## Quick Start - Local Development
 
@@ -40,18 +43,21 @@ make localnet
 ### Run
 
 With your environment set to a live network, you can now run the price feeder:
+
 ```sh
 make run
 ```
 
-#### Or, to run the tool as a daemon:
+#### Or, to run the tool as a daemon
 
-1. Build a docker image for use with docker compose. 
+1. Build a docker image for use with docker compose.
+
     ```bash
     make build-docker
     ```
 
 2. Run the 'price_feeder' service defined in the `docker-compose.yaml`.
+
     ```bash
     make docker-compose up -d price_feeder
     ```
@@ -62,7 +68,7 @@ Connecters for data sources like Binance and Bitfinex are defined in the `feeder
 
 ### Build
 
-Builds the binary for the package: 
+Builds the binary for the package:
 
 ```sh
 make build
@@ -79,11 +85,12 @@ In order to be able to delegate consent to post prices, you need to set the
 VALIDATOR_ADDRESS="nibivaloper1..."
 ```
 
-To delegate consent from a validator node to some `feeder` address, you must execute a `MsgDelegateFeedConsent` message: 
+To delegate consent from a validator node to some `feeder` address, you must execute a `MsgDelegateFeedConsent` message:
+
 ```go
 type MsgDelegateFeedConsent struct {
-	Operator string 
-	Delegate string
+ Operator string 
+ Delegate string
 }
 ```
 
@@ -101,7 +108,6 @@ To enable TLS, you need to set the following env vars:
 TLS_ENABLED="true"
 ```
 
-
 ### Configuring specific exchanges
 
 #### CoinGecko
@@ -113,3 +119,9 @@ you need to set env var:
 DATASOURCE_CONFIG_MAP='{"coingecko": {"api_key": "0123456789"}}'
 ```
 
+## Glossary
+
+- **Data source**: A data source is an external service that provides data. For example, Binance is a data source that provides the price of various assets.
+- **Symbol**: A symbol is a string that represents a pair of assets on an external data source. For example, `tBTCUSD` is a symbol on Bitfinex that represents the price of Bitcoin in US Dollars.
+- **Ticker**: Synonymous with **Symbol**. Exchanges generally use the term "ticker" to refer to a symbol.
+- **Pair**: A pair is a combination of two assets recognized by Nibiru Chain. For example, `ubtc:uusd` is a pair that represents Bitcoin and USD.

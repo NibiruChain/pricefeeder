@@ -130,10 +130,9 @@ func (p *PriceProvider) Close() {
 	<-p.done
 }
 
-// symbolsFromPairToSymbolMapping returns the symbols list
+// symbolsFromPairToSymbolMapping returns the symbols set
 // given the map which maps nibiru chain pairs to exchange symbols.
 func symbolsFromPairToSymbolMapping(m map[asset.Pair]types.Symbol) set.Set[types.Symbol] {
-	// s := make(set.Set[types.Symbol], 0, len(m))
 	s := set.New[types.Symbol]()
 	for _, v := range m {
 		s.Add(v)
