@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/pricefeeder/types"
@@ -40,17 +39,17 @@ func GateIoPriceUpdate(symbols set.Set[types.Symbol]) (rawPrices map[types.Symbo
 
 	rawPrices = make(map[types.Symbol]float64)
 	for _, ticker := range tickers {
-		pair := ticker["currency_pair"].(string)
-		symbol := types.Symbol(strings.Replace(pair, "_", "", -1))
+		symbol := types.Symbol(ticker["currency_pair"].(string))
+		if !symbols.Has(symbol) {
+			continue
+		}
 
-		lastPrice, err := strconv.ParseFloat(ticker["last"].(string), 64)
+		price, err := strconv.ParseFloat(ticker["last"].(string), 64)
 		if err != nil {
-			return rawPrices, err
-		}
-		if _, ok := symbols[symbol]; ok {
-			rawPrices[symbol] = lastPrice
+			price = -1
 		}
 
+		rawPrices[symbol] = price
 	}
 
 	return rawPrices, nil
