@@ -25,6 +25,22 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 		"ubtc:uusd":  "tBTCUSD",
 		"ueth:uusd":  "tETHUSD",
 		"uusdc:uusd": "tUDCUSD",
+		"uusdt:uusd": "tUSTUSD",
+		"uatom:uusd": "tATOUSD",
+	},
+	sources.GateIo: {
+		"ubtc:uusd":  "BTC_USDT",
+		"ueth:uusd":  "ETH_USDT",
+		"uusdc:uusd": "USDC_USDT",
+		"uusdt:uusd": "USDT_USD",
+		"uatom:uusd": "ATOM_USDT",
+	},
+	sources.Okex: {
+		"ubtc:uusd":  "BTC-USDT",
+		"ueth:uusd":  "ETH-USDT",
+		"uusdc:uusd": "USDC-USDT",
+		"uusdt:uusd": "USDT-USDC",
+		"uatom:uusd": "ATOM-USDT",
 	},
 }
 
