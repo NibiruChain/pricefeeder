@@ -7,20 +7,21 @@ import (
 	"os"
 
 	"github.com/NibiruChain/nibiru/x/common/asset"
+	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
 	"github.com/NibiruChain/pricefeeder/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/joho/godotenv"
 )
 
 var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
-	"coingecko": {
+	sources.Coingecko: {
 		"ubtc:uusd":  "bitcoin",
 		"ueth:uusd":  "ethereum",
 		"uusdt:uusd": "tether",
 		"uusdc:uusd": "usd-coin",
 		"uatom:uusd": "cosmos",
 	},
-	"bitfinex": {
+	sources.Bitfinex: {
 		"ubtc:uusd":  "tBTCUSD",
 		"ueth:uusd":  "tETHUSD",
 		"uusdc:uusd": "tUDCUSD",
