@@ -10,6 +10,7 @@ import (
 
 	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/pricefeeder/types"
+	"github.com/rs/zerolog"
 )
 
 const (
@@ -39,9 +40,9 @@ type CoinmarketcapConfig struct {
 	ApiKey string `json:"api_key"`
 }
 
-func CoinmarketcapPriceUpdate(rawConfig json.RawMessage) types.FetchPricesFunc {
-	return func(symbols set.Set[types.Symbol]) (map[types.Symbol]float64, error) {
-		config, err := getConfig(rawConfig)
+func CoinmarketcapPriceUpdate(coinmarketcapConfig json.RawMessage) types.FetchPricesFunc {
+	return func(symbols set.Set[types.Symbol], logger zerolog.Logger) (map[types.Symbol]float64, error) {
+		config, err := getConfig(coinmarketcapConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -63,7 +64,7 @@ func CoinmarketcapPriceUpdate(rawConfig json.RawMessage) types.FetchPricesFunc {
 			return nil, err
 		}
 
-		rawPrices, err := getPricesFromResponse(symbols, response)
+		rawPrices, err := getPricesFromResponse(symbols, response, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -84,7 +85,7 @@ func getConfig(jsonConfig json.RawMessage) (*CoinmarketcapConfig, error) {
 	return c, nil
 }
 
-func getPricesFromResponse(symbols set.Set[types.Symbol], response []byte) (map[types.Symbol]float64, error) {
+func getPricesFromResponse(symbols set.Set[types.Symbol], response []byte, logger zerolog.Logger) (map[types.Symbol]float64, error) {
 	var respCmc CmcResponse
 	err := json.Unmarshal(response, &respCmc)
 	if err != nil {
@@ -101,7 +102,8 @@ func getPricesFromResponse(symbols set.Set[types.Symbol], response []byte) (map[
 		if price, ok := cmcPrice[string(symbol)]; ok {
 			rawPrices[symbol] = price
 		} else {
-			return nil, fmt.Errorf("symbol %s not found in response: %s\n", symbol, response)
+			logger.Err(err).Msg(fmt.Sprintf("failed to parse price for %s on data source %s", symbol, CoinMarketCap))
+			continue
 		}
 	}
 

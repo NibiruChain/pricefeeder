@@ -9,6 +9,7 @@ import (
 
 	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/pricefeeder/types"
+	"github.com/rs/zerolog"
 )
 
 const (
@@ -27,15 +28,13 @@ type CoingeckoConfig struct {
 }
 
 func CoingeckoPriceUpdate(sourceConfig json.RawMessage) types.FetchPricesFunc {
-	return func(symbols set.Set[types.Symbol]) (map[types.Symbol]float64, error) {
+	return func(symbols set.Set[types.Symbol], logger zerolog.Logger) (map[types.Symbol]float64, error) {
 		c, err := extractConfig(sourceConfig)
 		if err != nil {
 			return nil, err
 		}
 
-		baseURL := buildURL(symbols, c)
-
-		res, err := http.Get(baseURL)
+		res, err := http.Get(buildURL(symbols, c))
 		if err != nil {
 			return nil, err
 		}
@@ -46,7 +45,7 @@ func CoingeckoPriceUpdate(sourceConfig json.RawMessage) types.FetchPricesFunc {
 			return nil, err
 		}
 
-		rawPrices, err := extractPricesFromResponse(symbols, response)
+		rawPrices, err := extractPricesFromResponse(symbols, response, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -67,7 +66,7 @@ func extractConfig(jsonConfig json.RawMessage) (*CoingeckoConfig, error) {
 	return c, nil
 }
 
-func extractPricesFromResponse(symbols set.Set[types.Symbol], response []byte) (map[types.Symbol]float64, error) {
+func extractPricesFromResponse(symbols set.Set[types.Symbol], response []byte, logger zerolog.Logger) (map[types.Symbol]float64, error) {
 	var result map[string]CoingeckoTicker
 	err := json.Unmarshal(response, &result)
 	if err != nil {
@@ -79,7 +78,8 @@ func extractPricesFromResponse(symbols set.Set[types.Symbol], response []byte) (
 		if price, ok := result[string(symbol)]; ok {
 			rawPrices[symbol] = price.Price
 		} else {
-			return nil, fmt.Errorf("symbol %s not found in response: %s\n", symbol, response)
+			logger.Err(err).Msg(fmt.Sprintf("failed to parse price for %s on data source %s", symbol, Coingecko))
+			continue
 		}
 	}
 
@@ -101,8 +101,8 @@ func buildURL(symbols set.Set[types.Symbol], c *CoingeckoConfig) string {
 		params.Add(ApiKeyParam, c.ApiKey)
 	}
 
-	baseURL = baseURL + params.Encode()
-	return baseURL
+	url := baseURL + params.Encode()
+	return url
 }
 
 // coingeckoSymbolCsv returns the symbols as a comma separated string.

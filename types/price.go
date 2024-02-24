@@ -5,6 +5,7 @@ import (
 
 	"github.com/NibiruChain/nibiru/x/common/asset"
 	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/rs/zerolog"
 )
 
 const (
@@ -35,4 +36,4 @@ type Price struct {
 // The returned map must map symbol to its float64 price, or an error.
 // If there's a failure in updating only one price then the map can be returned
 // without the provided symbol.
-type FetchPricesFunc func(symbols set.Set[Symbol]) (map[Symbol]float64, error)
+type FetchPricesFunc func(symbols set.Set[Symbol], logger zerolog.Logger) (map[Symbol]float64, error)

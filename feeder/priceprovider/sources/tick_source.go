@@ -8,10 +8,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var (
-	// UpdateTick defines the wait time between price updates.
-	UpdateTick = 8 * time.Second
-)
+// UpdateTick defines the wait time between price updates.
+var UpdateTick = 8 * time.Second
 
 var _ types.Source = (*TickSource)(nil)
 
@@ -41,7 +39,7 @@ type TickSource struct {
 	done               chan struct{} // internal signal to wait for shutdown operations
 	tick               *time.Ticker
 	symbols            set.Set[types.Symbol] // symbols as named on the third party data source
-	fetchPrices        func(symbols set.Set[types.Symbol]) (map[types.Symbol]float64, error)
+	fetchPrices        func(symbols set.Set[types.Symbol], logger zerolog.Logger) (map[types.Symbol]float64, error)
 	priceUpdateChannel chan map[types.Symbol]types.RawPrice
 }
 
@@ -56,7 +54,7 @@ func (s *TickSource) loop() {
 		case <-s.tick.C:
 			s.logger.Debug().Msg("received tick, updating prices")
 
-			rawPrices, err := s.fetchPrices(s.symbols)
+			rawPrices, err := s.fetchPrices(s.symbols, s.logger)
 			if err != nil {
 				s.logger.Err(err).Msg("failed to update prices")
 				break // breaks the current select case, not the for cycle

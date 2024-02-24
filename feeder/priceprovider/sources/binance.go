@@ -7,6 +7,7 @@ import (
 
 	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/pricefeeder/types"
+	"github.com/rs/zerolog"
 )
 
 const (
@@ -31,7 +32,7 @@ func BinanceSymbolCsv(symbols set.Set[types.Symbol]) string {
 
 // BinancePriceUpdate returns the prices given the symbols or an error.
 // Uses the Binance API at https://docs.binance.us/#price-data.
-func BinancePriceUpdate(symbols set.Set[types.Symbol]) (rawPrices map[types.Symbol]float64, err error) {
+func BinancePriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	url := "https://api.binance.us/api/v3/ticker/price?symbols=%5B" + BinanceSymbolCsv(symbols) + "%5D"
 	resp, err := http.Get(url)
 	if err != nil {

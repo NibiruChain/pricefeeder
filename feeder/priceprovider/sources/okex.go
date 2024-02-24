@@ -2,12 +2,14 @@ package sources
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/pricefeeder/types"
+	"github.com/rs/zerolog"
 )
 
 const (
@@ -27,7 +29,7 @@ type Response struct {
 
 // OkexPriceUpdate returns the prices for given symbols or an error.
 // Uses OKEX API at https://www.okx.com/docs-v5/en/#rest-api-market-data.
-func OkexPriceUpdate(symbols set.Set[types.Symbol]) (rawPrices map[types.Symbol]float64, err error) {
+func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	url := "https://www.okx.com/api/v5/market/tickers?instType=SPOT"
 
 	resp, err := http.Get(url)
@@ -57,7 +59,8 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol]) (rawPrices map[types.Symbol]
 
 		price, err := strconv.ParseFloat(ticker.Price, 64)
 		if err != nil {
-			price = -1
+			logger.Err(err).Msg(fmt.Sprintf("failed to parse price for %s on data source %s", symbol, Okex))
+			continue
 		}
 
 		rawPrices[symbol] = price

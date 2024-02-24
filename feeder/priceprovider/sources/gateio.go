@@ -2,12 +2,14 @@ package sources
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/pricefeeder/types"
+	"github.com/rs/zerolog"
 )
 
 const (
@@ -18,7 +20,7 @@ var _ types.FetchPricesFunc = GateIoPriceUpdate
 
 // GateIoPriceUpdate returns the prices given the symbols or an error.
 // Uses the GateIo API at https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-currency-pair.
-func GateIoPriceUpdate(symbols set.Set[types.Symbol]) (rawPrices map[types.Symbol]float64, err error) {
+func GateIoPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	url := "https://api.gateio.ws/api/v4/spot/tickers"
 	resp, err := http.Get(url)
 	if err != nil {
@@ -46,7 +48,8 @@ func GateIoPriceUpdate(symbols set.Set[types.Symbol]) (rawPrices map[types.Symbo
 
 		price, err := strconv.ParseFloat(ticker["last"].(string), 64)
 		if err != nil {
-			price = -1
+			logger.Err(err).Msg(fmt.Sprintf("failed to parse price for %s on data source %s", symbol, GateIo))
+			continue
 		}
 
 		rawPrices[symbol] = price

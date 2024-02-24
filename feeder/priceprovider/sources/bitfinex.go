@@ -8,13 +8,14 @@ import (
 
 	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/pricefeeder/types"
+	"github.com/rs/zerolog"
 )
 
 const (
 	Bitfinex = "bitfinex"
 )
 
-var _ types.FetchPricesFunc = BinancePriceUpdate
+var _ types.FetchPricesFunc = BitfinexPriceUpdate
 
 func BitfinexSymbolCsv(symbols set.Set[types.Symbol]) string {
 	s := ""
@@ -25,7 +26,7 @@ func BitfinexSymbolCsv(symbols set.Set[types.Symbol]) string {
 }
 
 // BitfinexPriceUpdate returns the prices given the symbols or an error.
-func BitfinexPriceUpdate(symbols set.Set[types.Symbol]) (rawPrices map[types.Symbol]float64, err error) {
+func BitfinexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	type ticker []interface{}
 	const size = 11
 	const lastPriceIndex = 7

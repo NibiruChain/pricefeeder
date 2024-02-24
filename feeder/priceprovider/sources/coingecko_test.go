@@ -2,11 +2,13 @@ package sources
 
 import (
 	"encoding/json"
+	"io"
 	"testing"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/jarcoal/httpmock"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,6 +26,7 @@ func TestCoingeckoPriceUpdate(t *testing.T) {
 				"bitcoin",
 				"ethereum",
 			),
+			zerolog.New(io.Discard),
 		)
 		require.NoError(t, err)
 
@@ -59,6 +62,7 @@ func TestCoingeckoWithConfig(t *testing.T) {
 				"bitcoin",
 				"ethereum",
 			),
+			zerolog.New(io.Discard),
 		)
 		require.NoError(t, err)
 
@@ -83,6 +87,7 @@ func TestCoingeckoWithConfig(t *testing.T) {
 				"bitcoin",
 				"ethereum",
 			),
+			zerolog.New(io.Discard),
 		)
 		require.NoError(t, err)
 

@@ -26,10 +26,11 @@ func TestTickSource(t *testing.T) {
 		expectedSymbols := set.New[types.Symbol]("tBTCUSDT")
 		expectedPrices := map[types.Symbol]float64{"tBTCUSDT": 250_000.56}
 
-		ts := NewTickSource(expectedSymbols, func(symbols set.Set[types.Symbol]) (map[types.Symbol]float64, error) {
-			require.Equal(t, expectedSymbols, symbols)
-			return expectedPrices, nil
-		}, zerolog.New(io.Discard))
+		ts := NewTickSource(expectedSymbols,
+			func(symbols set.Set[types.Symbol], logger zerolog.Logger) (map[types.Symbol]float64, error) {
+				require.Equal(t, expectedSymbols, symbols)
+				return expectedPrices, nil
+			}, zerolog.New(io.Discard))
 
 		defer ts.Close()
 
@@ -61,7 +62,7 @@ func TestTickSource(t *testing.T) {
 		expectedSymbols := set.New[types.Symbol]("tBTCUSDT")
 		expectedPrices := map[types.Symbol]float64{"tBTCUSDT": 250_000.56}
 
-		ts := NewTickSource(expectedSymbols, func(symbols set.Set[types.Symbol]) (map[types.Symbol]float64, error) {
+		ts := NewTickSource(expectedSymbols, func(symbols set.Set[types.Symbol], logger zerolog.Logger) (map[types.Symbol]float64, error) {
 			return expectedPrices, nil
 		}, zerolog.New(mw))
 
@@ -80,7 +81,7 @@ func TestTickSource(t *testing.T) {
 			return written, nil
 		}}
 
-		ts := NewTickSource(set.New[types.Symbol]("tBTCUSDT"), func(symbols set.Set[types.Symbol]) (map[types.Symbol]float64, error) {
+		ts := NewTickSource(set.New[types.Symbol]("tBTCUSDT"), func(symbols set.Set[types.Symbol], logger zerolog.Logger) (map[types.Symbol]float64, error) {
 			return nil, fmt.Errorf("sentinel error")
 		}, zerolog.New(mw))
 		defer ts.Close()
