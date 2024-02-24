@@ -37,10 +37,16 @@ type IntegrationTestSuite struct {
 
 func (s *IntegrationTestSuite) SetupSuite() {
 	app.SetPrefixes(app.AccountAddressPrefix)
-	s.cfg = testutilcli.BuildNetworkConfig(genesis.NewTestGenesisState())
-	s.network = testutilcli.NewNetwork(s.T(), s.cfg)
+	s.cfg = testutilcli.BuildNetworkConfig(genesis.NewTestGenesisState(app.MakeEncodingConfig()))
+	network, err := testutilcli.New(
+		s.T(),
+		s.T().TempDir(),
+		s.cfg,
+	)
+	s.Require().NoError(err)
+	s.network = network
 
-	_, err := s.network.WaitForHeight(1)
+	_, err = s.network.WaitForHeight(1)
 	require.NoError(s.T(), err)
 
 	val := s.network.Validators[0]
@@ -53,12 +59,17 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.logs = new(bytes.Buffer)
 	log := zerolog.New(io.MultiWriter(os.Stderr, s.logs)).Level(zerolog.InfoLevel)
 
-	eventStream := eventstream.Dial(u.String(), grpcEndpoint, log)
+	enableTLS := false
+	eventStream := eventstream.Dial(u.String(), grpcEndpoint, enableTLS, log)
 	priceProvider := priceprovider.NewPriceProvider(sources.Bitfinex, map[asset.Pair]types.Symbol{
 		asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD",
 		asset.Registry.Pair(denoms.ETH, denoms.NUSD): "tETHUSD",
 	}, json.RawMessage{}, log)
-	pricePoster := priceposter.Dial(grpcEndpoint, s.cfg.ChainID, val.ClientCtx.Keyring, val.ValAddress, val.Address, log)
+	pricePoster := priceposter.Dial(
+		grpcEndpoint,
+		s.cfg.ChainID,
+		enableTLS,
+		val.ClientCtx.Keyring, val.ValAddress, val.Address, log)
 	s.feeder = feeder.NewFeeder(eventStream, priceProvider, pricePoster, log)
 	s.feeder.Run()
 }
