@@ -3,7 +3,6 @@ package priceposter
 import (
 	"context"
 	"crypto/tls"
-	"strings"
 	"time"
 
 	"github.com/NibiruChain/nibiru/app"
@@ -44,17 +43,25 @@ type deps struct {
 	chainID      string
 }
 
-func Dial(grpcEndpoint string, chainID string, keyBase keyring.Keyring, validator sdk.ValAddress, feeder sdk.AccAddress, logger zerolog.Logger) *Client {
+func Dial(
+	grpcEndpoint string,
+	chainID string,
+	enableTLS bool,
+	keyBase keyring.Keyring,
+	validator sdk.ValAddress,
+	feeder sdk.AccAddress,
+	logger zerolog.Logger,
+) *Client {
+	transportDialOpt := grpc.WithInsecure()
 
-	transportDialOpt := grpc.WithTransportCredentials(
-		credentials.NewTLS(
-			&tls.Config{
-				InsecureSkipVerify: false,
-			},
-		),
-	)
-	if strings.Contains(grpcEndpoint, "localhost") {
-		transportDialOpt = grpc.WithInsecure()
+	if enableTLS {
+		transportDialOpt = grpc.WithTransportCredentials(
+			credentials.NewTLS(
+				&tls.Config{
+					InsecureSkipVerify: false,
+				},
+			),
+		)
 	}
 
 	conn, err := grpc.Dial(grpcEndpoint, transportDialOpt)
@@ -62,7 +69,7 @@ func Dial(grpcEndpoint string, chainID string, keyBase keyring.Keyring, validato
 		panic(err)
 	}
 
-	encoding := app.MakeTestEncodingConfig()
+	encoding := app.MakeEncodingConfig()
 	deps := deps{
 		oracleClient: oracletypes.NewQueryClient(conn),
 		authClient:   authtypes.NewQueryClient(conn),
@@ -110,7 +117,6 @@ func (c *Client) SendPrices(vp types.VotingPeriod, prices []types.Price) {
 
 	c.previousPrevote = newPrevote
 	logger.Info().Str("tx-hash", resp.TxHash).Msg("successfully forwarded prices")
-
 }
 
 func (c *Client) Close() {

@@ -1,10 +1,24 @@
-# Nibiru x/oracle Price Feeder
+# NibiruChain/pricefeeder for the Oracle Module
 
-Submits prices to the nibiru decentralized oracle.
+<img src="./repo-banner.png">
 
-## Configuration using `.env`
+The `pricefeeder` is a tool developed for Nibiru's [Oracle Module consensus](https://nibiru.fi/docs/ecosystem/oracle/) that runs a process to pull data from various external sources and then broadcasts transactions to vote on exchange rates. 
 
-Feeder requires the following environment variables to run:
+- [NibiruChain/pricefeeder for the Oracle Module](#nibiruchainpricefeeder-for-the-oracle-module)
+  - [Quick Start - Local Development](#quick-start---local-development)
+    - [Configuration for the `.env`](#configuration-for-the-env)
+    - [Run](#run)
+  - [Hacking](#hacking)
+    - [Build](#build)
+    - [Delegating "feeder" consent](#delegating-feeder-consent)
+    - [Enabling TLS](#enabling-tls)
+    - [Configuring specific exchanges](#configuring-specific-exchanges)
+
+## Quick Start - Local Development
+
+### Configuration for the `.env`
+
+Running a `feeder` requires the setting environment variables in your `.env` in like the following:
 
 ```ini
 CHAIN_ID="nibiru-localnet-0"
@@ -14,20 +28,79 @@ FEEDER_MNEMONIC="guard cream sadness conduct invite crumble clock pudding hole g
 EXCHANGE_SYMBOLS_MAP='{"bitfinex": {"ubtc:unusd": "tBTCUSD", "ueth:unusd": "tETHUSD", "uusd:unusd": "tUSTUSD"}}'
 ```
 
-### Delegating post pricing
+This would allow you to run `pricefeeder` using a local instance of the network. To set up a local network, you can run:
 
-In order to be able to delegate the post pricing you need to set the
-env variable for the validator that delegated you the post pricing:
-
-```ini
-VALIDATOR_ADDRESS="nibiruvaloper1..."
+```bash
+git clone git@github.com:NibiruChain/nibiru.git
+cd nibiru
+git checkout v0.19.2
+make localnet
 ```
 
-And from your validator node, you need to delegate responsibilites to the feeder address
+### Run
+
+With your environment set to a live network, you can now run the price feeder:
+```sh
+make run
+```
+
+#### Or, to run the tool as a daemon:
+
+1. Build a docker image for use with docker compose. 
+    ```bash
+    make build-docker
+    ```
+
+2. Run the 'price_feeder' service defined in the `docker-compose.yaml`.
+    ```bash
+    make docker-compose up -d price_feeder
+    ```
+
+## Hacking
+
+Connecters for data sources like Binance and Bitfinex are defined in the `feeder/priceprovider/sources` directory. Each of these sources must implement a `FetchPricesFunc` function for querying external data.
+
+### Build
+
+Builds the binary for the package: 
 
 ```sh
-nibid tx oracle set-feeder <feeder address> --from validator
+make build
 ```
+
+### Delegating "feeder" consent
+
+Votes for exhange rates in the [Oracle Module](https://nibiru.fi/docs/ecosystem/oracle/) are posted by validator nodes, however a validator can give consent a `feeder` account to post prices on its behalf. This way, the validator won't have to use their validator's mnemonic to send transactions.  
+
+In order to be able to delegate consent to post prices, you need to set the
+`VALIDATOR_ADDRESS` env variable to the "valoper" address the `feeder` will represent.
+
+```ini
+VALIDATOR_ADDRESS="nibivaloper1..."
+```
+
+To delegate consent from a validator node to some `feeder` address, you must execute a `MsgDelegateFeedConsent` message: 
+```go
+type MsgDelegateFeedConsent struct {
+	Operator string 
+	Delegate string
+}
+```
+
+This is possible using the `set-feeder` subcommand of the `nibid` CLI:
+
+```bash
+nibid tx oracle set-feeder [feeder-address] --from validator
+```
+
+### Enabling TLS
+
+To enable TLS, you need to set the following env vars:
+
+```ini
+TLS_ENABLED="true"
+```
+
 
 ### Configuring specific exchanges
 
@@ -40,20 +113,3 @@ you need to set env var:
 DATASOURCE_CONFIG_MAP='{"coingecko": {"api_key": "0123456789"}}'
 ```
 
-## Build
-
-```sh
-make build-feeder
-```
-
-## Run
-
-```sh
-make run
-```
-
-or to run as a daemon:
-
-```sh
-make docker-compose up -d price_feeder
-```

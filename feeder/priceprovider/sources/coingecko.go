@@ -1,7 +1,7 @@
 package sources
 
 import (
-	json2 "encoding/json"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,7 +9,6 @@ import (
 
 	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/pricefeeder/types"
-	"github.com/tendermint/tendermint/libs/json"
 )
 
 const (
@@ -20,16 +19,16 @@ const (
 )
 
 type CoingeckoTicker struct {
-	Price float64 `json:"usd,string"`
+	Price float64 `json:"usd"`
 }
 
 type CoingeckoConfig struct {
 	ApiKey string `json:"api_key"`
 }
 
-func CoingeckoPriceUpdate(jsonConfig json2.RawMessage) types.FetchPricesFunc {
+func CoingeckoPriceUpdate(sourceConfig json.RawMessage) types.FetchPricesFunc {
 	return func(symbols set.Set[types.Symbol]) (map[types.Symbol]float64, error) {
-		c, err := extractConfig(jsonConfig)
+		c, err := extractConfig(sourceConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -57,7 +56,7 @@ func CoingeckoPriceUpdate(jsonConfig json2.RawMessage) types.FetchPricesFunc {
 }
 
 // extractConfig tries to get the configuration, if nothing is found, it returns an empty config.
-func extractConfig(jsonConfig json2.RawMessage) (*CoingeckoConfig, error) {
+func extractConfig(jsonConfig json.RawMessage) (*CoingeckoConfig, error) {
 	c := &CoingeckoConfig{}
 	if len(jsonConfig) > 0 {
 		err := json.Unmarshal(jsonConfig, c)

@@ -12,6 +12,21 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
+	"coingecko": {
+		"ubtc:uusd":  "bitcoin",
+		"ueth:uusd":  "ethereum",
+		"uusdt:uusd": "tether",
+		"uusdc:uusd": "usd-coin",
+		"uatom:uusd": "cosmos",
+	},
+	"bitfinex": {
+		"ubtc:uusd":  "tBTCUSD",
+		"ueth:uusd":  "tETHUSD",
+		"uusdc:uusd": "tUDCUSD",
+	},
+}
+
 func MustGet() *Config {
 	conf, err := Get()
 	if err != nil {
@@ -35,15 +50,16 @@ func Get() (*Config, error) {
 	conf.GRPCEndpoint = os.Getenv("GRPC_ENDPOINT")
 	conf.WebsocketEndpoint = os.Getenv("WEBSOCKET_ENDPOINT")
 	conf.FeederMnemonic = os.Getenv("FEEDER_MNEMONIC")
-	exchangeSymbolsMapJson := os.Getenv("EXCHANGE_SYMBOLS_MAP")
-	exchangeSymbolsMap := map[string]map[string]string{}
-	err := json.Unmarshal([]byte(exchangeSymbolsMapJson), &exchangeSymbolsMap)
+	conf.EnableTLS = os.Getenv("ENABLE_TLS") == "true"
+	overrideExchangeSymbolsMapJson := os.Getenv("EXCHANGE_SYMBOLS_MAP")
+	overrideExchangeSymbolsMap := map[string]map[string]string{}
+	err := json.Unmarshal([]byte(overrideExchangeSymbolsMapJson), &overrideExchangeSymbolsMap)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse EXCHANGE_SYMBOLS_MAP: invalid json")
 	}
 
-	conf.ExchangesToPairToSymbolMap = map[string]map[asset.Pair]types.Symbol{}
-	for exchange, symbolMap := range exchangeSymbolsMap {
+	conf.ExchangesToPairToSymbolMap = defaultExchangeSymbolsMap
+	for exchange, symbolMap := range overrideExchangeSymbolsMap {
 		conf.ExchangesToPairToSymbolMap[exchange] = map[asset.Pair]types.Symbol{}
 		for nibiAssetPair, tickerSymbol := range symbolMap {
 			conf.ExchangesToPairToSymbolMap[exchange][asset.MustNewPair(nibiAssetPair)] = types.Symbol(tickerSymbol)
@@ -82,6 +98,7 @@ type Config struct {
 	FeederMnemonic             string
 	ChainID                    string
 	ValidatorAddr              *sdk.ValAddress
+	EnableTLS                  bool
 }
 
 func (c *Config) Validate() error {
