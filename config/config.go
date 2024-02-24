@@ -14,6 +14,7 @@ import (
 )
 
 var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
+	// https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1
 	// k-yang: default disable Coingecko because they have aggressive rate limiting
 	// sources.Coingecko: {
 	// 	"ubtc:uusd":  "bitcoin",
@@ -22,6 +23,8 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 	// 	"uusdc:uusd": "usd-coin",
 	// 	"uatom:uusd": "cosmos",
 	// },
+
+	// https://api-pub.bitfinex.com/v2/conf/pub:list:pair:exchange
 	sources.Bitfinex: {
 		"ubtc:uusd":  "tBTCUSD",
 		"ueth:uusd":  "tETHUSD",
@@ -29,6 +32,8 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 		"uusdt:uusd": "tUSTUSD",
 		"uatom:uusd": "tATOUSD",
 	},
+
+	// https://api.gateio.ws/api/v4/spot/currency_pairs
 	sources.GateIo: {
 		"ubtc:uusd":  "BTC_USDT",
 		"ueth:uusd":  "ETH_USDT",
@@ -36,6 +41,8 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 		"uusdt:uusd": "USDT_USD",
 		"uatom:uusd": "ATOM_USDT",
 	},
+
+	// https://www.okx.com/api/v5/market/tickers?instType=SPOT
 	sources.Okex: {
 		"ubtc:uusd":  "BTC-USDT",
 		"ueth:uusd":  "ETH-USDT",
