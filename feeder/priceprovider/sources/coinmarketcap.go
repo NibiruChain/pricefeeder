@@ -101,6 +101,7 @@ func getPricesFromResponse(symbols set.Set[types.Symbol], response []byte, logge
 	for symbol := range symbols {
 		if price, ok := cmcPrice[string(symbol)]; ok {
 			rawPrices[symbol] = price
+			logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, CoinMarketCap, price))
 		} else {
 			logger.Err(err).Msg(fmt.Sprintf("failed to parse price for %s on data source %s", symbol, CoinMarketCap))
 			continue

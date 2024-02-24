@@ -55,6 +55,7 @@ func BinancePriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (r
 	rawPrices = make(map[types.Symbol]float64)
 	for _, ticker := range tickers {
 		rawPrices[types.Symbol(ticker.Symbol)] = ticker.Price
+		logger.Debug().Msgf("fetched price for %s on data source %s: %f", ticker.Symbol, Binance, ticker.Price)
 	}
 
 	return rawPrices, nil

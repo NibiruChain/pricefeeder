@@ -64,6 +64,7 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 		}
 
 		rawPrices[symbol] = price
+		logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, Okex, price))
 	}
 	return rawPrices, nil
 }

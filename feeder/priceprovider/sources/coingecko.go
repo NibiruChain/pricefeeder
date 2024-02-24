@@ -77,6 +77,7 @@ func extractPricesFromResponse(symbols set.Set[types.Symbol], response []byte, l
 	for symbol := range symbols {
 		if price, ok := result[string(symbol)]; ok {
 			rawPrices[symbol] = price.Price
+			logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, Coingecko, price.Price))
 		} else {
 			logger.Err(fmt.Errorf("failed to parse price for %s on data source %s", symbol, Coingecko)).Msg(string(response))
 			continue

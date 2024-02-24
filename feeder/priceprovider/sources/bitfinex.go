@@ -59,6 +59,7 @@ func BitfinexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (
 		lastPrice := ticker[lastPriceIndex].(float64)
 
 		rawPrices[symbol] = lastPrice
+		logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, Bitfinex, lastPrice))
 	}
 
 	return rawPrices, nil

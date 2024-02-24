@@ -53,6 +53,7 @@ func GateIoPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (ra
 		}
 
 		rawPrices[symbol] = price
+		logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, GateIo, price))
 	}
 
 	return rawPrices, nil
