@@ -9,12 +9,11 @@ import (
 )
 
 func TestOKexPriceUpdate(t *testing.T) {
-
 	t.Run("success", func(t *testing.T) {
-		rawPrices, err := OkexPriceUpdate(set.New[types.Symbol]("BTCUSDT", "ETHUSDT"))
+		rawPrices, err := OkexPriceUpdate(set.New[types.Symbol]("BTC-USDT", "ETH-USDT"))
 		require.NoError(t, err)
 		require.Equal(t, 2, len(rawPrices))
-		require.NotZero(t, rawPrices["BTCUSDT"])
-		require.NotZero(t, rawPrices["ETHUSDT"])
+		require.NotZero(t, rawPrices["BTC-USDT"])
+		require.NotZero(t, rawPrices["ETH-USDT"])
 	})
 }
