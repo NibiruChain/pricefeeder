@@ -23,7 +23,7 @@ type OkexTicker struct {
 	Price  string `json:"last"`
 }
 
-type Response struct {
+type OkexResponse struct {
 	Data []OkexTicker `json:"data"`
 }
 
@@ -43,7 +43,7 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 		return nil, err
 	}
 
-	var response Response
+	var response OkexResponse
 	err = json.Unmarshal(b, &response)
 	if err != nil {
 		return nil, err
