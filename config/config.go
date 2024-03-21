@@ -40,8 +40,8 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 		"uusdc:uusd": "USDC_USDT",
 		"uusdt:uusd": "USDT_USD",
 		"uatom:uusd": "ATOM_USDT",
+		"unibi:uusd": "NIBI_USDT",
 	},
-
 	// https://www.okx.com/api/v5/market/tickers?instType=SPOT
 	sources.Okex: {
 		"ubtc:uusd":  "BTC-USDT",
