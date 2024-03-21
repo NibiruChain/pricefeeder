@@ -50,6 +50,14 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 		"uusdt:uusd": "USDT-USDC",
 		"uatom:uusd": "ATOM-USDT",
 	},
+	// https://api.bybit.com/v5/market/tickers?category=spot
+	sources.Bybit: {
+		"ubtc:uusd":  "BTCUSDT",
+		"ueth:uusd":  "ETHUSDT",
+		"uusdc:uusd": "USDCUSDT",
+		"uatom:uusd": "ATOMUSDT",
+		"unibi:uusd": "NIBIUSDT",
+	},
 }
 
 func MustGet() *Config {

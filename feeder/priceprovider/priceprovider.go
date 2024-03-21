@@ -50,6 +50,8 @@ func NewPriceProvider(
 		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.GateIoPriceUpdate, logger)
 	case sources.CoinMarketCap:
 		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.CoinmarketcapPriceUpdate(config), logger)
+	case sources.Bybit:
+		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.BybitPriceUpdate, logger)
 	default:
 		panic("unknown price provider: " + sourceName)
 	}
