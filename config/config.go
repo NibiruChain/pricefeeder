@@ -84,18 +84,20 @@ func Get() (*Config, error) {
 	conf.WebsocketEndpoint = os.Getenv("WEBSOCKET_ENDPOINT")
 	conf.FeederMnemonic = os.Getenv("FEEDER_MNEMONIC")
 	conf.EnableTLS = os.Getenv("ENABLE_TLS") == "true"
-	overrideExchangeSymbolsMapJson := os.Getenv("EXCHANGE_SYMBOLS_MAP")
-	overrideExchangeSymbolsMap := map[string]map[string]string{}
-	err := json.Unmarshal([]byte(overrideExchangeSymbolsMapJson), &overrideExchangeSymbolsMap)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse EXCHANGE_SYMBOLS_MAP: invalid json")
-	}
-
 	conf.ExchangesToPairToSymbolMap = defaultExchangeSymbolsMap
-	for exchange, symbolMap := range overrideExchangeSymbolsMap {
-		conf.ExchangesToPairToSymbolMap[exchange] = map[asset.Pair]types.Symbol{}
-		for nibiAssetPair, tickerSymbol := range symbolMap {
-			conf.ExchangesToPairToSymbolMap[exchange][asset.MustNewPair(nibiAssetPair)] = types.Symbol(tickerSymbol)
+
+	overrideExchangeSymbolsMapJson := os.Getenv("EXCHANGE_SYMBOLS_MAP")
+	if overrideExchangeSymbolsMapJson != "" {
+		overrideExchangeSymbolsMap := map[string]map[string]string{}
+		err := json.Unmarshal([]byte(overrideExchangeSymbolsMapJson), &overrideExchangeSymbolsMap)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse EXCHANGE_SYMBOLS_MAP: invalid json")
+		}
+		for exchange, symbolMap := range overrideExchangeSymbolsMap {
+			conf.ExchangesToPairToSymbolMap[exchange] = map[asset.Pair]types.Symbol{}
+			for nibiAssetPair, tickerSymbol := range symbolMap {
+				conf.ExchangesToPairToSymbolMap[exchange][asset.MustNewPair(nibiAssetPair)] = types.Symbol(tickerSymbol)
+			}
 		}
 	}
 
@@ -104,7 +106,7 @@ func Get() (*Config, error) {
 	datasourceConfigMap := map[string]json.RawMessage{}
 
 	if datasourceConfigMapJson != "" {
-		err = json.Unmarshal([]byte(datasourceConfigMapJson), &datasourceConfigMap)
+		err := json.Unmarshal([]byte(datasourceConfigMapJson), &datasourceConfigMap)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse DATASOURCE_CONFIG_MAP: invalid json")
 		}
