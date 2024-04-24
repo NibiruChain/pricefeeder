@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	"github.com/NibiruChain/nibiru/x/common/asset"
-	"github.com/NibiruChain/nibiru/x/common/denoms"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 )
@@ -42,29 +41,6 @@ func NewAggregatePriceProvider(
 // Iteration is exhaustive and random.
 // If no correct PriceResponse is found, then an invalid PriceResponse is returned.
 func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
-	// Temporarily treat NUSD as perfectly pegged to the US fiat dollar
-	// TODO(k-yang): add the NUSD pricefeed once it's available on exchanges
-	if pair.Equal(asset.Registry.Pair(denoms.NUSD, denoms.USD)) {
-		return types.Price{
-			SourceName: "temporarily-hardcoded",
-			Pair:       pair,
-			Price:      1,
-			Valid:      true,
-		}
-	}
-
-	// Temporarily provide NIBI price based on last raise, 1.5 billion token supply @ $100M
-	// TODO(k-yang): add the NUSD pricefeed once it's available on exchanges
-	if pair.Equal(asset.Registry.Pair(denoms.NIBI, denoms.USD)) ||
-		pair.Equal(asset.Registry.Pair(denoms.NIBI, denoms.NUSD)) {
-		return types.Price{
-			SourceName: "temporarily-hardcoded",
-			Pair:       pair,
-			Price:      0.06666666666666667,
-			Valid:      true,
-		}
-	}
-
 	// iterate randomly, if we find a valid price, we return it
 	// otherwise we go onto the next PriceProvider to ask for prices.
 	for _, p := range a.providers {
