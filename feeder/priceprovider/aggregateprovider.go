@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/NibiruChain/nibiru/x/common/asset"
+	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -40,8 +41,9 @@ func NewAggregatePriceProvider(
 }
 
 var aggregatePriceProvider = promauto.NewCounterVec(prometheus.CounterOpts{
-	Name: "aggregate_price_provider_prices_total",
-	Help: "The total number prices provided by the aggregate price provider, by pair, source, and success status",
+	Namespace: metrics.PrometheusNamespace,
+	Name:      "aggregate_prices_total",
+	Help:      "The total number prices provided by the aggregate price provider, by pair, source, and success status",
 }, []string{"pair", "source", "success"})
 
 // GetPrice fetches the first available and correct price from the wrapped PriceProviders.
