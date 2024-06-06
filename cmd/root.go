@@ -1,18 +1,19 @@
-package main
+package cmd
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 
 	"github.com/NibiruChain/nibiru/app"
-	"github.com/rs/zerolog"
-
 	"github.com/NibiruChain/pricefeeder/config"
 	"github.com/NibiruChain/pricefeeder/feeder"
 	"github.com/NibiruChain/pricefeeder/feeder/eventstream"
 	"github.com/NibiruChain/pricefeeder/feeder/priceposter"
 	"github.com/NibiruChain/pricefeeder/feeder/priceprovider"
+	"github.com/rs/zerolog"
+	"github.com/spf13/cobra"
 )
 
 func setupLogger() zerolog.Logger {
@@ -28,30 +29,6 @@ func setupLogger() zerolog.Logger {
 	return zerolog.New(os.Stderr).With().Timestamp().Logger()
 }
 
-func main() {
-	logger := setupLogger()
-	app.SetPrefixes(app.AccountAddressPrefix)
-
-	c := config.MustGet()
-
-	eventStream := eventstream.Dial(c.WebsocketEndpoint, c.GRPCEndpoint, c.EnableTLS, logger)
-	priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, c.DataSourceConfigMap, logger)
-	kb, valAddr, feederAddr := config.GetAuth(c.FeederMnemonic)
-
-	if c.ValidatorAddr != nil {
-		valAddr = *c.ValidatorAddr
-	}
-	pricePoster := priceposter.Dial(c.GRPCEndpoint, c.ChainID, c.EnableTLS, kb, valAddr, feederAddr, logger)
-
-	f := feeder.NewFeeder(eventStream, priceProvider, pricePoster, logger)
-	f.Run()
-	defer f.Close()
-
-	handleInterrupt(logger, f)
-
-	select {}
-}
-
 // handleInterrupt listens for SIGINT and gracefully shuts down the feeder.
 func handleInterrupt(logger zerolog.Logger, f *feeder.Feeder) {
 	interrupt := make(chan os.Signal, 1)
@@ -63,4 +40,39 @@ func handleInterrupt(logger zerolog.Logger, f *feeder.Feeder) {
 		f.Close()
 		os.Exit(1)
 	}()
+}
+
+var rootCmd = &cobra.Command{
+	Use:   "pricefeeder",
+	Short: "Pricefeeder daemon for posting prices to Nibiru Chain",
+	Run: func(cmd *cobra.Command, args []string) {
+		logger := setupLogger()
+		app.SetPrefixes(app.AccountAddressPrefix)
+
+		c := config.MustGet()
+
+		eventStream := eventstream.Dial(c.WebsocketEndpoint, c.GRPCEndpoint, c.EnableTLS, logger)
+		priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, c.DataSourceConfigMap, logger)
+		kb, valAddr, feederAddr := config.GetAuth(c.FeederMnemonic)
+
+		if c.ValidatorAddr != nil {
+			valAddr = *c.ValidatorAddr
+		}
+		pricePoster := priceposter.Dial(c.GRPCEndpoint, c.ChainID, c.EnableTLS, kb, valAddr, feederAddr, logger)
+
+		f := feeder.NewFeeder(eventStream, priceProvider, pricePoster, logger)
+		f.Run()
+		defer f.Close()
+
+		handleInterrupt(logger, f)
+
+		select {}
+	},
+}
+
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }
