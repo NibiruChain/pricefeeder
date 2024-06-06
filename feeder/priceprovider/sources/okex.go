@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 )
@@ -35,6 +36,7 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 	resp, err := http.Get(url)
 	if err != nil {
 		logger.Err(err).Msg("failed to fetch prices from Okex")
+		metrics.PriceSourceCounter.WithLabelValues(Okex, "false").Inc()
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -42,6 +44,7 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Err(err).Msg("failed to read response body from Okex")
+		metrics.PriceSourceCounter.WithLabelValues(Okex, "false").Inc()
 		return nil, err
 	}
 
@@ -49,6 +52,7 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 	err = json.Unmarshal(b, &response)
 	if err != nil {
 		logger.Err(err).Msg("failed to unmarshal response body from Okex")
+		metrics.PriceSourceCounter.WithLabelValues(Okex, "false").Inc()
 		return nil, err
 	}
 
@@ -69,5 +73,7 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 		rawPrices[symbol] = price
 		logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, Okex, price))
 	}
+
+	metrics.PriceSourceCounter.WithLabelValues(Okex, "true").Inc()
 	return rawPrices, nil
 }

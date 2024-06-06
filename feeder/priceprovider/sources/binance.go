@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 )
@@ -37,6 +38,7 @@ func BinancePriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (r
 	resp, err := http.Get(url)
 	if err != nil {
 		logger.Err(err).Msg("failed to fetch prices from Binance")
+		metrics.PriceSourceCounter.WithLabelValues(Binance, "false").Inc()
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -44,6 +46,7 @@ func BinancePriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (r
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Err(err).Msg("failed to read response body from Binance")
+		metrics.PriceSourceCounter.WithLabelValues(Binance, "false").Inc()
 		return nil, err
 	}
 
@@ -52,6 +55,7 @@ func BinancePriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (r
 	err = json.Unmarshal(b, &tickers)
 	if err != nil {
 		logger.Err(err).Msg("failed to unmarshal response body from Binance")
+		metrics.PriceSourceCounter.WithLabelValues(Binance, "false").Inc()
 		return nil, err
 	}
 
@@ -60,6 +64,7 @@ func BinancePriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (r
 		rawPrices[types.Symbol(ticker.Symbol)] = ticker.Price
 		logger.Debug().Msgf("fetched price for %s on data source %s: %f", ticker.Symbol, Binance, ticker.Price)
 	}
+	metrics.PriceSourceCounter.WithLabelValues(Binance, "true").Inc()
 
 	return rawPrices, nil
 }

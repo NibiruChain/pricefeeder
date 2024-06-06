@@ -3,6 +3,7 @@ package cmd
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/NibiruChain/pricefeeder/feeder/eventstream"
 	"github.com/NibiruChain/pricefeeder/feeder/priceposter"
 	"github.com/NibiruChain/pricefeeder/feeder/priceprovider"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 )
@@ -65,6 +67,9 @@ var rootCmd = &cobra.Command{
 		defer f.Close()
 
 		handleInterrupt(logger, f)
+
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":8080", nil)
 
 		select {}
 	},

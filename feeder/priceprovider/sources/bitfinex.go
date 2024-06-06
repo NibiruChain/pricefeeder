@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 )
@@ -36,6 +37,7 @@ func BitfinexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (
 	resp, err := http.Get(url)
 	if err != nil {
 		logger.Err(err).Msg("failed to fetch prices from Bitfinex")
+		metrics.PriceSourceCounter.WithLabelValues(Bitfinex, "false").Inc()
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -43,6 +45,7 @@ func BitfinexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Err(err).Msg("failed to read response body from Bitfinex")
+		metrics.PriceSourceCounter.WithLabelValues(Bitfinex, "false").Inc()
 		return nil, err
 	}
 	var tickers []ticker
@@ -50,6 +53,7 @@ func BitfinexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (
 	err = json.Unmarshal(b, &tickers)
 	if err != nil {
 		logger.Err(err).Msg("failed to unmarshal response body from Bitfinex")
+		metrics.PriceSourceCounter.WithLabelValues(Bitfinex, "false").Inc()
 		return nil, err
 	}
 
@@ -64,6 +68,8 @@ func BitfinexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (
 		rawPrices[symbol] = lastPrice
 		logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, Bitfinex, lastPrice))
 	}
+
+	metrics.PriceSourceCounter.WithLabelValues(Bitfinex, "true").Inc()
 
 	return rawPrices, nil
 }
