@@ -5,7 +5,7 @@ env:
 
 builds:
   - id: darwin
-    main: ./cmd/feeder
+    main: .
     binary: pricefeeder
     hooks:
       pre:
@@ -35,7 +35,7 @@ builds:
           - CC=oa64-clang
 
   - id: linux
-    main: ./cmd/feeder
+    main: .
     binary: pricefeeder
     hooks:
       pre:
