@@ -11,10 +11,10 @@ test:
 	go test ./...
 
 run:
-	go run ./cmd/feeder/main.go
+	go run ./main.go
 
 run-debug:
-	go run ./cmd/feeder/main.go -debug true
+	go run ./main.go -debug true
 
 ###############################################################################
 ###                                Build                                    ###
