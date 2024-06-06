@@ -5,6 +5,8 @@ import (
 
 	"github.com/NibiruChain/nibiru/x/common/asset"
 	"github.com/NibiruChain/pricefeeder/types"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/rs/zerolog"
 )
 
@@ -37,6 +39,11 @@ func NewAggregatePriceProvider(
 	}
 }
 
+var aggregatePriceProvider = promauto.NewCounterVec(prometheus.CounterOpts{
+	Name: "aggregate_price_provider_prices_total",
+	Help: "The total number prices provided by the aggregate price provider, by pair, source, and success status",
+}, []string{"pair", "source", "success"})
+
 // GetPrice fetches the first available and correct price from the wrapped PriceProviders.
 // Iteration is exhaustive and random.
 // If no correct PriceResponse is found, then an invalid PriceResponse is returned.
@@ -46,12 +53,14 @@ func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 	for _, p := range a.providers {
 		price := p.GetPrice(pair)
 		if price.Valid {
+			aggregatePriceProvider.WithLabelValues(pair.String(), price.SourceName, "true").Inc()
 			return price
 		}
 	}
 
 	// if we reach here no valid symbols were found
 	a.logger.Warn().Str("pair", pair.String()).Msg("no valid price found")
+	aggregatePriceProvider.WithLabelValues(pair.String(), "missing", "false").Inc()
 	return types.Price{
 		SourceName: "missing",
 		Pair:       pair,
