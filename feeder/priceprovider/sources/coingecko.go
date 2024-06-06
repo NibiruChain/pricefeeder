@@ -31,22 +31,26 @@ func CoingeckoPriceUpdate(sourceConfig json.RawMessage) types.FetchPricesFunc {
 	return func(symbols set.Set[types.Symbol], logger zerolog.Logger) (map[types.Symbol]float64, error) {
 		c, err := extractConfig(sourceConfig)
 		if err != nil {
+			logger.Err(err).Msg("failed to extract coingecko config")
 			return nil, err
 		}
 
 		res, err := http.Get(buildURL(symbols, c))
 		if err != nil {
+			logger.Err(err).Msg("failed to fetch prices from Coingecko")
 			return nil, err
 		}
 		defer res.Body.Close()
 
 		response, err := io.ReadAll(res.Body)
 		if err != nil {
+			logger.Err(err).Msg("failed to read response body from Coingecko")
 			return nil, err
 		}
 
 		rawPrices, err := extractPricesFromResponse(symbols, response, logger)
 		if err != nil {
+			logger.Err(err).Msg("failed to extract prices from Coingecko response")
 			return nil, err
 		}
 

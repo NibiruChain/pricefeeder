@@ -24,18 +24,21 @@ func GateIoPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (ra
 	url := "https://api.gateio.ws/api/v4/spot/tickers"
 	resp, err := http.Get(url)
 	if err != nil {
+		logger.Err(err).Msg("failed to fetch prices from GateIo")
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
+		logger.Err(err).Msg("failed to read response body from GateIo")
 		return nil, err
 	}
 
 	var tickers []map[string]interface{}
 	err = json.Unmarshal(b, &tickers)
 	if err != nil {
+		logger.Err(err).Msg("failed to unmarshal response body from GateIo")
 		return nil, err
 	}
 

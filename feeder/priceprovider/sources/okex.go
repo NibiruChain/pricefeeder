@@ -34,18 +34,21 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 
 	resp, err := http.Get(url)
 	if err != nil {
+		logger.Err(err).Msg("failed to fetch prices from Okex")
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
+		logger.Err(err).Msg("failed to read response body from Okex")
 		return nil, err
 	}
 
 	var response OkexResponse
 	err = json.Unmarshal(b, &response)
 	if err != nil {
+		logger.Err(err).Msg("failed to unmarshal response body from Okex")
 		return nil, err
 	}
 

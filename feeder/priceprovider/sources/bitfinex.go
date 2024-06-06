@@ -35,18 +35,21 @@ func BitfinexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (
 	var url string = "https://api-pub.bitfinex.com/v2/tickers?symbols=" + BitfinexSymbolCsv(symbols)
 	resp, err := http.Get(url)
 	if err != nil {
+		logger.Err(err).Msg("failed to fetch prices from Bitfinex")
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
+		logger.Err(err).Msg("failed to read response body from Bitfinex")
 		return nil, err
 	}
 	var tickers []ticker
 
 	err = json.Unmarshal(b, &tickers)
 	if err != nil {
+		logger.Err(err).Msg("failed to unmarshal response body from Bitfinex")
 		return nil, err
 	}
 

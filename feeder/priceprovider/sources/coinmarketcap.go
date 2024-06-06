@@ -44,28 +44,33 @@ func CoinmarketcapPriceUpdate(coinmarketcapConfig json.RawMessage) types.FetchPr
 	return func(symbols set.Set[types.Symbol], logger zerolog.Logger) (map[types.Symbol]float64, error) {
 		config, err := getConfig(coinmarketcapConfig)
 		if err != nil {
+			logger.Err(err).Msg("failed to extract coinmarketcap config")
 			return nil, err
 		}
 
 		req, err := buildReq(symbols, config)
 		if err != nil {
+			logger.Err(err).Msg("failed to build request for Coinmarketcap")
 			return nil, err
 		}
 
 		client := &http.Client{}
 		res, err := client.Do(req)
 		if err != nil {
+			logger.Err(err).Msg("failed to fetch prices from Coinmarketcap")
 			return nil, err
 		}
 		defer res.Body.Close()
 
 		response, err := io.ReadAll(res.Body)
 		if err != nil {
+			logger.Err(err).Msg("failed to read response body from Coinmarketcap")
 			return nil, err
 		}
 
 		rawPrices, err := getPricesFromResponse(symbols, response, logger)
 		if err != nil {
+			logger.Err(err).Msg("failed to extract prices from Coinmarketcap response")
 			return nil, err
 		}
 
