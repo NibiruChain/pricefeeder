@@ -11,10 +11,10 @@ test:
 	go test ./...
 
 run:
-	go run ./cmd/feeder/main.go
+	go run ./main.go
 
 run-debug:
-	go run ./cmd/feeder/main.go -debug true
+	go run ./main.go -debug true
 
 ###############################################################################
 ###                                Build                                    ###
@@ -45,3 +45,14 @@ release:
 		-e GITHUB_TOKEN=${GITHUB_TOKEN} \
 		goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
 		release --rm-dist
+
+release-snapshot:
+	docker run \
+		--rm \
+		--platform=linux/amd64 \
+		-v "$(CURDIR)":/go/src/$(PACKAGE_NAME) \
+		-w /go/src/$(PACKAGE_NAME) \
+		-e CGO_ENABLED=1 \
+		-e GITHUB_TOKEN=${GITHUB_TOKEN} \
+		goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
+		release --rm-dist --snapshot

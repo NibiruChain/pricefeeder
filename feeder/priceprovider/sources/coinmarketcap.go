@@ -9,6 +9,7 @@ import (
 	"net/url"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 )
@@ -44,31 +45,42 @@ func CoinmarketcapPriceUpdate(coinmarketcapConfig json.RawMessage) types.FetchPr
 	return func(symbols set.Set[types.Symbol], logger zerolog.Logger) (map[types.Symbol]float64, error) {
 		config, err := getConfig(coinmarketcapConfig)
 		if err != nil {
+			logger.Err(err).Msg("failed to extract coinmarketcap config")
+			metrics.PriceSourceCounter.WithLabelValues(CoinMarketCap, "false").Inc()
 			return nil, err
 		}
 
 		req, err := buildReq(symbols, config)
 		if err != nil {
+			logger.Err(err).Msg("failed to build request for Coinmarketcap")
+			metrics.PriceSourceCounter.WithLabelValues(CoinMarketCap, "false").Inc()
 			return nil, err
 		}
 
 		client := &http.Client{}
 		res, err := client.Do(req)
 		if err != nil {
+			logger.Err(err).Msg("failed to fetch prices from Coinmarketcap")
+			metrics.PriceSourceCounter.WithLabelValues(CoinMarketCap, "false").Inc()
 			return nil, err
 		}
 		defer res.Body.Close()
 
 		response, err := io.ReadAll(res.Body)
 		if err != nil {
+			logger.Err(err).Msg("failed to read response body from Coinmarketcap")
+			metrics.PriceSourceCounter.WithLabelValues(CoinMarketCap, "false").Inc()
 			return nil, err
 		}
 
 		rawPrices, err := getPricesFromResponse(symbols, response, logger)
 		if err != nil {
+			logger.Err(err).Msg("failed to extract prices from Coinmarketcap response")
+			metrics.PriceSourceCounter.WithLabelValues(CoinMarketCap, "false").Inc()
 			return nil, err
 		}
 
+		metrics.PriceSourceCounter.WithLabelValues(CoinMarketCap, "true").Inc()
 		return rawPrices, nil
 	}
 }

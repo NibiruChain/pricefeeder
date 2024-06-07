@@ -7,6 +7,7 @@ import (
 
 	"github.com/NibiruChain/nibiru/app"
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
+	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -14,6 +15,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txservice "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -102,6 +105,12 @@ func (c *Client) Whoami() sdk.ValAddress {
 	return c.validator
 }
 
+var pricePosterCounter = promauto.NewCounterVec(prometheus.CounterOpts{
+	Namespace: metrics.PrometheusNamespace,
+	Name:      "prices_posted_total",
+	Help:      "The total number of price update txs sent to the chain, by success status",
+}, []string{"success"})
+
 func (c *Client) SendPrices(vp types.VotingPeriod, prices []types.Price) {
 	logger := c.logger.With().Uint64("voting-period-height", vp.Height).Logger()
 
@@ -112,11 +121,13 @@ func (c *Client) SendPrices(vp types.VotingPeriod, prices []types.Price) {
 	resp, err := vote(ctx, newPrevote, c.previousPrevote, c.validator, c.feeder, c.deps, logger)
 	if err != nil {
 		logger.Err(err).Msg("prevote failed")
+		pricePosterCounter.WithLabelValues("false").Inc()
 		return
 	}
 
 	c.previousPrevote = newPrevote
 	logger.Info().Str("tx-hash", resp.TxHash).Msg("successfully forwarded prices")
+	pricePosterCounter.WithLabelValues("true").Inc()
 }
 
 func (c *Client) Close() {

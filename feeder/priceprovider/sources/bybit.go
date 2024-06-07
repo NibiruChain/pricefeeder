@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 )
@@ -33,18 +34,24 @@ func BybitPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (raw
 
 	resp, err := http.Get(url)
 	if err != nil {
+		logger.Err(err).Msg("failed to fetch prices from Bybit")
+		metrics.PriceSourceCounter.WithLabelValues(Bybit, "false").Inc()
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
+		logger.Err(err).Msg("failed to read response body from Bybit")
+		metrics.PriceSourceCounter.WithLabelValues(Bybit, "false").Inc()
 		return nil, err
 	}
 
 	var response BybitResponse
 	err = json.Unmarshal(b, &response)
 	if err != nil {
+		logger.Err(err).Msg("failed to unmarshal response body from Bybit")
+		metrics.PriceSourceCounter.WithLabelValues(Bybit, "false").Inc()
 		return nil, err
 	}
 
@@ -63,5 +70,6 @@ func BybitPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (raw
 		}
 	}
 	logger.Debug().Msgf("fetched prices for %s on data source %s: %v", symbols, Bybit, rawPrices)
+	metrics.PriceSourceCounter.WithLabelValues(Bybit, "true").Inc()
 	return rawPrices, nil
 }
