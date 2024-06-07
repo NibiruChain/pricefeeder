@@ -91,7 +91,7 @@ func Get() (*Config, error) {
 		overrideExchangeSymbolsMap := map[string]map[string]string{}
 		err := json.Unmarshal([]byte(overrideExchangeSymbolsMapJson), &overrideExchangeSymbolsMap)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse EXCHANGE_SYMBOLS_MAP: invalid json")
+			return nil, fmt.Errorf("failed to parse EXCHANGE_SYMBOLS_MAP: %w", err)
 		}
 		for exchange, symbolMap := range overrideExchangeSymbolsMap {
 			conf.ExchangesToPairToSymbolMap[exchange] = map[asset.Pair]types.Symbol{}

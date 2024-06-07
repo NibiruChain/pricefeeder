@@ -26,7 +26,7 @@ func TestConfig_Get(t *testing.T) {
 }
 
 func TestConfig_Without_EXCHANGE_SYMBOLS_MAP(t *testing.T) {
-
+   os.Unsetenv("EXCHANGE_SYMBOLS_MAP")
 	os.Setenv("CHAIN_ID", "nibiru-localnet-0")
 	os.Setenv("GRPC_ENDPOINT", "localhost:9090")
 	os.Setenv("WEBSOCKET_ENDPOINT", "ws://localhost:26657/websocket")
