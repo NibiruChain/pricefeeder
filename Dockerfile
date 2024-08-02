@@ -1,6 +1,6 @@
 FROM golang:alpine AS builder
 
-RUN apk add --no-cache build-base git
+RUN apk add --no-cache git make
 
 WORKDIR /feeder
 
