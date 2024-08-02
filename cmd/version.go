@@ -10,11 +10,16 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 }
 
+var (
+	Version    string
+	CommitHash string
+)
+
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print the version number of Hugo",
-	Long:  `All software has versions. This is Hugo's`,
+	Short: "version",
+	Long:  "Print pricefeeder version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("v1.0.3")
+		fmt.Printf("Version: %s\nCommit hash: %s\n", Version, CommitHash)
 	},
 }
