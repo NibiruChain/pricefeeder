@@ -7,10 +7,16 @@ import (
 	"os"
 
 	"github.com/NibiruChain/nibiru/x/common/asset"
-	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
-	"github.com/NibiruChain/pricefeeder/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/joho/godotenv"
+
+	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
+	"github.com/NibiruChain/pricefeeder/types"
+)
+
+const (
+	defaultGrpcEndpoint      = "localhost:9090"
+	defaultWebsocketEndpoint = "ws://localhost:26657/websocket"
 )
 
 var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
@@ -85,6 +91,13 @@ func Get() (*Config, error) {
 	conf.FeederMnemonic = os.Getenv("FEEDER_MNEMONIC")
 	conf.EnableTLS = os.Getenv("ENABLE_TLS") == "true"
 	conf.ExchangesToPairToSymbolMap = defaultExchangeSymbolsMap
+
+	if conf.GRPCEndpoint == "" {
+		conf.GRPCEndpoint = defaultGrpcEndpoint
+	}
+	if conf.WebsocketEndpoint == "" {
+		conf.WebsocketEndpoint = defaultWebsocketEndpoint
+	}
 
 	overrideExchangeSymbolsMapJson := os.Getenv("EXCHANGE_SYMBOLS_MAP")
 	if overrideExchangeSymbolsMapJson != "" {
