@@ -1,3 +1,9 @@
+PACKAGE_NAME		  := github.com/NibiruChain/pricefeeder
+GOLANG_CROSS_VERSION  ?= v1.19.4
+VERSION ?= $(shell git describe --tags --abbrev=0)
+COMMIT ?= $(shell git rev-parse HEAD)
+BUILD_TARGETS := build install
+
 generate:
 	go generate ./...
 
@@ -20,39 +26,6 @@ run-debug:
 ###                                Build                                    ###
 ###############################################################################
 
-.PHONY: build
-build:
-	go build -mod=readonly ./...
-
-.PHONY: install
-install:
-	go install -mod=readonly ./...
-
-###############################################################################
-###                               Release                                   ###
-###############################################################################
-
-PACKAGE_NAME		  := github.com/NibiruChain/pricefeeder
-GOLANG_CROSS_VERSION  ?= v1.19.4
-
-release:
-	docker run \
-		--rm \
-		--platform=linux/amd64 \
-		-v "$(CURDIR)":/go/src/$(PACKAGE_NAME) \
-		-w /go/src/$(PACKAGE_NAME) \
-		-e CGO_ENABLED=1 \
-		-e GITHUB_TOKEN=${GITHUB_TOKEN} \
-		goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
-		release --rm-dist
-
-release-snapshot:
-	docker run \
-		--rm \
-		--platform=linux/amd64 \
-		-v "$(CURDIR)":/go/src/$(PACKAGE_NAME) \
-		-w /go/src/$(PACKAGE_NAME) \
-		-e CGO_ENABLED=1 \
-		-e GITHUB_TOKEN=${GITHUB_TOKEN} \
-		goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
-		release --rm-dist --snapshot
+.PHONY: build install
+$(BUILD_TARGETS):
+	CGO_ENABLED=0 go $@ -mod=readonly -ldflags="-s -w -X github.com/NibiruChain/pricefeeder/cmd.Version=$(VERSION) -X github.com/NibiruChain/pricefeeder/cmd.CommitHash=$(COMMIT)" .
