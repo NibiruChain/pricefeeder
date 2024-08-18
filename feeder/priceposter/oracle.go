@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"strconv"
 	"strings"
-	"math"
 	"math/big"
 
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
@@ -122,7 +121,7 @@ func newPrevote(prices []types.Price, validator sdk.ValAddress, feeder sdk.AccAd
 	}
 }
 
-func float64ToDec(price float64) math.Dec {
+func float64ToDec(price float64) sdk.Dec {
 	formattedPrice := strconv.FormatFloat(price, 'f', -1, 64)
 
 	parts := strings.Split(formattedPrice, ".")
@@ -143,5 +142,5 @@ func float64ToDec(price float64) math.Dec {
 		formattedPrice = intPart + "." + decPart
 	}
 
-	return math.MustNewDecFromStr(formattedPrice)
+	return sdk.MustNewDecFromStr(formattedPrice)
 }
