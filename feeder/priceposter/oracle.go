@@ -121,6 +121,10 @@ func newPrevote(prices []types.Price, validator sdk.ValAddress, feeder sdk.AccAd
 }
 
 func float64ToDec(price float64) sdk.Dec {
-	// TODO(mercilex): precision for numbers with a lot of decimal digits
-	return sdk.MustNewDecFromStr(fmt.Sprintf("%f", price))
+	formattedPrice := strconv.FormatFloat(price, 'f', -1, 64)
+	if len(formattedPrice) > 18 {
+		formattedPrice = formattedPrice[:18]
+	}
+
+	return sdk.MustNewDecFromStr(formattedPrice)
 }
