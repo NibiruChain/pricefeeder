@@ -3,7 +3,7 @@ package priceposter
 import (
 	"context"
 	"crypto/rand"
-	"fmt"
+	"strconv"
 	"math/big"
 
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
