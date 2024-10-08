@@ -36,7 +36,7 @@ require (
 	github.com/99designs/keyring v1.2.1 // indirect
 	github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d // indirect
 	github.com/CosmWasm/wasmd v0.40.2 // indirect
-	github.com/CosmWasm/wasmvm v1.4.1 // indirect
+	github.com/CosmWasm/wasmvm v1.5.4 // indirect
 	github.com/MakeNowJust/heredoc/v2 v2.0.1 // indirect
 	github.com/NibiruChain/collections v0.3.0 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
