@@ -69,8 +69,11 @@ var rootCmd = &cobra.Command{
 		handleInterrupt(logger, f)
 
 		http.Handle("/metrics", promhttp.Handler())
-		http.ListenAndServe(":8080", nil)
-
+		err := http.ListenAndServe(":8080", nil)
+		if err != nil {
+			logger.Error().Err(err).Msg("failed to start metrics server")
+			os.Exit(1)
+		}
 		select {}
 	},
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type IntegrationTestSuite struct {
@@ -57,7 +58,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		enableTLS,
 		zerolog.New(s.logs))
 
-	conn, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure())
+	conn, err := grpc.Dial(grpcEndpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(s.T(), err)
 	s.oracleClient = oracletypes.NewQueryClient(conn)
 }
