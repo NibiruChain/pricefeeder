@@ -3,7 +3,8 @@ package priceposter
 import (
 	"context"
 	"crypto/rand"
-	"fmt"
+	"strconv"
+	"strings"
 	"math/big"
 
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
@@ -121,6 +122,25 @@ func newPrevote(prices []types.Price, validator sdk.ValAddress, feeder sdk.AccAd
 }
 
 func float64ToDec(price float64) sdk.Dec {
-	// TODO(mercilex): precision for numbers with a lot of decimal digits
-	return sdk.MustNewDecFromStr(fmt.Sprintf("%f", price))
+	formattedPrice := strconv.FormatFloat(price, 'f', -1, 64)
+
+	parts := strings.Split(formattedPrice, ".")
+	intPart := parts[0]
+	decPart := ""
+
+	if len(parts) > 1 {
+		decPart = parts[1]
+	}
+
+	if len(decPart) > 18 {
+		decPart = decPart[:18]
+	}
+
+	if decPart == "" {
+		formattedPrice = intPart
+	} else {
+		formattedPrice = intPart + "." + decPart
+	}
+
+	return sdk.MustNewDecFromStr(formattedPrice)
 }

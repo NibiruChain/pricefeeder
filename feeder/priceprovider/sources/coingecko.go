@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 )
@@ -31,25 +32,34 @@ func CoingeckoPriceUpdate(sourceConfig json.RawMessage) types.FetchPricesFunc {
 	return func(symbols set.Set[types.Symbol], logger zerolog.Logger) (map[types.Symbol]float64, error) {
 		c, err := extractConfig(sourceConfig)
 		if err != nil {
+			logger.Err(err).Msg("failed to extract coingecko config")
+			metrics.PriceSourceCounter.WithLabelValues(Coingecko, "false").Inc()
 			return nil, err
 		}
 
 		res, err := http.Get(buildURL(symbols, c))
 		if err != nil {
+			logger.Err(err).Msg("failed to fetch prices from Coingecko")
+			metrics.PriceSourceCounter.WithLabelValues(Coingecko, "false").Inc()
 			return nil, err
 		}
 		defer res.Body.Close()
 
 		response, err := io.ReadAll(res.Body)
 		if err != nil {
+			logger.Err(err).Msg("failed to read response body from Coingecko")
+			metrics.PriceSourceCounter.WithLabelValues(Coingecko, "false").Inc()
 			return nil, err
 		}
 
 		rawPrices, err := extractPricesFromResponse(symbols, response, logger)
 		if err != nil {
+			logger.Err(err).Msg("failed to extract prices from Coingecko response")
+			metrics.PriceSourceCounter.WithLabelValues(Coingecko, "false").Inc()
 			return nil, err
 		}
 
+		metrics.PriceSourceCounter.WithLabelValues(Coingecko, "true").Inc()
 		return rawPrices, nil
 	}
 }
