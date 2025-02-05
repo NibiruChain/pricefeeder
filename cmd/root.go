@@ -68,8 +68,13 @@ var rootCmd = &cobra.Command{
 
 		handleInterrupt(logger, f)
 
+		metricsPort := os.Getenv("METRICS_PORT")
+		if metricsPort == "" {
+			metricsPort = "8080"
+		}
+		logger.Info().Msgf("Starting metrics server on port %s", metricsPort)
 		http.Handle("/metrics", promhttp.Handler())
-		http.ListenAndServe(":8080", nil)
+		http.ListenAndServe(":"+metricsPort, nil)
 
 		select {}
 	},
