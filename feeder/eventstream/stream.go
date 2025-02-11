@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 var _ types.EventStream = (*Stream)(nil)
@@ -24,7 +25,7 @@ type wsI interface {
 
 // Dial opens two connections to the given endpoint, one for the websocket and one for the oracle grpc.
 func Dial(tendermintRPCEndpoint string, grpcEndpoint string, enableTLS bool, logger zerolog.Logger) *Stream {
-	transportDialOpt := grpc.WithInsecure()
+	var transportDialOpt grpc.DialOption
 
 	if enableTLS {
 		transportDialOpt = grpc.WithTransportCredentials(
@@ -33,6 +34,10 @@ func Dial(tendermintRPCEndpoint string, grpcEndpoint string, enableTLS bool, log
 					InsecureSkipVerify: false,
 				},
 			),
+		)
+	} else {
+		transportDialOpt = grpc.WithTransportCredentials(
+			insecure.NewCredentials(),
 		)
 	}
 
