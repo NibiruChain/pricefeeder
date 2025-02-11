@@ -17,6 +17,7 @@ func TestCoinmarketcapPriceUpdate(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	t.Run("success", func(t *testing.T) {
+		httpmock.Reset()
 		httpmock.RegisterResponder(
 			"GET", link+"?slug=bitcoin%2Cethereum",
 			httpmock.NewStringResponder(200, "{\"status\": {\"error_code\":0},\"data\":{\"1\":{\"slug\":\"bitcoin\",\"quote\":{\"USD\":{\"price\":23829}}}, \"100\":{\"slug\":\"ethereum\",\"quote\":{\"USD\":{\"price\":1676.85}}}}}"),
