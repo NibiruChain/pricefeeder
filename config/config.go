@@ -38,6 +38,7 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 		"uusdt:uusd": "tUSTUSD",
 		"uatom:uusd": "tATOUSD",
 		"usol:uusd":  "tSOLUSD",
+		"uusdr:uusd": "tUSDR:USD",
 	},
 
 	// https://api.gateio.ws/api/v4/spot/currency_pairs
