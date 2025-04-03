@@ -50,7 +50,49 @@ var aggregatePriceProvider = promauto.NewCounterVec(prometheus.CounterOpts{
 // Iteration is exhaustive and random.
 // If no correct PriceResponse is found, then an invalid PriceResponse is returned.
 func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
-	// iterate randomly, if we find a valid price, we return it
+	// SPECIAL CASE FOR stNIBI
+	// fetch unibi:uusd first to calculate the ustnibi:unibi price
+	if pair.String() == "ustnibi:uusd" {
+		unibiUusdPrice := -1.0 // default to -1 to indicate we haven't found a valid price yet
+		for _, p := range a.providers {
+			price := p.GetPrice("unibi:uusd")
+			if !price.Valid {
+				continue
+			}
+
+			unibiUusdPrice = price.Price
+			break
+		}
+
+		if unibiUusdPrice <= 0 {
+			// if we can't find a valid unibi:uusd price, return an invalid price
+			a.logger.Warn().Str("pair", "ustnibi:uusd").Msg("no valid price found for unibi:uusd")
+			aggregatePriceProvider.WithLabelValues("ustnibi:uusd", "missing", "false").Inc()
+			return types.Price{
+				SourceName: "missing",
+				Pair:       pair,
+				Price:      0,
+				Valid:      false,
+			}
+		}
+
+		// now we can calculate the ustnibi:unibi price
+		for _, p := range a.providers {
+			price := p.GetPrice("ustnibi:unibi")
+			if !price.Valid {
+				continue
+			}
+
+			return types.Price{
+				Pair:       pair,
+				Price:      price.Price * unibiUusdPrice, // ustnibi:uusd = ustnibi:unibi * unibi:uusd
+				SourceName: price.SourceName,             // use the source of ustnibi
+				Valid:      true,
+			}
+		}
+	}
+
+	// for all other price pairs, iterate randomly, if we find a valid price, we return it
 	// otherwise we go onto the next PriceProvider to ask for prices.
 	for _, p := range a.providers {
 		price := p.GetPrice(pair)
