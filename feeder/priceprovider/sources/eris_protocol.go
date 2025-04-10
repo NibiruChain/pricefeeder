@@ -94,10 +94,9 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 		return nil, fmt.Errorf("failed to convert exchange_rate to float: %w", err)
 	}
 
+	rawPrices = make(map[types.Symbol]float64)
+	rawPrices[types.Symbol("ustnibi:unibi")] = exchangeRate
 	logger.Debug().Msgf("fetched prices for %s on data source %s: %v", symbols, ErisProtocol, rawPrices)
 	metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "true").Inc()
-	rawPrices = make(map[types.Symbol]float64)
-	rawPrices[types.Symbol("ustnibi:unibi")] = exchange_rate
-
 	return rawPrices, nil
 }
