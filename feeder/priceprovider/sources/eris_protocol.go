@@ -93,9 +93,8 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 		logger.Err(err).Msg("failed to close gRPC connection")
 	}
 
-	logger.Debug().Msgf("fetched prices for %s on data source %s: %v", symbols, Bybit, rawPrices)
-	metrics.PriceSourceCounter.WithLabelValues(Bybit, "true").Inc()
-
+	logger.Debug().Msgf("fetched prices for %s on data source %s: %v", symbols, ErisProtocol, rawPrices)
+	metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "true").Inc()
 	rawPrices = make(map[types.Symbol]float64)
 	rawPrices[types.Symbol("ustnibi:unibi")] = exchange_rate
 
