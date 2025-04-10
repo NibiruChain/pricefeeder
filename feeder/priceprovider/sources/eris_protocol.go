@@ -22,15 +22,6 @@ const (
 
 var _ types.FetchPricesFunc = ErisProtocolPriceUpdate
 
-type ErisResponse struct {
-	Data struct {
-		List []struct {
-			Symbol string `json:"symbol"`
-			Price  string `json:"lastPrice"`
-		} `json:"list"`
-	} `json:"result"`
-}
-
 // ErisProtocolPriceUpdate only returns the exchange rate for stNIBI to NIBI (ustnibi:unibi) from the Eris Protocol smart contract.
 func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	grpcEndpoint := "grpc.nibiru.fi:443"
@@ -95,8 +86,9 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 	}
 
 	rawPrices = make(map[types.Symbol]float64)
-	rawPrices[types.Symbol("ustnibi:unibi")] = exchangeRate
+	rawPrices[types.Symbol("ustnibi:unibi")] = exchange_rate
 	logger.Debug().Msgf("fetched prices for %s on data source %s: %v", symbols, ErisProtocol, rawPrices)
 	metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "true").Inc()
+
 	return rawPrices, nil
 }
