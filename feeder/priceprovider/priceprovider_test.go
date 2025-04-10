@@ -46,16 +46,16 @@ func TestPriceProvider(t *testing.T) {
 	t.Run("eris protocol success", func(t *testing.T) {
 		pp := NewPriceProvider(
 			sources.ErisProtocol,
-			map[asset.Pair]types.Symbol{asset.NewPair("ustnibi", denoms.USD): "ustnibi:uusd"},
+			map[asset.Pair]types.Symbol{asset.NewPair("ustnibi", denoms.NIBI): "ustnibi:unibi"},
 			json.RawMessage{},
 			zerolog.New(io.Discard),
 		)
 		defer pp.Close()
 		<-time.After(sources.UpdateTick + 2*time.Second)
 
-		price := pp.GetPrice("ustnibi:uusd")
+		price := pp.GetPrice(asset.NewPair("ustnibi", denoms.NIBI))
 		require.True(t, price.Valid)
-		require.Equal(t, "ustnibi:uusd", price.Pair)
+		require.Equal(t, asset.NewPair("ustnibi", denoms.NIBI), price.Pair)
 		require.Equal(t, sources.ErisProtocol, price.SourceName)
 	})
 
