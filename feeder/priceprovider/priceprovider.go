@@ -52,6 +52,8 @@ func NewPriceProvider(
 		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.CoinmarketcapPriceUpdate(config), logger)
 	case sources.Bybit:
 		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.BybitPriceUpdate, logger)
+	case sources.ErisProtocol:
+		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.ErisProtocolPriceUpdate, logger)
 	default:
 		panic("unknown price provider: " + sourceName)
 	}
