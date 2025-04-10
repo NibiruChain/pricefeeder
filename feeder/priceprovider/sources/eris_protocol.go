@@ -49,6 +49,13 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 		metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "false").Inc()
 		return nil, fmt.Errorf("failed to connect to gRPC endpoint %s: %w", grpcEndpoint, err)
 	}
+
+	defer func() {
+		if err := conn.Close(); err != nil {
+			logger.Err(err).Msg("failed to close gRPC connection")
+		}
+	}()
+
 	wasmClient := wasmtypes.NewQueryClient(conn)
 
 	query := wasmtypes.QuerySmartContractStateRequest{
@@ -85,12 +92,6 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 		logger.Err(err).Msg("failed to convert exchange_rate to float")
 		metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "false").Inc()
 		return nil, fmt.Errorf("failed to convert exchange_rate to float: %w", err)
-	}
-
-	// Close the gRPC connection when done
-	if err := conn.Close(); err != nil {
-		// Handle connection close error
-		logger.Err(err).Msg("failed to close gRPC connection")
 	}
 
 	logger.Debug().Msgf("fetched prices for %s on data source %s: %v", symbols, Bybit, rawPrices)
