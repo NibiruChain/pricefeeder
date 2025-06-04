@@ -43,6 +43,22 @@ func TestPriceProvider(t *testing.T) {
 		require.Equal(t, sources.Bitfinex, price.SourceName)
 	})
 
+	t.Run("eris protocol success", func(t *testing.T) {
+		pp := NewPriceProvider(
+			sources.ErisProtocol,
+			map[asset.Pair]types.Symbol{asset.NewPair("ustnibi", denoms.NIBI): "ustnibi:unibi"},
+			json.RawMessage{},
+			zerolog.New(io.Discard),
+		)
+		defer pp.Close()
+		<-time.After(sources.UpdateTick + 2*time.Second)
+
+		price := pp.GetPrice(asset.NewPair("ustnibi", denoms.NIBI))
+		require.True(t, price.Valid)
+		require.Equal(t, asset.NewPair("ustnibi", denoms.NIBI), price.Pair)
+		require.Equal(t, sources.ErisProtocol, price.SourceName)
+	})
+
 	t.Run("panics on unknown price source", func(t *testing.T) {
 		require.Panics(t, func() {
 			NewPriceProvider(
