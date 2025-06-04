@@ -38,7 +38,8 @@ func newGRPCConnection() (*grpc.ClientConn, error) {
 	return grpc.Dial(grpcEndpoint, transportDialOpt)
 }
 
-// ErisProtocolPriceUpdate only returns the exchange rate for stNIBI to NIBI (ustnibi:unibi) from the Eris Protocol smart contract.
+// ErisProtocolPriceUpdate retrieves the exchange rate for stNIBI to NIBI (ustnibi:unibi) from the Eris Protocol smart contract.
+// Note: This function ignores the input symbols and always returns the exchange rate for "ustnibi:unibi".
 func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	conn, err := newGRPCConnection()
 	if err != nil {
@@ -85,6 +86,14 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 		logger.Err(err).Msg("failed to convert exchange_rate to float")
 		metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "false").Inc()
 		return nil, fmt.Errorf("failed to convert exchange_rate to float: %w", err)
+	}
+
+	// Validate the exchange rate
+	if exchangeRate <= 0 {
+		errMsg := "received invalid exchange rate: value must be positive"
+		logger.Error().Float64("exchange_rate", exchangeRate).Msg(errMsg)
+		metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "false").Inc()
+		return nil, fmt.Errorf(errMsg)
 	}
 
 	rawPrices = make(map[types.Symbol]float64)
