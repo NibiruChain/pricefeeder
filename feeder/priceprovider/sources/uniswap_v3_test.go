@@ -36,11 +36,35 @@ type JSONRPCError struct {
 	Message string `json:"message"`
 }
 
+// Test helper functions
+func setTestRPC(t *testing.T, url string) func() {
+	original := os.Getenv("ETHEREUM_RPC_ENDPOINT")
+	require.NoError(t, os.Setenv("ETHEREUM_RPC_ENDPOINT", url))
+
+	return func() {
+		if original != "" {
+			require.NoError(t, os.Setenv("ETHEREUM_RPC_ENDPOINT", original))
+		} else {
+			_ = os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
+		}
+	}
+}
+
+func withMockServer(t *testing.T) (*httptest.Server, func()) {
+	server := createMockEthereumServer()
+	cleanup := setTestRPC(t, server.URL)
+
+	return server, func() {
+		server.Close()
+		cleanup()
+	}
+}
+
 // Mock server that responds to Ethereum JSON-RPC calls
 func createMockEthereumServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req JSONRPCRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		_ = json.NewDecoder(r.Body).Decode(&req)
 
 		var response JSONRPCResponse
 		response.ID = req.ID
@@ -70,7 +94,7 @@ func createMockEthereumServer() *httptest.Server {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 }
 
@@ -114,275 +138,163 @@ func handlePoolCall(data string) string {
 }
 
 func TestUniswapV3PriceUpdate_WithHTTPMock_Success(t *testing.T) {
-	// Create mock server
-	server := createMockEthereumServer()
-	defer server.Close()
-
-	// Set the RPC endpoint to our mock server
-	originalRPC := os.Getenv("ETHEREUM_RPC_ENDPOINT")
-	os.Setenv("ETHEREUM_RPC_ENDPOINT", server.URL)
-	defer func() {
-		if originalRPC != "" {
-			os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC)
-		} else {
-			os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
-		}
-	}()
+	_, cleanup := withMockServer(t)
+	defer cleanup()
 
 	logger := zerolog.New(os.Stdout)
 	symbols := set.New[types.Symbol]()
 	symbols.Add("USDa:USDT")
 
-	// Execute the function
 	prices, err := UniswapV3PriceUpdate(symbols, logger)
 
-	// Assertions
 	require.NoError(t, err)
 	require.NotNil(t, prices)
 	require.Contains(t, prices, types.Symbol("USDa:USDT"))
 
 	price := prices[types.Symbol("USDa:USDT")]
 	assert.Greater(t, price, 0.0, "Price should be positive")
-
-	// Log the price for debugging
 	t.Logf("Mocked USDa:USDT price: %f", price)
 }
 
 func TestUniswapV3PriceUpdate_WithHTTPMock_NoPoolFound(t *testing.T) {
-	// Create a mock server that returns zero addresses for all getPool calls
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req JSONRPCRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		_ = json.NewDecoder(r.Body).Decode(&req)
 
-		response := JSONRPCResponse{
-			ID: req.ID,
-		}
-
-		switch req.Method {
-		case "eth_call":
-			// Always return zero address (no pool found)
+		response := JSONRPCResponse{ID: req.ID}
+		if req.Method == "eth_call" {
 			response.Result = "0x0000000000000000000000000000000000000000000000000000000000000000"
-		default:
-			response.Error = &JSONRPCError{
-				Code:    -32601,
-				Message: "Method not found",
-			}
+		} else {
+			response.Error = &JSONRPCError{Code: -32601, Message: "Method not found"}
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
+	defer setTestRPC(t, server.URL)()
 	defer server.Close()
-
-	// Set the RPC endpoint to our mock server
-	originalRPC := os.Getenv("ETHEREUM_RPC_ENDPOINT")
-	os.Setenv("ETHEREUM_RPC_ENDPOINT", server.URL)
-	defer func() {
-		if originalRPC != "" {
-			os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC)
-		} else {
-			os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
-		}
-	}()
 
 	logger := zerolog.New(os.Stdout)
 	symbols := set.New[types.Symbol]()
 	symbols.Add("USDa:USDT")
 
-	// Execute the function
 	_, err := UniswapV3PriceUpdate(symbols, logger)
-
-	// Should get an error about no pools found
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "no pools found")
 }
 
 func TestUniswapV3PriceUpdate_WithHTTPMock_RPCError(t *testing.T) {
-	// Create a mock server that returns RPC errors
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req JSONRPCRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		_ = json.NewDecoder(r.Body).Decode(&req)
 
 		response := JSONRPCResponse{
-			ID: req.ID,
-			Error: &JSONRPCError{
-				Code:    -32000,
-				Message: "execution reverted",
-			},
+			ID:    req.ID,
+			Error: &JSONRPCError{Code: -32000, Message: "execution reverted"},
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
+	defer setTestRPC(t, server.URL)()
 	defer server.Close()
-
-	// Set the RPC endpoint to our mock server
-	originalRPC := os.Getenv("ETHEREUM_RPC_ENDPOINT")
-	os.Setenv("ETHEREUM_RPC_ENDPOINT", server.URL)
-	defer func() {
-		if originalRPC != "" {
-			os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC)
-		} else {
-			os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
-		}
-	}()
 
 	logger := zerolog.New(os.Stdout)
 	symbols := set.New[types.Symbol]()
 	symbols.Add("USDa:USDT")
 
-	// Execute the function
 	_, err := UniswapV3PriceUpdate(symbols, logger)
-
-	// Should get an error from the RPC call
 	require.Error(t, err)
-	// The exact error depends on how go-ethereum handles RPC errors
 	t.Logf("RPC error: %v", err)
 }
 
 func TestUniswapV3PriceUpdate_WithHTTPMock_ServerUnavailable(t *testing.T) {
-	// Set RPC endpoint to a non-existent server with an invalid URL format
-	originalRPC := os.Getenv("ETHEREUM_RPC_ENDPOINT")
-	os.Setenv("ETHEREUM_RPC_ENDPOINT", "http://nonexistent-server-that-should-not-exist.invalid:9999")
-	defer func() {
-		if originalRPC != "" {
-			os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC)
-		} else {
-			os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
-		}
-	}()
+	defer setTestRPC(t, "http://nonexistent-server-that-should-not-exist.invalid:9999")()
 
 	logger := zerolog.New(os.Stdout)
 	symbols := set.New[types.Symbol]()
 	symbols.Add("USDa:USDT")
 
-	// Execute the function
 	_, err := UniswapV3PriceUpdate(symbols, logger)
-
-	// Should get either a connection error or pool finding error
-	// Both are acceptable since the server is unavailable
 	require.Error(t, err)
 
-	// The error could be either connection failure or RPC call failure
-	errorContainsExpected :=
-		strings.Contains(err.Error(), "failed to connect to Ethereum client") ||
-			strings.Contains(err.Error(), "no pools found") ||
-			strings.Contains(err.Error(), "failed to find pool")
-
+	errorContainsExpected := strings.Contains(err.Error(), "failed to connect to Ethereum client") ||
+		strings.Contains(err.Error(), "no pools found") ||
+		strings.Contains(err.Error(), "failed to find pool")
 	assert.True(t, errorContainsExpected, "Should get connection or RPC-related error, got: %v", err)
 }
 
 func TestUniswapV3PriceUpdate_WithHTTPMock_InvalidURL(t *testing.T) {
-	// Set RPC endpoint to an invalid URL format that should fail immediately
-	originalRPC := os.Getenv("ETHEREUM_RPC_ENDPOINT")
-	os.Setenv("ETHEREUM_RPC_ENDPOINT", "invalid-url-format")
-	defer func() {
-		if originalRPC != "" {
-			os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC)
-		} else {
-			os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
-		}
-	}()
+	defer setTestRPC(t, "invalid-url-format")()
 
 	logger := zerolog.New(os.Stdout)
 	symbols := set.New[types.Symbol]()
 	symbols.Add("USDa:USDT")
 
-	// Execute the function
 	_, err := UniswapV3PriceUpdate(symbols, logger)
-
-	// Should get a connection error for invalid URL
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to connect to Ethereum client")
 }
 
-// Test with different pool liquidities to ensure highest liquidity pool is selected
 func TestUniswapV3PriceUpdate_WithHTTPMock_MultiplePools(t *testing.T) {
 	callCount := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req JSONRPCRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		_ = json.NewDecoder(r.Body).Decode(&req)
 
 		var response JSONRPCResponse
 		response.ID = req.ID
 
-		switch req.Method {
-		case "eth_call":
-			if len(req.Params) > 0 {
-				callParams := req.Params[0].(map[string]interface{})
-				to := callParams["to"].(string)
-				data := callParams["data"].(string)
+		if req.Method == "eth_call" && len(req.Params) > 0 {
+			callParams := req.Params[0].(map[string]interface{})
+			to := callParams["to"].(string)
+			data := callParams["data"].(string)
 
-				if to == strings.ToLower(UniswapV3factoryAddress) { // Factory (lowercase)
-					if data[:10] == "0x1698ee82" { // getPool
-						// Return different pool addresses based on fee tier
-						// We can check the fee tier from the call data
-						response.Result = "0x0000000000000000000000001111111111111111111111111111111111111111"
+			if to == strings.ToLower(UniswapV3factoryAddress) {
+				if data[:10] == "0x1698ee82" { // getPool
+					response.Result = "0x0000000000000000000000001111111111111111111111111111111111111111"
+				}
+			} else {
+				// Pool calls
+				switch data[:10] {
+				case "0x1a686502": // liquidity()
+					callCount++
+					switch callCount {
+					case 1:
+						response.Result = "0x00000000000000000000000000000000000000000000000000000000000186a0" // 100000
+					case 2:
+						response.Result = "0x00000000000000000000000000000000000000000000000000000000000f4240" // 1000000 (highest)
+					case 3:
+						response.Result = "0x000000000000000000000000000000000000000000000000000000000000c350" // 50000
+					default:
+						response.Result = "0x00000000000000000000000000000000000000000000000000000000000f4240" // 1000000
 					}
-				} else {
-					// Pool calls
-					switch data[:10] {
-					case "0x1a686502": // liquidity()
-						callCount++
-						// Return different liquidity values for different calls
-						// to simulate different pools with different liquidities
-						switch callCount {
-						case 1:
-							response.Result = "0x00000000000000000000000000000000000000000000000000000000000186a0" // 100000
-						case 2:
-							response.Result = "0x00000000000000000000000000000000000000000000000000000000000f4240" // 1000000 (highest)
-						case 3:
-							response.Result = "0x000000000000000000000000000000000000000000000000000000000000c350" // 50000
-						default:
-							response.Result = "0x00000000000000000000000000000000000000000000000000000000000f4240" // 1000000
-						}
-					case "0x3850c7bd": // slot0()
-						// Return the same slot0 response as before
-						sqrtPriceX96 := "0000000000000000000000000000000000000000000001000000000000000000"
-						result := "0x" + sqrtPriceX96 + "0000000000000000000000000000000000000000000000000000000000000000" +
-							"0000000000000000000000000000000000000000000000000000000000000000" +
-							"0000000000000000000000000000000000000000000000000000000000000000" +
-							"0000000000000000000000000000000000000000000000000000000000000000" +
-							"0000000000000000000000000000000000000000000000000000000000000000" +
-							"0000000000000000000000000000000000000000000000000000000000000001"
-						response.Result = result
-					}
+				case "0x3850c7bd": // slot0()
+					sqrtPriceX96 := "0000000000000000000000000000000000000000000001000000000000000000"
+					result := "0x" + sqrtPriceX96 + strings.Repeat("0000000000000000000000000000000000000000000000000000000000000000", 6) + "0000000000000000000000000000000000000000000000000000000000000001"
+					response.Result = result
 				}
 			}
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
+	defer setTestRPC(t, server.URL)()
 	defer server.Close()
-
-	// Set the RPC endpoint to our mock server
-	originalRPC := os.Getenv("ETHEREUM_RPC_ENDPOINT")
-	os.Setenv("ETHEREUM_RPC_ENDPOINT", server.URL)
-	defer func() {
-		if originalRPC != "" {
-			os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC)
-		} else {
-			os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
-		}
-	}()
 
 	logger := zerolog.New(os.Stdout)
 	symbols := set.New[types.Symbol]()
 	symbols.Add("USDa:USDT")
 
-	// Execute the function
 	prices, err := UniswapV3PriceUpdate(symbols, logger)
 
-	// Assertions
 	require.NoError(t, err)
 	require.NotNil(t, prices)
 	require.Contains(t, prices, types.Symbol("USDa:USDT"))
 
 	price := prices[types.Symbol("USDa:USDT")]
 	assert.Greater(t, price, 0.0, "Price should be positive")
-
-	// Verify that multiple liquidity calls were made (indicating pool comparison)
 	assert.GreaterOrEqual(t, callCount, 3, "Should have called liquidity() for multiple pools")
 
 	t.Logf("Mocked USDa:USDT price: %f, liquidity calls made: %d", price, callCount)
@@ -580,20 +492,8 @@ func TestConstants(t *testing.T) {
 // =======================
 
 func TestUniswapV3PriceUpdate_InvalidSymbol(t *testing.T) {
-	// Create a mock server to handle any network requests
-	server := createMockEthereumServer()
-	defer server.Close()
-
-	// Set mock RPC endpoint
-	originalRPC := os.Getenv("ETHEREUM_RPC_ENDPOINT")
-	os.Setenv("ETHEREUM_RPC_ENDPOINT", server.URL)
-	defer func() {
-		if originalRPC != "" {
-			os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC)
-		} else {
-			os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
-		}
-	}()
+	_, cleanup := withMockServer(t)
+	defer cleanup()
 
 	logger := zerolog.New(os.Stdout)
 
@@ -647,20 +547,8 @@ func TestUniswapV3PriceUpdate_InvalidSymbol(t *testing.T) {
 }
 
 func TestUniswapV3PriceUpdate_UnsupportedTokens(t *testing.T) {
-	// Create a mock server to handle any network requests
-	server := createMockEthereumServer()
-	defer server.Close()
-
-	// Set mock RPC endpoint
-	originalRPC := os.Getenv("ETHEREUM_RPC_ENDPOINT")
-	os.Setenv("ETHEREUM_RPC_ENDPOINT", server.URL)
-	defer func() {
-		if originalRPC != "" {
-			os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC)
-		} else {
-			os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
-		}
-	}()
+	_, cleanup := withMockServer(t)
+	defer cleanup()
 
 	logger := zerolog.New(os.Stdout)
 
@@ -695,12 +583,11 @@ func TestUniswapV3PriceUpdate_UnsupportedTokens(t *testing.T) {
 }
 
 func TestUniswapV3PriceUpdate_MissingRPCEndpoint(t *testing.T) {
-	// Save and unset environment variable
 	originalRPC := os.Getenv("ETHEREUM_RPC_ENDPOINT")
-	os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
+	_ = os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
 	defer func() {
 		if originalRPC != "" {
-			os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC)
+			require.NoError(t, os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC))
 		}
 	}()
 
@@ -714,16 +601,7 @@ func TestUniswapV3PriceUpdate_MissingRPCEndpoint(t *testing.T) {
 }
 
 func TestUniswapV3PriceUpdate_InvalidRPCEndpoint(t *testing.T) {
-	// Save original and set invalid endpoint
-	originalRPC := os.Getenv("ETHEREUM_RPC_ENDPOINT")
-	os.Setenv("ETHEREUM_RPC_ENDPOINT", "invalid-url-format")
-	defer func() {
-		if originalRPC != "" {
-			os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC)
-		} else {
-			os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
-		}
-	}()
+	defer setTestRPC(t, "invalid-url-format")()
 
 	logger := zerolog.New(os.Stdout)
 	symbols := set.New[types.Symbol]()
@@ -739,45 +617,22 @@ func TestUniswapV3PriceUpdate_InvalidRPCEndpoint(t *testing.T) {
 // =======================
 
 func TestUniswapV3PriceUpdate_EmptySymbolSet(t *testing.T) {
-	// Create mock server for valid RPC
-	server := createMockEthereumServer()
-	defer server.Close()
-
-	originalRPC := os.Getenv("ETHEREUM_RPC_ENDPOINT")
-	os.Setenv("ETHEREUM_RPC_ENDPOINT", server.URL)
-	defer func() {
-		if originalRPC != "" {
-			os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC)
-		} else {
-			os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
-		}
-	}()
+	_, cleanup := withMockServer(t)
+	defer cleanup()
 
 	logger := zerolog.New(os.Stdout)
 	symbols := set.New[types.Symbol]() // Empty set
 
 	prices, err := UniswapV3PriceUpdate(symbols, logger)
 
-	// Should succeed with empty result
 	require.NoError(t, err)
 	assert.NotNil(t, prices)
 	assert.Empty(t, prices)
 }
 
 func TestUniswapV3PriceUpdate_MultipleSymbols(t *testing.T) {
-	// Create mock server
-	server := createMockEthereumServer()
-	defer server.Close()
-
-	originalRPC := os.Getenv("ETHEREUM_RPC_ENDPOINT")
-	os.Setenv("ETHEREUM_RPC_ENDPOINT", server.URL)
-	defer func() {
-		if originalRPC != "" {
-			os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC)
-		} else {
-			os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
-		}
-	}()
+	_, cleanup := withMockServer(t)
+	defer cleanup()
 
 	logger := zerolog.New(os.Stdout)
 	symbols := set.New[types.Symbol]()
@@ -786,7 +641,6 @@ func TestUniswapV3PriceUpdate_MultipleSymbols(t *testing.T) {
 
 	prices, err := UniswapV3PriceUpdate(symbols, logger)
 
-	// Should succeed with both prices
 	require.NoError(t, err)
 	assert.NotNil(t, prices)
 	assert.Len(t, prices, 2)
@@ -799,7 +653,6 @@ func TestUniswapV3PriceUpdate_MultipleSymbols(t *testing.T) {
 	assert.Greater(t, price1, 0.0)
 	assert.Greater(t, price2, 0.0)
 
-	// Due to decimal differences, they won't be exact reciprocals, but log for inspection
 	t.Logf("USDa:USDT = %f, USDT:USDa = %f", price1, price2)
 }
 
@@ -842,63 +695,49 @@ func TestUniswapV3PriceUpdate_PoolSelection_DifferentLiquidities(t *testing.T) {
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req JSONRPCRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		_ = json.NewDecoder(r.Body).Decode(&req)
 
 		var response JSONRPCResponse
 		response.ID = req.ID
 
-		switch req.Method {
-		case "eth_call":
-			if len(req.Params) > 0 {
-				callParams := req.Params[0].(map[string]interface{})
-				to := callParams["to"].(string)
-				data := callParams["data"].(string)
+		if req.Method == "eth_call" && len(req.Params) > 0 {
+			callParams := req.Params[0].(map[string]interface{})
+			to := callParams["to"].(string)
+			data := callParams["data"].(string)
 
-				if to == "0x1f98431c8ad98523631ae4a59f267346ea31f984" { // Factory
-					// Return pool addresses for all fee tiers
-					response.Result = "0x0000000000000000000000001111111111111111111111111111111111111111"
-				} else {
-					// Pool calls
-					switch data[:10] {
-					case "0x1a686502": // liquidity()
-						// Track call order and return different liquidities
-						callOrder := len(liquidityCallOrder) + 1
-						liquidityCallOrder = append(liquidityCallOrder, callOrder)
+			if to == "0x1f98431c8ad98523631ae4a59f267346ea31f984" { // Factory
+				response.Result = "0x0000000000000000000000001111111111111111111111111111111111111111"
+			} else {
+				// Pool calls
+				switch data[:10] {
+				case "0x1a686502": // liquidity()
+					callOrder := len(liquidityCallOrder) + 1
+					liquidityCallOrder = append(liquidityCallOrder, callOrder)
 
-						switch callOrder {
-						case 1: // Fee 500 - lowest liquidity
-							response.Result = "0x0000000000000000000000000000000000000000000000000000000000002710" // 10000
-						case 2: // Fee 3000 - highest liquidity
-							response.Result = "0x00000000000000000000000000000000000000000000000000000000000f4240" // 1000000
-						case 3: // Fee 10000 - medium liquidity
-							response.Result = "0x000000000000000000000000000000000000000000000000000000000001869f" // 100000
-						default:
-							response.Result = "0x00000000000000000000000000000000000000000000000000000000000f4240" // Default to highest
-						}
-					case "0x3850c7bd": // slot0()
-						// Should only be called once for the highest liquidity pool
-						sqrtPriceX96 := "0000000000000000000000000000000000000000000001000000000000000000"
-						result := "0x" + sqrtPriceX96 + strings.Repeat("0000000000000000000000000000000000000000000000000000000000000000", 6) + "0000000000000000000000000000000000000000000000000000000000000001"
-						response.Result = result
+					switch callOrder {
+					case 1: // Fee 500 - lowest liquidity
+						response.Result = "0x0000000000000000000000000000000000000000000000000000000000002710" // 10000
+					case 2: // Fee 3000 - highest liquidity
+						response.Result = "0x00000000000000000000000000000000000000000000000000000000000f4240" // 1000000
+					case 3: // Fee 10000 - medium liquidity
+						response.Result = "0x000000000000000000000000000000000000000000000000000000000001869f" // 100000
+					default:
+						response.Result = "0x00000000000000000000000000000000000000000000000000000000000f4240" // Default to highest
 					}
+				case "0x3850c7bd": // slot0()
+					// Should only be called once for the highest liquidity pool
+					sqrtPriceX96 := "0000000000000000000000000000000000000000000001000000000000000000"
+					result := "0x" + sqrtPriceX96 + strings.Repeat("0000000000000000000000000000000000000000000000000000000000000000", 6) + "0000000000000000000000000000000000000000000000000000000000000001"
+					response.Result = result
 				}
 			}
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
+	defer setTestRPC(t, server.URL)()
 	defer server.Close()
-
-	originalRPC := os.Getenv("ETHEREUM_RPC_ENDPOINT")
-	os.Setenv("ETHEREUM_RPC_ENDPOINT", server.URL)
-	defer func() {
-		if originalRPC != "" {
-			os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC)
-		} else {
-			os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
-		}
-	}()
 
 	logger := zerolog.New(os.Stdout)
 	symbols := set.New[types.Symbol]()
