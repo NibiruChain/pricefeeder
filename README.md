@@ -119,6 +119,15 @@ you need to set env var:
 DATASOURCE_CONFIG_MAP='{"coingecko": {"api_key": "0123456789"}}'
 ```
 
+## Uniswap V3 on Ethereum
+
+Some token prices are retrieved from Uniswap V3 on Ethereum. 
+To configure the Uniswap V3 data source, you need to set the following environment variable:
+
+```ini
+ETHEREUM_RPC_ENDPOINT="https://mainnet.infura.io/v3/<INFURA_API_KEY>"
+```
+
 ## Glossary
 
 - **Data source**: A data source is an external service that provides data. For example, Binance is a data source that provides the price of various assets.
