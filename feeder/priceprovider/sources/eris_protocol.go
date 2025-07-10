@@ -93,7 +93,7 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 		errMsg := "received invalid exchange rate: value must be positive"
 		logger.Error().Float64("exchange_rate", exchangeRate).Msg(errMsg)
 		metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "false").Inc()
-		return nil, fmt.Errorf(errMsg)
+		return nil, errors.New(errMsg)
 	}
 
 	rawPrices = make(map[types.Symbol]float64)

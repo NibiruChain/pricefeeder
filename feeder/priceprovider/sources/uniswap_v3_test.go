@@ -321,7 +321,8 @@ func TestUniswapV3PriceUpdate_WithHTTPMock_MultiplePools(t *testing.T) {
 					}
 				} else {
 					// Pool calls
-					if data[:10] == "0x1a686502" { // liquidity()
+					switch data[:10] {
+					case "0x1a686502": // liquidity()
 						callCount++
 						// Return different liquidity values for different calls
 						// to simulate different pools with different liquidities
@@ -335,7 +336,7 @@ func TestUniswapV3PriceUpdate_WithHTTPMock_MultiplePools(t *testing.T) {
 						default:
 							response.Result = "0x00000000000000000000000000000000000000000000000000000000000f4240" // 1000000
 						}
-					} else if data[:10] == "0x3850c7bd" { // slot0()
+					case "0x3850c7bd": // slot0()
 						// Return the same slot0 response as before
 						sqrtPriceX96 := "0000000000000000000000000000000000000000000001000000000000000000"
 						result := "0x" + sqrtPriceX96 + "0000000000000000000000000000000000000000000000000000000000000000" +
@@ -858,7 +859,8 @@ func TestUniswapV3PriceUpdate_PoolSelection_DifferentLiquidities(t *testing.T) {
 					response.Result = "0x0000000000000000000000001111111111111111111111111111111111111111"
 				} else {
 					// Pool calls
-					if data[:10] == "0x1a686502" { // liquidity()
+					switch data[:10] {
+					case "0x1a686502": // liquidity()
 						// Track call order and return different liquidities
 						callOrder := len(liquidityCallOrder) + 1
 						liquidityCallOrder = append(liquidityCallOrder, callOrder)
@@ -873,7 +875,7 @@ func TestUniswapV3PriceUpdate_PoolSelection_DifferentLiquidities(t *testing.T) {
 						default:
 							response.Result = "0x00000000000000000000000000000000000000000000000000000000000f4240" // Default to highest
 						}
-					} else if data[:10] == "0x3850c7bd" { // slot0()
+					case "0x3850c7bd": // slot0()
 						// Should only be called once for the highest liquidity pool
 						sqrtPriceX96 := "0000000000000000000000000000000000000000000001000000000000000000"
 						result := "0x" + sqrtPriceX96 + strings.Repeat("0000000000000000000000000000000000000000000000000000000000000000", 6) + "0000000000000000000000000000000000000000000000000000000000000001"

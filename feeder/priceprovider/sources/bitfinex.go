@@ -33,7 +33,7 @@ func BitfinexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (
 	const lastPriceIndex = 7
 	const symbolNameIndex = 0
 
-	var url string = "https://api-pub.bitfinex.com/v2/tickers?symbols=" + BitfinexSymbolCsv(symbols)
+	var url = "https://api-pub.bitfinex.com/v2/tickers?symbols=" + BitfinexSymbolCsv(symbols)
 	resp, err := http.Get(url)
 	if err != nil {
 		logger.Err(err).Msg("failed to fetch prices from Bitfinex")
