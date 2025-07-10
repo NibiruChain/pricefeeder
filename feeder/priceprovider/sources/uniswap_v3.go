@@ -253,7 +253,22 @@ func getPriceFromPool(
 	return finalPrice, nil
 }
 
-// sqrtPriceX96ToPrice converts Uniswap V3's sqrtPriceX96 format to a regular price
+// sqrtPriceX96ToPrice converts Uniswap V3's sqrtPriceX96 format to a regular price.
+//
+// Inputs:
+// - sqrtPriceX96: The square root of the price in Uniswap V3's fixed-point Q96 format.
+// - decimals0: The number of decimal places for token0.
+// - decimals1: The number of decimal places for token1.
+//
+// Algorithm:
+// 1. Uniswap V3 represents prices using sqrtPriceX96, which is the square root of the price scaled by 2^96.
+// 2. To calculate the actual price, we square sqrtPriceX96 and divide by 2^192 (since (2^96)^2 = 2^192).
+// 3. Adjust the price based on the difference in token decimals to ensure consistent scaling.
+// 4. Scale the result to 18 decimal places for precision and convert it to a float64.
+//
+// Constants:
+// - Q96 = 2^96: Used for scaling sqrtPriceX96.
+// - Q192 = 2^192: Used for scaling the squared price.
 func sqrtPriceX96ToPrice(sqrtPriceX96 *big.Int, decimals0, decimals1 int) float64 {
 	// Convert sqrtPriceX96 to price
 	sqrtPrice := new(big.Int).Set(sqrtPriceX96)

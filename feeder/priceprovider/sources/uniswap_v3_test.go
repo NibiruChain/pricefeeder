@@ -18,9 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Constants for testing
-const uniswapV3factoryAddress = "0x1f98431c8ad98523631ae4a59f267346ea31f984"
-
 // JSON-RPC request/response structures
 type JSONRPCRequest struct {
 	ID     int           `json:"id"`
@@ -57,7 +54,7 @@ func createMockEthereumServer() *httptest.Server {
 				data := callParams["data"].(string)
 
 				// Mock responses based on contract address and method signature
-				if to == uniswapV3factoryAddress { // Uniswap V3 Factory (lowercase)
+				if to == strings.ToLower(UniswapV3factoryAddress) { // Uniswap V3 Factory (lowercase)
 					response.Result = handleFactoryCall(data)
 				} else {
 					// Assume it's a pool contract call
@@ -316,7 +313,7 @@ func TestUniswapV3PriceUpdate_WithHTTPMock_MultiplePools(t *testing.T) {
 				to := callParams["to"].(string)
 				data := callParams["data"].(string)
 
-				if to == uniswapV3factoryAddress { // Factory (lowercase)
+				if to == strings.ToLower(UniswapV3factoryAddress) { // Factory (lowercase)
 					if data[:10] == "0x1698ee82" { // getPool
 						// Return different pool addresses based on fee tier
 						// We can check the fee tier from the call data
