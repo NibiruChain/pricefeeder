@@ -66,15 +66,16 @@ func BybitPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (raw
 
 	for _, ticker := range response.Data.List {
 		symbol := types.Symbol(ticker.Symbol)
+		if !symbols.Has(symbol) {
+			continue
+		}
+
 		price, err := strconv.ParseFloat(ticker.Price, 64)
 		if err != nil {
 			logger.Err(err).Msgf("failed to parse price for %s on data source %s", symbol, Bybit)
 			continue
 		}
-
-		if _, ok := symbols[symbol]; ok {
-			rawPrices[symbol] = price
-		}
+		rawPrices[symbol] = price
 	}
 	logger.Debug().Msgf("fetched prices for %s on data source %s: %v", symbols, Bybit, rawPrices)
 	metrics.PriceSourceCounter.WithLabelValues(Bybit, "true").Inc()
