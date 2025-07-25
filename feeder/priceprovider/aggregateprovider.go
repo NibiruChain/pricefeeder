@@ -53,7 +53,21 @@ func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 	// SPECIAL CASE FOR stNIBI
 	// fetch unibi:uusd first to calculate the ustnibi:unibi price
 	if pair.String() == "ustnibi:uusd" {
-		unibiUusdPrice := -1.0 // default to -1 to indicate we haven't found a valid price yet
+
+		// calculate the ustnibi:unibi price
+		var ustnibiUnibiPrice float64 = 0 // default to 0 to indicate we haven't found a valid price yet
+		for _, p := range a.providers {
+			price := p.GetPrice("ustnibi:unibi")
+			if !price.Valid {
+				continue
+			}
+
+			ustnibiUnibiPrice = price.Price
+			break
+		}
+
+		// calculate the unibi:uusd price
+		var unibiUusdPrice float64 = 0 // default to 0 to indicate we haven't found a valid price yet
 		for _, p := range a.providers {
 			price := p.GetPrice("unibi:uusd")
 			if !price.Valid {
@@ -64,9 +78,10 @@ func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 			break
 		}
 
-		if unibiUusdPrice <= 0 {
+		if ustnibiUnibiPrice <= 0 || unibiUusdPrice <= 0 {
+			a.logger.Warn().Float64("ustnibiUnibiPrice", ustnibiUnibiPrice).Float64("unibiUusdPrice", unibiUusdPrice).Msg("ustnibiUnibiPrice and unibiUusdPrice")
 			// if we can't find a valid unibi:uusd price, return an invalid price
-			a.logger.Warn().Str("pair", "ustnibi:uusd").Msg("no valid price found for unibi:uusd")
+			a.logger.Warn().Str("pair", "ustnibi:uusd").Msg("no valid price found for ustnibi:unibi or unibi:uusd")
 			aggregatePriceProvider.WithLabelValues("ustnibi:uusd", "missing", "false").Inc()
 			return types.Price{
 				SourceName: "missing",
@@ -76,19 +91,11 @@ func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 			}
 		}
 
-		// now we can calculate the ustnibi:unibi price
-		for _, p := range a.providers {
-			price := p.GetPrice("ustnibi:unibi")
-			if !price.Valid {
-				continue
-			}
-
-			return types.Price{
-				Pair:       pair,
-				Price:      price.Price * unibiUusdPrice, // ustnibi:uusd = ustnibi:unibi * unibi:uusd
-				SourceName: price.SourceName,             // use the source of ustnibi
-				Valid:      true,
-			}
+		return types.Price{
+			SourceName: "ustnibi:unibi",
+			Pair:       pair,
+			Price:      ustnibiUnibiPrice * unibiUusdPrice,
+			Valid:      true,
 		}
 	}
 

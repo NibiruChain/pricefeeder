@@ -99,7 +99,7 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 	rawPrices = make(map[types.Symbol]float64)
 	rawPrices[types.Symbol("ustnibi:unibi")] = exchangeRate
 
-	logger.Debug().
+	logger.Info().
 		Str("symbols", fmt.Sprint(symbols)).
 		Str("source", ErisProtocol).
 		Float64("exchange_rate", exchangeRate).
