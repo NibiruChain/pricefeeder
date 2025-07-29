@@ -56,21 +56,15 @@ func Dial(
 	feeder sdk.AccAddress,
 	logger zerolog.Logger,
 ) *Client {
-	var transportDialOpt grpc.DialOption
-
+	creds := insecure.NewCredentials()
 	if enableTLS {
-		transportDialOpt = grpc.WithTransportCredentials(
-			credentials.NewTLS(
-				&tls.Config{
-					InsecureSkipVerify: false,
-				},
-			),
-		)
-	} else {
-		transportDialOpt = grpc.WithTransportCredentials(
-			insecure.NewCredentials(),
+		creds = credentials.NewTLS(
+			&tls.Config{
+				InsecureSkipVerify: false,
+			},
 		)
 	}
+	transportDialOpt := grpc.WithTransportCredentials(creds)
 
 	conn, err := grpc.Dial(grpcEndpoint, transportDialOpt)
 	if err != nil {
