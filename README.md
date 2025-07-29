@@ -29,11 +29,6 @@ GRPC_ENDPOINT="localhost:9090"
 WEBSOCKET_ENDPOINT="ws://localhost:26657/websocket"
 FEEDER_MNEMONIC="guard cream sadness conduct invite crumble clock pudding hole grit liar hotel maid produce squeeze return argue turtle know drive eight casino maze host"
 EXCHANGE_SYMBOLS_MAP='{"bitfinex": {"ubtc:unusd": "tBTCUSD", "ueth:unusd": "tETHUSD", "uusd:unusd": "tUSTUSD"}}'
-
-# optional, used for Uniswap V3 prices
-ETHEREUM_RPC_ENDPOINT="https://mainnet.infura.io/v3/<INFURA_API_KEY>"
-# optional, used if custom exclusive ETHEREUM_RPC_ENDPOINT not set 
-ETHEREUM_RPC_PUBLIC_ENDPOINTS="https://eth.llamarpc.com,https://cloudflare-eth.com/,https://rpc.flashbots.net/"
 ```
 
 This would allow you to run `pricefeeder` using a local instance of the network. To set up a local network, you can run:
@@ -127,10 +122,15 @@ DATASOURCE_CONFIG_MAP='{"coingecko": {"api_key": "0123456789"}}'
 ## Uniswap V3 on Ethereum
 
 Some token prices are retrieved from Uniswap V3 on Ethereum. 
-To configure the Uniswap V3 data source, you need to set the following environment variable:
+To configure the Uniswap V3 data source, you could set the following environment variables.
+If not set, the price feeder will use default public RPC endpoints.
 
 ```ini
+# optional, used for Uniswap V3 prices
 ETHEREUM_RPC_ENDPOINT="https://mainnet.infura.io/v3/<INFURA_API_KEY>"
+
+# optional, used if custom exclusive ETHEREUM_RPC_ENDPOINT not set 
+ETHEREUM_RPC_PUBLIC_ENDPOINTS="https://eth.llamarpc.com,https://cloudflare-eth.com/,https://rpc.flashbots.net/"
 ```
 
 ## Glossary
