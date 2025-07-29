@@ -17,6 +17,7 @@ func TestCoingeckoPriceUpdate(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	t.Run("success", func(t *testing.T) {
+		httpmock.Reset()
 		httpmock.RegisterResponder(
 			"GET", FreeLink+"simple/price?ids=bitcoin%2Cethereum&vs_currencies=usd",
 			httpmock.NewStringResponder(200, "{\"bitcoin\":{\"usd\":23829},\"ethereum\":{\"usd\":1676.85}}"),
@@ -41,6 +42,7 @@ func TestCoingeckoWithConfig(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	t.Run("providing valid config", func(t *testing.T) {
+		httpmock.Reset()
 		httpmock.RegisterResponder(
 			"GET", PaidLink+"simple/price?ids=bitcoin%2Cethereum&vs_currencies=usd&"+ApiKeyParam+"=1234567890",
 			httpmock.NewStringResponder(200, "{\"bitcoin\":{\"usd\":23829},\"ethereum\":{\"usd\":1676.85}}"),
@@ -72,6 +74,7 @@ func TestCoingeckoWithConfig(t *testing.T) {
 	})
 
 	t.Run("providing config without api_key ignores and calls free endpoint", func(t *testing.T) {
+		httpmock.Reset()
 		httpmock.RegisterResponder(
 			"GET", FreeLink+"simple/price?ids=bitcoin%2Cethereum&vs_currencies=usd",
 			httpmock.NewStringResponder(200, "{\"bitcoin\":{\"usd\":23829},\"ethereum\":{\"usd\":1676.85}}"),

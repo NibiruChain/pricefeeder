@@ -37,6 +37,7 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 		"uusdc:uusd": "tUDCUSD",
 		"uusdt:uusd": "tUSTUSD",
 		"uatom:uusd": "tATOUSD",
+		"usol:uusd":  "tSOLUSD",
 	},
 
 	// https://api.gateio.ws/api/v4/spot/currency_pairs
@@ -47,7 +48,9 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 		"uusdt:uusd": "USDT_USD",
 		"uatom:uusd": "ATOM_USDT",
 		"unibi:uusd": "NIBI_USDT",
+		"usol:uusd":  "SOL_USDT",
 	},
+
 	// https://www.okx.com/api/v5/market/tickers?instType=SPOT
 	sources.Okex: {
 		"ubtc:uusd":  "BTC-USDT",
@@ -55,7 +58,9 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 		"uusdc:uusd": "USDC-USDT",
 		"uusdt:uusd": "USDT-USDC",
 		"uatom:uusd": "ATOM-USDT",
+		"usol:uusd":  "SOL-USD",
 	},
+
 	// https://api.bybit.com/v5/market/tickers?category=spot
 	sources.Bybit: {
 		"ubtc:uusd":  "BTCUSDT",
@@ -63,6 +68,11 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 		"uusdc:uusd": "USDCUSDT",
 		"uatom:uusd": "ATOMUSDT",
 		"unibi:uusd": "NIBIUSDT",
+		"usol:uusd":  "SOLUSDT",
+	},
+
+	sources.ErisProtocol: {
+		"ustnibi:unibi": "ustnibi:unibi", // this is the only pair supported by the Eris Protocol smart contract
 	},
 }
 
