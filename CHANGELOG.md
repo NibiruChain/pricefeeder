@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - [#63](https://github.com/NibiruChain/pricefeeder/pull/63) - chore: add changelog
+- [#64](https://github.com/NibiruChain/pricefeeder/pull/64) - feat: Uniswap V3 data source for USDa from Avalon.
 
 ## v1.0.5
 

@@ -3,6 +3,13 @@ package sources
 import (
 	"context"
 	"fmt"
+	"math/big"
+	"os"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/NibiruChain/pricefeeder/types/uniswap_v3"
@@ -10,12 +17,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/rs/zerolog"
-	"math/big"
-	"os"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var _ types.FetchPricesFunc = UniswapV3PriceUpdate
@@ -176,8 +177,9 @@ func UniswapV3PriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) 
 				err,
 			)
 		}
-		// Hack! Limit USDa:USDT price to 1.01 to prevent price manipulations
-		if symbol == "USDa:USDT" && price > 1.01 {
+		// NOTE: Limit USDa:USDT price to be >= 1.01 to prevent oracle price
+		// manipulations on Uniswap pools. The token is backed by USDT.
+		if symbol == "USDa:USDT" && price < 1.01 {
 			price = 1.01
 		}
 		prices[symbol] = price

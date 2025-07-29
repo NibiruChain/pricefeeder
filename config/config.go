@@ -76,7 +76,7 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 	},
 
 	sources.UniswapV3: {
-		"uusda:uusd": "USDa:USDT",
+		"usda:usd": "USDa:USDT",
 	},
 }
 

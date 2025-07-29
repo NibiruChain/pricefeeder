@@ -3,12 +3,13 @@ package types
 import (
 	"context"
 	"fmt"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/rs/zerolog"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/rs/zerolog"
 )
 
 // DefaultEthereumEndpoints copied from https://ethereumnodes.com/

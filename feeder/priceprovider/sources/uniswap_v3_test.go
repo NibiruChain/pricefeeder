@@ -3,13 +3,14 @@ package sources
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/NibiruChain/nibiru/x/common/set"
 	"github.com/NibiruChain/pricefeeder/types"
