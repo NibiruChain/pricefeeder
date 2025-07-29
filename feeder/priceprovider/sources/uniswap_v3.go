@@ -176,6 +176,10 @@ func UniswapV3PriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) 
 				err,
 			)
 		}
+		// Hack! Limit USDa:USDT price to 1.01 to prevent price manipulations
+		if symbol == "USDa:USDT" && price > 1.01 {
+			price = 1.01
+		}
 		prices[symbol] = price
 	}
 	return prices, nil
