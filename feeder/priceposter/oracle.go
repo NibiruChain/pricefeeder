@@ -3,9 +3,9 @@ package priceposter
 import (
 	"context"
 	"crypto/rand"
+	"math/big"
 	"strconv"
 	"strings"
-	"math/big"
 
 	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
 	"github.com/NibiruChain/pricefeeder/types"
@@ -13,12 +13,10 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var (
-	// MaxSaltNumber is the maximum salt number we can use for randomness.
-	// NOTE: max length of the salt is 4.
-	// TODO(mercilex): if we used digits + alphanumerics it's more randomized
-	MaxSaltNumber = big.NewInt(9999) // NOTE(mercilex): max salt length is 4
-)
+// MaxSaltNumber is the maximum salt number we can use for randomness.
+// NOTE: max length of the salt is 4.
+// TODO(mercilex): if we used digits + alphanumerics it's more randomized
+var MaxSaltNumber = big.NewInt(9999) // NOTE(mercilex): max salt length is 4
 
 func vote(
 	ctx context.Context,
@@ -28,7 +26,6 @@ func vote(
 	deps deps,
 	logger zerolog.Logger,
 ) (txResponse *sdk.TxResponse, err error) {
-
 	// if oldPrevote is not nil then we need to get the vote msg
 	var voteMsg *oracletypes.MsgAggregateExchangeRateVote
 	if oldPrevote != nil {
@@ -39,7 +36,7 @@ func vote(
 		logger.Info().Interface("vote", voteMsg).Msg("prepared vote message")
 	}
 	// once we prepared the vote msg we can send the tx
-	var msgs = []sdk.Msg{newPrevote.msg}
+	msgs := []sdk.Msg{newPrevote.msg}
 	// if there was a vote then we of course need to vote first and then prevote.
 	if voteMsg != nil {
 		// note ordering matters because the new prevote will overwrite the old one
