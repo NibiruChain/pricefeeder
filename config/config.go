@@ -112,7 +112,6 @@ func Get() (*Config, error) {
 	if conf.WebsocketEndpoint == "" {
 		conf.WebsocketEndpoint = defaultWebsocketEndpoint
 	}
-	conf.EthereumRPCUrl = os.Getenv("ETHEREUM_RPC_ENDPOINT")
 
 	overrideExchangeSymbolsMapJson := os.Getenv("EXCHANGE_SYMBOLS_MAP")
 	if overrideExchangeSymbolsMapJson != "" {
@@ -162,7 +161,6 @@ type Config struct {
 	ChainID                    string
 	ValidatorAddr              *sdk.ValAddress
 	EnableTLS                  bool
-	EthereumRPCUrl             string
 }
 
 func (c *Config) Validate() error {
@@ -177,9 +175,6 @@ func (c *Config) Validate() error {
 	}
 	if c.GRPCEndpoint == "" {
 		return fmt.Errorf("no grpc endpoint")
-	}
-	if c.EthereumRPCUrl == "" {
-		return fmt.Errorf("no ethereum rpc url")
 	}
 	return nil
 }
