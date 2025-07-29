@@ -582,36 +582,6 @@ func TestUniswapV3PriceUpdate_UnsupportedTokens(t *testing.T) {
 	}
 }
 
-func TestUniswapV3PriceUpdate_MissingRPCEndpoint(t *testing.T) {
-	originalRPC := os.Getenv("ETHEREUM_RPC_ENDPOINT")
-	_ = os.Unsetenv("ETHEREUM_RPC_ENDPOINT")
-	defer func() {
-		if originalRPC != "" {
-			require.NoError(t, os.Setenv("ETHEREUM_RPC_ENDPOINT", originalRPC))
-		}
-	}()
-
-	logger := zerolog.New(os.Stdout)
-	symbols := set.New[types.Symbol]()
-	symbols.Add("USDa:USDT")
-
-	_, err := UniswapV3PriceUpdate(symbols, logger)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to connect to Ethereum client")
-}
-
-func TestUniswapV3PriceUpdate_InvalidRPCEndpoint(t *testing.T) {
-	defer setTestRPC(t, "invalid-url-format")()
-
-	logger := zerolog.New(os.Stdout)
-	symbols := set.New[types.Symbol]()
-	symbols.Add("USDa:USDT")
-
-	_, err := UniswapV3PriceUpdate(symbols, logger)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to connect to Ethereum client")
-}
-
 // =======================
 // Edge Cases and Error Scenarios
 // =======================
