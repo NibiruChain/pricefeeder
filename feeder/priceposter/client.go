@@ -20,6 +20,7 @@ import (
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 var _ types.PricePoster = (*Client)(nil)
@@ -55,17 +56,15 @@ func Dial(
 	feeder sdk.AccAddress,
 	logger zerolog.Logger,
 ) *Client {
-	transportDialOpt := grpc.WithInsecure()
-
+	creds := insecure.NewCredentials()
 	if enableTLS {
-		transportDialOpt = grpc.WithTransportCredentials(
-			credentials.NewTLS(
-				&tls.Config{
-					InsecureSkipVerify: false,
-				},
-			),
+		creds = credentials.NewTLS(
+			&tls.Config{
+				InsecureSkipVerify: false,
+			},
 		)
 	}
+	transportDialOpt := grpc.WithTransportCredentials(creds)
 
 	conn, err := grpc.Dial(grpcEndpoint, transportDialOpt)
 	if err != nil {

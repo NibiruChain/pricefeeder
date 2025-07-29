@@ -8,9 +8,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var (
-	InitTimeout = 15 * time.Second
-)
+var InitTimeout = 15 * time.Second
 
 // Feeder is the price feeder.
 type Feeder struct {
@@ -26,7 +24,12 @@ type Feeder struct {
 	priceProvider types.PriceProvider
 }
 
-func NewFeeder(eventStream types.EventStream, priceProvider types.PriceProvider, pricePoster types.PricePoster, logger zerolog.Logger) *Feeder {
+func NewFeeder(
+	eventStream types.EventStream,
+	priceProvider types.PriceProvider,
+	pricePoster types.PricePoster,
+	logger zerolog.Logger,
+) *Feeder {
 	f := &Feeder{
 		logger:        logger,
 		stop:          make(chan struct{}),
@@ -57,8 +60,8 @@ func (f *Feeder) initParamsOrDie() {
 	}
 }
 
-// loop waits for events coming from the event stream and handles them. It also waits from stop signals
-// and closes all the connections and components.
+// loop waits for events coming from the event stream and handles them. It also
+// waits from stop signals and closes all the connections and components.
 func (f *Feeder) loop() {
 	defer f.close()
 

@@ -13,9 +13,14 @@ var UpdateTick = 8 * time.Second
 
 var _ types.Source = (*TickSource)(nil)
 
-// NewTickSource instantiates a new TickSource instance, given the symbols and a price updater function
-// which returns the latest prices for the provided symbols.
-func NewTickSource(symbols set.Set[types.Symbol], fetchPricesFunc types.FetchPricesFunc, logger zerolog.Logger) *TickSource {
+// NewTickSource instantiates a new TickSource instance, given the symbols and a
+// price updater function which returns the latest prices for the provided
+// symbols.
+func NewTickSource(
+	symbols set.Set[types.Symbol],
+	fetchPricesFunc types.FetchPricesFunc,
+	logger zerolog.Logger,
+) *TickSource {
 	ts := &TickSource{
 		logger:             logger,
 		stopSignal:         make(chan struct{}),
