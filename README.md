@@ -119,6 +119,20 @@ you need to set env var:
 DATASOURCE_CONFIG_MAP='{"coingecko": {"api_key": "0123456789"}}'
 ```
 
+## Uniswap V3 on Ethereum
+
+Some token prices are retrieved from Uniswap V3 on Ethereum. 
+To configure the Uniswap V3 data source, you could set the following environment variables.
+If not set, the price feeder will use default public RPC endpoints.
+
+```ini
+# optional, used for Uniswap V3 prices
+ETHEREUM_RPC_ENDPOINT="https://mainnet.infura.io/v3/<INFURA_API_KEY>"
+
+# optional, used if custom exclusive ETHEREUM_RPC_ENDPOINT not set 
+ETHEREUM_RPC_PUBLIC_ENDPOINTS="https://eth.llamarpc.com,https://cloudflare-eth.com/,https://rpc.flashbots.net/"
+```
+
 ## Glossary
 
 - **Data source**: A data source is an external service that provides data. For example, Binance is a data source that provides the price of various assets.

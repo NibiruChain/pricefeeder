@@ -22,6 +22,7 @@ func TestConfig_Get(t *testing.T) {
 		"{\"bitfinex\": {\"ubtc:unusd\": \"tBTCUSD\", \"ueth:unusd\": \"tETHUSD\", \"uusd:unusd\": \"tUSTUSD\"}}",
 	)
 	os.Setenv("VALIDATOR_ADDRESS", "nibivaloper1d7zygazerfwx4l362tnpcp0ramzm97xvv9ryxr")
+	os.Setenv("ETHEREUM_RPC_ENDPOINT", "https://mainnet.infura.io/v3/DUMMY_INFURA_KEY")
 	_, err := Get()
 	require.NoError(t, err)
 }
@@ -33,6 +34,7 @@ func TestConfig_Without_EXCHANGE_SYMBOLS_MAP(t *testing.T) {
 	os.Setenv("WEBSOCKET_ENDPOINT", "ws://localhost:26657/websocket")
 	os.Setenv("FEEDER_MNEMONIC", "earth wash broom grow recall fitness")
 	os.Setenv("VALIDATOR_ADDRESS", "nibivaloper1d7zygazerfwx4l362tnpcp0ramzm97xvv9ryxr")
+	os.Setenv("ETHEREUM_RPC_ENDPOINT", "https://mainnet.infura.io/v3/DUMMY_INFURA_KEY")
 	_, err := Get()
 	require.NoError(t, err)
 }
