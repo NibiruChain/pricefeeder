@@ -180,8 +180,6 @@ ERIS_PROTOCOL_CONTRACT_ADDRESS="nibi1udqqx30cw8nwjxtl4l28ym9hhrp933zlq8dqxfjzcdh
 ERIS_PROTOCOL_CONTRACT_ADDRESS="nibi1keqw4dllsczlldd7pmzp25wyl04fw5anh3wxljhg4fjuqj9xnxuqa82rpg"
 ```
 
-```ini
-
 ## Glossary
 
 - **Data source**: A data source is an external service that provides data. For example, Binance is a data source that provides the price of various assets.
