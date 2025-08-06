@@ -44,6 +44,7 @@ func TestPriceProvider(t *testing.T) {
 	})
 
 	t.Run("eris protocol success", func(t *testing.T) {
+		t.Setenv("GRPC_READ_ENDPOINT", "grpc.nibiru.fi:443")
 		pp := NewPriceProvider(
 			sources.ErisProtocol,
 			map[asset.Pair]types.Symbol{asset.NewPair("ustnibi", denoms.NIBI): "ustnibi:unibi"},
