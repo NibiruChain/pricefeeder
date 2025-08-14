@@ -4,12 +4,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/NibiruChain/nibiru/app"
+	"github.com/NibiruChain/nibiru/v2/gosdk"
 	"github.com/stretchr/testify/require"
 )
 
 func init() {
-	app.SetPrefixes(app.AccountAddressPrefix)
+	gosdk.EnsureNibiruPrefix()
 }
 
 func TestConfig_Get(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
+	oracletypes "github.com/NibiruChain/nibiru/v2/x/oracle/types"
 	"github.com/NibiruChain/pricefeeder/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/rs/zerolog"

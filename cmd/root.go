@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/NibiruChain/nibiru/app"
+	"github.com/NibiruChain/nibiru/v2/gosdk"
 	"github.com/NibiruChain/pricefeeder/config"
 	"github.com/NibiruChain/pricefeeder/feeder"
 	"github.com/NibiruChain/pricefeeder/feeder/eventstream"
@@ -49,7 +49,7 @@ var rootCmd = &cobra.Command{
 	Short: "Pricefeeder daemon for posting prices to Nibiru Chain",
 	Run: func(cmd *cobra.Command, args []string) {
 		logger := setupLogger()
-		app.SetPrefixes(app.AccountAddressPrefix)
+		gosdk.EnsureNibiruPrefix()
 
 		c := config.MustGet()
 

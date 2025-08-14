@@ -3,7 +3,7 @@ package priceprovider
 import (
 	"encoding/json"
 
-	"github.com/NibiruChain/nibiru/x/common/asset"
+	"github.com/NibiruChain/nibiru/v2/x/common/asset"
 	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/prometheus/client_golang/prometheus"

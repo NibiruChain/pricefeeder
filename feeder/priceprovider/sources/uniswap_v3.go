@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/nibiru/v2/x/common/set"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/NibiruChain/pricefeeder/types/uniswap_v3"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
