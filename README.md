@@ -133,6 +133,55 @@ ETHEREUM_RPC_ENDPOINT="https://mainnet.infura.io/v3/<INFURA_API_KEY>"
 ETHEREUM_RPC_PUBLIC_ENDPOINTS="https://eth.llamarpc.com,https://cloudflare-eth.com/,https://rpc.flashbots.net/"
 ```
 
+<<<<<<< HEAD
+=======
+## Eris Protocol for stNIBI price
+
+The price of stNIBI is fetched from the Eris Protocol (CosmWasm) by GRPC.
+
+```bash
+ERIS=nibi1udqqx30cw8nwjxtl4l28ym9hhrp933zlq8dqxfjzcdhvl8y24zcqpzmh8m
+nibid q wasm contract-state smart $ERIS '{"state": {}}' | jq
+{
+  "data": {
+    "total_ustake": "51448235827733",
+    "total_utoken": "67090804824813",
+    "exchange_rate": "1.304044808250702453",
+    "unlocked_coins": [
+      {
+        "denom": "unibi",
+        "amount": "509884"
+      }
+    ],
+    "unbonding": "749733010863",
+    "available": "552036314217",
+    "tvl_utoken": "68392574149893"
+  }
+}
+```
+
+By default, the pricefeeder will use the local GRPC endpoint, the same as pricefeeder is using to submit the prices.
+To allow fetching the mainnet price and submit it to testnet/localnet, you can set the following environment variable:
+
+```ini
+# Mainnet
+GRPC_READ_ENDPOINT="grpc.nibiru.fi:443"
+
+# Testnet-2
+GRPC_READ_ENDPOINT="grpc-testnet-2.nibiru.fi:443"
+```
+
+Eris protocol contract address is defaulted to mainnet address.
+To customize it, you can set the following environment variable:
+
+```ini
+# Mainnet
+ERIS_PROTOCOL_CONTRACT_ADDRESS="nibi1udqqx30cw8nwjxtl4l28ym9hhrp933zlq8dqxfjzcdhvl8y24zcqpzmh8m"
+
+# Testnet-2
+ERIS_PROTOCOL_CONTRACT_ADDRESS="nibi1keqw4dllsczlldd7pmzp25wyl04fw5anh3wxljhg4fjuqj9xnxuqa82rpg"
+```
+
 ## Glossary
 
 - **Data source**: A data source is an external service that provides data. For example, Binance is a data source that provides the price of various assets.

@@ -16,6 +16,7 @@ import (
 
 func TestAggregatePriceProvider(t *testing.T) {
 	t.Run("eris protocol success", func(t *testing.T) {
+		t.Setenv("GRPC_READ_ENDPOINT", "grpc.nibiru.fi:443")
 		pp := NewAggregatePriceProvider(
 			map[string]map[asset.Pair]types.Symbol{
 				sources.ErisProtocol: {
@@ -29,7 +30,7 @@ func TestAggregatePriceProvider(t *testing.T) {
 			zerolog.New(io.Discard),
 		)
 		defer pp.Close()
-		<-time.After(sources.UpdateTick + 2*time.Second)
+		<-time.After(sources.UpdateTick + 5*time.Second)
 
 		price := pp.GetPrice("ustnibi:uusd")
 		require.True(t, price.Valid)
