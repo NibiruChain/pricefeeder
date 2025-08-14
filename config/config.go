@@ -74,6 +74,10 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 	sources.ErisProtocol: {
 		"ustnibi:unibi": "ustnibi:unibi", // this is the only pair supported by the Eris Protocol smart contract
 	},
+
+	sources.UniswapV3: {
+		"usda:usd": "USDa:USDT",
+	},
 }
 
 func MustGet() *Config {
