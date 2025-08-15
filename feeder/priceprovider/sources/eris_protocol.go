@@ -63,7 +63,7 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 	}
 	defer func() {
 		if closeErr := conn.Close(); closeErr != nil {
-			logger.Err(closeErr).Msg("failed to close gRPC connection")
+			logger.Err(closeErr).Str("source", ErisProtocol).Msg("failed to close gRPC connection")
 		}
 	}()
 

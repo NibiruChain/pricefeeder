@@ -39,7 +39,14 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 		metrics.PriceSourceCounter.WithLabelValues(Okex, "false").Inc()
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		errClose := resp.Body.Close()
+		if errClose != nil {
+			errClose = fmt.Errorf("error closing response body: %w", errClose)
+			logger.Err(errClose).Str("source", Okex).Msg(errClose.Error())
+		}
+	}()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {

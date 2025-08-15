@@ -56,7 +56,7 @@ func (m *MockPriceProvider) GetPrice(arg0 asset.Pair) types.Price {
 }
 
 // GetPrice indicates an expected call of GetPrice.
-func (mr *MockPriceProviderMockRecorder) GetPrice(arg0 interface{}) *gomock.Call {
+func (mr *MockPriceProviderMockRecorder) GetPrice(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPrice", reflect.TypeOf((*MockPriceProvider)(nil).GetPrice), arg0)
 }

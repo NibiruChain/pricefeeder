@@ -29,7 +29,14 @@ func GateIoPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (ra
 		metrics.PriceSourceCounter.WithLabelValues(GateIo, "false").Inc()
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		errClose := resp.Body.Close()
+		if errClose != nil {
+			errClose = fmt.Errorf("error closing response body: %w", errClose)
+			logger.Err(errClose).Str("source", GateIo).Msg(errClose.Error())
+		}
+	}()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -38,7 +45,7 @@ func GateIoPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (ra
 		return nil, err
 	}
 
-	var tickers []map[string]interface{}
+	var tickers []map[string]any
 	err = json.Unmarshal(b, &tickers)
 	if err != nil {
 		logger.Err(err).Msg("failed to unmarshal response body from GateIo")

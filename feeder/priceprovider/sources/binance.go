@@ -2,6 +2,7 @@ package sources
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -41,7 +42,13 @@ func BinancePriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (r
 		metrics.PriceSourceCounter.WithLabelValues(Binance, "false").Inc()
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		errClose := resp.Body.Close()
+		if errClose != nil {
+			errClose = fmt.Errorf("error closing response body: %w", errClose)
+			logger.Err(errClose).Str("source", Binance).Msg(errClose.Error())
+		}
+	}()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {

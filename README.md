@@ -133,8 +133,6 @@ ETHEREUM_RPC_ENDPOINT="https://mainnet.infura.io/v3/<INFURA_API_KEY>"
 ETHEREUM_RPC_PUBLIC_ENDPOINTS="https://eth.llamarpc.com,https://cloudflare-eth.com/,https://rpc.flashbots.net/"
 ```
 
-<<<<<<< HEAD
-=======
 ## Eris Protocol for stNIBI price
 
 The price of stNIBI is fetched from the Eris Protocol (CosmWasm) by GRPC.

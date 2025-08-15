@@ -21,14 +21,14 @@ import (
 
 // JSON-RPC request/response structures
 type JSONRPCRequest struct {
-	ID     int           `json:"id"`
-	Method string        `json:"method"`
-	Params []interface{} `json:"params"`
+	ID     int    `json:"id"`
+	Method string `json:"method"`
+	Params []any  `json:"params"`
 }
 
 type JSONRPCResponse struct {
 	ID     int           `json:"id"`
-	Result interface{}   `json:"result"`
+	Result any           `json:"result"`
 	Error  *JSONRPCError `json:"error,omitempty"`
 }
 
@@ -74,7 +74,7 @@ func createMockEthereumServer() *httptest.Server {
 		case "eth_call":
 			// Extract the 'to' address and 'data' from params
 			if len(req.Params) > 0 {
-				callParams := req.Params[0].(map[string]interface{})
+				callParams := req.Params[0].(map[string]any)
 				to := callParams["to"].(string)
 				data := callParams["data"].(string)
 
@@ -247,7 +247,7 @@ func TestUniswapV3PriceUpdate_WithHTTPMock_MultiplePools(t *testing.T) {
 		response.ID = req.ID
 
 		if req.Method == "eth_call" && len(req.Params) > 0 {
-			callParams := req.Params[0].(map[string]interface{})
+			callParams := req.Params[0].(map[string]any)
 			to := callParams["to"].(string)
 			data := callParams["data"].(string)
 
@@ -672,7 +672,7 @@ func TestUniswapV3PriceUpdate_PoolSelection_DifferentLiquidities(t *testing.T) {
 		response.ID = req.ID
 
 		if req.Method == "eth_call" && len(req.Params) > 0 {
-			callParams := req.Params[0].(map[string]interface{})
+			callParams := req.Params[0].(map[string]any)
 			to := callParams["to"].(string)
 			data := callParams["data"].(string)
 

@@ -4,6 +4,8 @@ go 1.24
 
 // Nibiru deps
 require (
+	github.com/CosmWasm/wasmd v0.44.0
+	github.com/CosmWasm/wasmvm v1.5.8 // indirect
 	github.com/NibiruChain/nibiru/v2 v2.6.0
 	github.com/cometbft/cometbft v0.37.5
 	github.com/cosmos/cosmos-sdk v0.47.11-nibiru.3
@@ -20,7 +22,6 @@ replace (
 )
 
 require (
-	github.com/CosmWasm/wasmd v0.44.0
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/golang/mock v1.6.0
 	github.com/gorilla/websocket v1.5.0
@@ -51,7 +52,6 @@ require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
 	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
-	github.com/CosmWasm/wasmvm v1.5.8 // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/MakeNowJust/heredoc/v2 v2.0.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
@@ -260,4 +260,7 @@ replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.3.1
 	github.com/cosmos/iavl => github.com/cosmos/iavl v0.20.0
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+	github.com/linxGnu/grocksdb => github.com/linxGnu/grocksdb v1.8.12
+	// pin version! 126854af5e6d has issues with the store so that queries fail
+	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )

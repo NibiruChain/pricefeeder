@@ -126,7 +126,7 @@ func getPricesFromResponse(symbols set.Set[types.Symbol], response []byte, logge
 func buildReq(symbols set.Set[types.Symbol], c *CoinmarketcapConfig) (*http.Request, error) {
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Can not create a request with link: %s\n", link)
+		return nil, fmt.Errorf("cannot create a request with link: %s", link)
 	}
 
 	params := url.Values{}

@@ -43,7 +43,14 @@ func CoingeckoPriceUpdate(sourceConfig json.RawMessage) types.FetchPricesFunc {
 			metrics.PriceSourceCounter.WithLabelValues(Coingecko, "false").Inc()
 			return nil, err
 		}
-		defer res.Body.Close()
+
+		defer func() {
+			errClose := res.Body.Close()
+			if errClose != nil {
+				errClose = fmt.Errorf("error closing response body: %w", errClose)
+				logger.Err(errClose).Str("source", Coingecko).Msg(errClose.Error())
+			}
+		}()
 
 		response, err := io.ReadAll(res.Body)
 		if err != nil {
