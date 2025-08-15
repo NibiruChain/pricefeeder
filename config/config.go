@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/NibiruChain/nibiru/x/common/asset"
+	"github.com/NibiruChain/nibiru/v2/x/common/asset"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/joho/godotenv"
 

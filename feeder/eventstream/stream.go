@@ -7,12 +7,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	oracletypes "github.com/NibiruChain/nibiru/x/oracle/types"
-	"github.com/NibiruChain/pricefeeder/types"
+	oracletypes "github.com/NibiruChain/nibiru/v2/x/oracle/types"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/NibiruChain/pricefeeder/types"
 )
 
 var _ types.EventStream = (*Stream)(nil)
@@ -46,9 +47,6 @@ func Dial(tendermintRPCEndpoint string, grpcEndpoint string, enableTLS bool, log
 		panic(err)
 	}
 
-	if err != nil {
-		panic(err)
-	}
 	oracleClient := oracletypes.NewQueryClient(conn)
 
 	const newBlockSubscribe = `{"jsonrpc":"2.0","method":"subscribe","id":0,"params":{"query":"tm.event='NewBlock'"}}`

@@ -6,10 +6,11 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/nibiru/v2/x/common/set"
+	"github.com/rs/zerolog"
+
 	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
-	"github.com/rs/zerolog"
 )
 
 const (
@@ -28,7 +29,7 @@ func BitfinexSymbolCsv(symbols set.Set[types.Symbol]) string {
 
 // BitfinexPriceUpdate returns the prices given the symbols or an error.
 func BitfinexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
-	type ticker []interface{}
+	type ticker []any
 	const size = 11
 	const lastPriceIndex = 7
 	const symbolNameIndex = 0
@@ -40,7 +41,13 @@ func BitfinexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (
 		metrics.PriceSourceCounter.WithLabelValues(Bitfinex, "false").Inc()
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		errClose := resp.Body.Close()
+		if errClose != nil {
+			errClose = fmt.Errorf("error closing response body: %w", errClose)
+			logger.Err(errClose).Str("source", Bitfinex).Msg(errClose.Error())
+		}
+	}()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {

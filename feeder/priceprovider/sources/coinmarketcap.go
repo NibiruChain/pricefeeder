@@ -8,10 +8,11 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/nibiru/v2/x/common/set"
+	"github.com/rs/zerolog"
+
 	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
-	"github.com/rs/zerolog"
 )
 
 const (
@@ -64,7 +65,14 @@ func CoinmarketcapPriceUpdate(coinmarketcapConfig json.RawMessage) types.FetchPr
 			metrics.PriceSourceCounter.WithLabelValues(CoinMarketCap, "false").Inc()
 			return nil, err
 		}
-		defer res.Body.Close()
+
+		defer func() {
+			errClose := res.Body.Close()
+			if errClose != nil {
+				errClose = fmt.Errorf("error closing response body: %w", errClose)
+				logger.Err(errClose).Str("source", CoinMarketCap).Msg(errClose.Error())
+			}
+		}()
 
 		response, err := io.ReadAll(res.Body)
 		if err != nil {
@@ -126,7 +134,7 @@ func getPricesFromResponse(symbols set.Set[types.Symbol], response []byte, logge
 func buildReq(symbols set.Set[types.Symbol], c *CoinmarketcapConfig) (*http.Request, error) {
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Can not create a request with link: %s\n", link)
+		return nil, fmt.Errorf("cannot create a request with link: %s", link)
 	}
 
 	params := url.Values{}

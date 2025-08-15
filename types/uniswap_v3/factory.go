@@ -146,7 +146,7 @@ func bindUniswapV3Factory(address common.Address, caller bind.ContractCaller, tr
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_UniswapV3Factory *UniswapV3FactoryRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+func (_UniswapV3Factory *UniswapV3FactoryRaw) Call(opts *bind.CallOpts, result *[]any, method string, params ...any) error {
 	return _UniswapV3Factory.Contract.UniswapV3FactoryCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -157,7 +157,7 @@ func (_UniswapV3Factory *UniswapV3FactoryRaw) Transfer(opts *bind.TransactOpts) 
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_UniswapV3Factory *UniswapV3FactoryRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+func (_UniswapV3Factory *UniswapV3FactoryRaw) Transact(opts *bind.TransactOpts, method string, params ...any) (*types.Transaction, error) {
 	return _UniswapV3Factory.Contract.UniswapV3FactoryTransactor.contract.Transact(opts, method, params...)
 }
 
@@ -165,7 +165,7 @@ func (_UniswapV3Factory *UniswapV3FactoryRaw) Transact(opts *bind.TransactOpts, 
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_UniswapV3Factory *UniswapV3FactoryCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+func (_UniswapV3Factory *UniswapV3FactoryCallerRaw) Call(opts *bind.CallOpts, result *[]any, method string, params ...any) error {
 	return _UniswapV3Factory.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -176,7 +176,7 @@ func (_UniswapV3Factory *UniswapV3FactoryTransactorRaw) Transfer(opts *bind.Tran
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_UniswapV3Factory *UniswapV3FactoryTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+func (_UniswapV3Factory *UniswapV3FactoryTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...any) (*types.Transaction, error) {
 	return _UniswapV3Factory.Contract.contract.Transact(opts, method, params...)
 }
 
@@ -184,7 +184,7 @@ func (_UniswapV3Factory *UniswapV3FactoryTransactorRaw) Transact(opts *bind.Tran
 //
 // Solidity: function getPool(address tokenA, address tokenB, uint24 fee) view returns(address pool)
 func (_UniswapV3Factory *UniswapV3FactoryCaller) GetPool(opts *bind.CallOpts, tokenA common.Address, tokenB common.Address, fee *big.Int) (common.Address, error) {
-	var out []interface{}
+	var out []any
 	err := _UniswapV3Factory.contract.Call(opts, &out, "getPool", tokenA, tokenB, fee)
 
 	if err != nil {

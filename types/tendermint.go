@@ -35,15 +35,15 @@ type NewBlockJSON struct {
 						LastCommitHash string    `json:"last_commit_hash"`
 					} `json:"header"`
 					Data struct {
-						Txs []interface{} `json:"txs"`
+						Txs []any `json:"txs"`
 					} `json:"data"`
 				} `json:"block"`
 				ResultBeginBlock struct {
 					Events []TmEvent `json:"events"`
 				} `json:"result_begin_block"`
 				ResultEndBlock struct {
-					ValidatorUpdates []interface{} `json:"validator_updates"`
-					Events           []TmEvent     `json:"events"`
+					ValidatorUpdates []any     `json:"validator_updates"`
+					Events           []TmEvent `json:"events"`
 				} `json:"result_end_block"`
 			} `json:"value"`
 		} `json:"data"`

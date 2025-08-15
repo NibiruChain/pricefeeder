@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/nibiru/v2/x/common/set"
+	"github.com/rs/zerolog"
+
 	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
-	"github.com/rs/zerolog"
 )
 
 const (
@@ -43,7 +44,14 @@ func CoingeckoPriceUpdate(sourceConfig json.RawMessage) types.FetchPricesFunc {
 			metrics.PriceSourceCounter.WithLabelValues(Coingecko, "false").Inc()
 			return nil, err
 		}
-		defer res.Body.Close()
+
+		defer func() {
+			errClose := res.Body.Close()
+			if errClose != nil {
+				errClose = fmt.Errorf("error closing response body: %w", errClose)
+				logger.Err(errClose).Str("source", Coingecko).Msg(errClose.Error())
+			}
+		}()
 
 		response, err := io.ReadAll(res.Body)
 		if err != nil {
