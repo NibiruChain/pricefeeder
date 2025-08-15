@@ -11,12 +11,13 @@ import (
 	"time"
 
 	"github.com/NibiruChain/nibiru/v2/x/common/set"
-	"github.com/NibiruChain/pricefeeder/types"
-	"github.com/NibiruChain/pricefeeder/types/uniswap_v3"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/rs/zerolog"
+
+	"github.com/NibiruChain/pricefeeder/types"
+	"github.com/NibiruChain/pricefeeder/types/uniswap_v3"
 )
 
 var _ types.FetchPricesFunc = UniswapV3PriceUpdate

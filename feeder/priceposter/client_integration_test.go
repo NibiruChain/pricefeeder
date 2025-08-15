@@ -13,10 +13,11 @@ import (
 	"github.com/NibiruChain/nibiru/v2/x/common/testutil/genesis"
 	testutilcli "github.com/NibiruChain/nibiru/v2/x/common/testutil/testnetwork"
 	oracletypes "github.com/NibiruChain/nibiru/v2/x/oracle/types"
-	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/NibiruChain/pricefeeder/types"
 )
 
 type IntegrationTestSuite struct {

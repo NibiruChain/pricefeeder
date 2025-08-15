@@ -8,9 +8,10 @@ import (
 	"time"
 
 	"github.com/NibiruChain/nibiru/v2/x/common/set"
-	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
+
+	"github.com/NibiruChain/pricefeeder/types"
 )
 
 var _ io.Writer = (*mockWriter)(nil)

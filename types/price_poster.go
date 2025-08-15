@@ -1,6 +1,6 @@
 package types
 
-import "github.com/cosmos/cosmos-sdk/types"
+import sdk "github.com/cosmos/cosmos-sdk/types"
 
 // PricePoster defines the validator oracle client,
 // which sends new prices.
@@ -10,7 +10,7 @@ import "github.com/cosmos/cosmos-sdk/types"
 type PricePoster interface {
 	// Whoami returns the validator address the PricePoster
 	// is sending prices for.
-	Whoami() types.ValAddress
+	Whoami() sdk.ValAddress
 	// SendPrices sends the provided slice of Price.
 	SendPrices(vp VotingPeriod, prices []Price)
 	// Close shuts down the PricePoster.

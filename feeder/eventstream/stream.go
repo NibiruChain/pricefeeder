@@ -8,11 +8,12 @@ import (
 	"time"
 
 	oracletypes "github.com/NibiruChain/nibiru/v2/x/oracle/types"
-	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/NibiruChain/pricefeeder/types"
 )
 
 var _ types.EventStream = (*Stream)(nil)

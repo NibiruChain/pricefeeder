@@ -8,9 +8,10 @@ import (
 	"strings"
 
 	oracletypes "github.com/NibiruChain/nibiru/v2/x/oracle/types"
-	"github.com/NibiruChain/pricefeeder/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/rs/zerolog"
+
+	"github.com/NibiruChain/pricefeeder/types"
 )
 
 // MaxSaltNumber is the maximum salt number we can use for randomness.

@@ -7,8 +7,6 @@ import (
 
 	"github.com/NibiruChain/nibiru/v2/app"
 	oracletypes "github.com/NibiruChain/nibiru/v2/x/oracle/types"
-	"github.com/NibiruChain/pricefeeder/metrics"
-	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -21,6 +19,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/NibiruChain/pricefeeder/metrics"
+	"github.com/NibiruChain/pricefeeder/types"
 )
 
 var _ types.PricePoster = (*Client)(nil)

@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
+
+	"github.com/NibiruChain/pricefeeder/types"
 )
 
 var InitTimeout = 15 * time.Second

@@ -8,9 +8,10 @@ import (
 	"strconv"
 
 	"github.com/NibiruChain/nibiru/v2/x/common/set"
+	"github.com/rs/zerolog"
+
 	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
-	"github.com/rs/zerolog"
 )
 
 const (
@@ -65,7 +66,6 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 
 	rawPrices = make(map[types.Symbol]float64)
 	for _, ticker := range response.Data {
-
 		symbol := types.Symbol(ticker.Symbol)
 		if !symbols.Has(symbol) {
 			continue

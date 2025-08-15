@@ -8,14 +8,15 @@ import (
 	"os/signal"
 
 	"github.com/NibiruChain/nibiru/v2/gosdk"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rs/zerolog"
+	"github.com/spf13/cobra"
+
 	"github.com/NibiruChain/pricefeeder/config"
 	"github.com/NibiruChain/pricefeeder/feeder"
 	"github.com/NibiruChain/pricefeeder/feeder/eventstream"
 	"github.com/NibiruChain/pricefeeder/feeder/priceposter"
 	"github.com/NibiruChain/pricefeeder/feeder/priceprovider"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/rs/zerolog"
-	"github.com/spf13/cobra"
 )
 
 func setupLogger() zerolog.Logger {
