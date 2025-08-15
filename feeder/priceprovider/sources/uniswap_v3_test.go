@@ -12,6 +12,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/NibiruChain/nibiru/v2/eth"
 	"github.com/NibiruChain/nibiru/v2/x/common/set"
 	"github.com/NibiruChain/pricefeeder/types"
 	"github.com/rs/zerolog"
@@ -61,6 +62,34 @@ func withMockServer(t *testing.T) (*httptest.Server, func()) {
 	}
 }
 
+func parseEthCallParams(req JSONRPCRequest) (
+	to, data string, err error,
+) {
+	if len(req.Params) == 0 {
+		return to, data, fmt.Errorf("eth call params: missing params")
+	}
+	callParams, ok := req.Params[0].(map[string]any)
+	if !ok {
+		reqBz, _ := json.Marshal(req)
+		return to, data, fmt.Errorf("eth call params: unable to parse params as map[string]any: request: %s", reqBz)
+	}
+	to, okTo := callParams["to"].(string)
+	data, okData := callParams["data"].(string)
+	input, okInput := callParams["input"].(string)
+	reqBz, _ := json.Marshal(req)
+	if !okTo {
+		return to, data, fmt.Errorf("eth call params: unable to parse params[0].to and params[0].data: request: %s", reqBz)
+	}
+	if !okData && !okInput {
+		return to, data, fmt.Errorf("eth call params: unable to parse params[0].to and params[0].data: request: %s", reqBz)
+	}
+	if okInput {
+		data = input
+	}
+
+	return
+}
+
 // Mock server that responds to Ethereum JSON-RPC calls
 func createMockEthereumServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -74,12 +103,17 @@ func createMockEthereumServer() *httptest.Server {
 		case "eth_call":
 			// Extract the 'to' address and 'data' from params
 			if len(req.Params) > 0 {
-				callParams := req.Params[0].(map[string]any)
-				to := callParams["to"].(string)
-				data := callParams["data"].(string)
+				to, data, err := parseEthCallParams(req)
+				if err != nil {
+					response.Error = &JSONRPCError{
+						Code:    -420,
+						Message: err.Error(),
+					}
+					break
+				}
 
 				// Mock responses based on contract address and method signature
-				if to == strings.ToLower(UniswapV3factoryAddress) { // Uniswap V3 Factory (lowercase)
+				if common.HexToAddress(to) == UniswapV3factoryAddress { // Uniswap V3 Factory (lowercase)
 					response.Result = handleFactoryCall(data)
 				} else {
 					// Assume it's a pool contract call
@@ -247,11 +281,16 @@ func TestUniswapV3PriceUpdate_WithHTTPMock_MultiplePools(t *testing.T) {
 		response.ID = req.ID
 
 		if req.Method == "eth_call" && len(req.Params) > 0 {
-			callParams := req.Params[0].(map[string]any)
-			to := callParams["to"].(string)
-			data := callParams["data"].(string)
+			to, data, err := parseEthCallParams(req)
+			if err != nil {
+				response.Error = &JSONRPCError{
+					Code:    -420,
+					Message: err.Error(),
+				}
+				panic(err)
+			}
 
-			if to == strings.ToLower(UniswapV3factoryAddress) {
+			if common.HexToAddress(to) == UniswapV3factoryAddress {
 				if data[:10] == "0x1698ee82" { // getPool
 					response.Result = "0x0000000000000000000000001111111111111111111111111111111111111111"
 				}
@@ -482,10 +521,11 @@ func TestTokenInfoMap(t *testing.T) {
 
 func TestConstants(t *testing.T) {
 	assert.Equal(t, "uniswap_v3", UniswapV3)
-	assert.Equal(t, "0x1F98431c8aD98523631AE4a59f267346ea31F984", UniswapV3factoryAddress)
-
-	// Validate factory address format
-	assert.True(t, common.IsHexAddress(UniswapV3factoryAddress))
+	assert.Equal(t, "0x1F98431c8aD98523631AE4a59f267346ea31F984", UniswapV3factoryAddress.Hex())
+	_, err := eth.NewEIP55AddrFromStr(
+		eth.EIP55Addr{Address: UniswapV3factoryAddress}.Hex(),
+	)
+	assert.NoError(t, err)
 }
 
 // =======================
@@ -672,9 +712,14 @@ func TestUniswapV3PriceUpdate_PoolSelection_DifferentLiquidities(t *testing.T) {
 		response.ID = req.ID
 
 		if req.Method == "eth_call" && len(req.Params) > 0 {
-			callParams := req.Params[0].(map[string]any)
-			to := callParams["to"].(string)
-			data := callParams["data"].(string)
+			to, data, err := parseEthCallParams(req)
+			if err != nil {
+				response.Error = &JSONRPCError{
+					Code:    -420,
+					Message: err.Error(),
+				}
+				panic(err)
+			}
 
 			if to == "0x1f98431c8ad98523631ae4a59f267346ea31f984" { // Factory
 				response.Result = "0x0000000000000000000000001111111111111111111111111111111111111111"

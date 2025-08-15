@@ -64,7 +64,14 @@ func CoinmarketcapPriceUpdate(coinmarketcapConfig json.RawMessage) types.FetchPr
 			metrics.PriceSourceCounter.WithLabelValues(CoinMarketCap, "false").Inc()
 			return nil, err
 		}
-		defer res.Body.Close()
+
+		defer func() {
+			errClose := res.Body.Close()
+			if errClose != nil {
+				errClose = fmt.Errorf("error closing response body: %w", errClose)
+				logger.Err(errClose).Str("source", CoinMarketCap).Msg(errClose.Error())
+			}
+		}()
 
 		response, err := io.ReadAll(res.Body)
 		if err != nil {

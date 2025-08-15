@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"google.golang.org/grpc/credentials/insecure"
 	"os"
 	"strconv"
 	"strings"
+
+	"google.golang.org/grpc/credentials/insecure"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/NibiruChain/nibiru/v2/x/common/set"

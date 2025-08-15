@@ -42,7 +42,14 @@ func BybitPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (raw
 		metrics.PriceSourceCounter.WithLabelValues(Bybit, "false").Inc()
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		errClose := resp.Body.Close()
+		if errClose != nil {
+			errClose = fmt.Errorf("error closing response body: %w", errClose)
+			logger.Err(errClose).Str("source", Bybit).Msg(errClose.Error())
+		}
+	}()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
