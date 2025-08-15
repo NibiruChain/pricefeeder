@@ -2,13 +2,15 @@ package sources
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
-	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/nibiru/v2/x/common/set"
+	"github.com/rs/zerolog"
+
 	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
-	"github.com/rs/zerolog"
 )
 
 const (
@@ -41,7 +43,13 @@ func BinancePriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (r
 		metrics.PriceSourceCounter.WithLabelValues(Binance, "false").Inc()
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		errClose := resp.Body.Close()
+		if errClose != nil {
+			errClose = fmt.Errorf("error closing response body: %w", errClose)
+			logger.Err(errClose).Str("source", Binance).Msg(errClose.Error())
+		}
+	}()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {

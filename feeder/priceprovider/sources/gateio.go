@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/nibiru/v2/x/common/set"
+	"github.com/rs/zerolog"
+
 	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
-	"github.com/rs/zerolog"
 )
 
 const (
@@ -29,7 +30,14 @@ func GateIoPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (ra
 		metrics.PriceSourceCounter.WithLabelValues(GateIo, "false").Inc()
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		errClose := resp.Body.Close()
+		if errClose != nil {
+			errClose = fmt.Errorf("error closing response body: %w", errClose)
+			logger.Err(errClose).Str("source", GateIo).Msg(errClose.Error())
+		}
+	}()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -38,7 +46,7 @@ func GateIoPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (ra
 		return nil, err
 	}
 
-	var tickers []map[string]interface{}
+	var tickers []map[string]any
 	err = json.Unmarshal(b, &tickers)
 	if err != nil {
 		logger.Err(err).Msg("failed to unmarshal response body from GateIo")

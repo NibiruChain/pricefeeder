@@ -9,8 +9,9 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 
-	"github.com/NibiruChain/nibiru/x/common/asset"
-	"github.com/NibiruChain/nibiru/x/common/denoms"
+	"github.com/NibiruChain/nibiru/v2/x/common/asset"
+	"github.com/NibiruChain/nibiru/v2/x/common/denoms"
+
 	"github.com/NibiruChain/pricefeeder/types"
 	mocks "github.com/NibiruChain/pricefeeder/types/mocks"
 )

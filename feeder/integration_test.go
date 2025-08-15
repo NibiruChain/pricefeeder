@@ -9,20 +9,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NibiruChain/nibiru/app"
-	"github.com/NibiruChain/nibiru/x/common/asset"
-	"github.com/NibiruChain/nibiru/x/common/denoms"
-	testutilcli "github.com/NibiruChain/nibiru/x/common/testutil/cli"
-	"github.com/NibiruChain/nibiru/x/common/testutil/genesis"
+	"github.com/NibiruChain/nibiru/v2/app"
+	"github.com/NibiruChain/nibiru/v2/gosdk"
+	"github.com/NibiruChain/nibiru/v2/x/common/asset"
+	"github.com/NibiruChain/nibiru/v2/x/common/denoms"
+	"github.com/NibiruChain/nibiru/v2/x/common/testutil/genesis"
+	testutilcli "github.com/NibiruChain/nibiru/v2/x/common/testutil/testnetwork"
+	"github.com/rs/zerolog"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/NibiruChain/pricefeeder/feeder"
 	"github.com/NibiruChain/pricefeeder/feeder/eventstream"
 	"github.com/NibiruChain/pricefeeder/feeder/priceposter"
 	"github.com/NibiruChain/pricefeeder/feeder/priceprovider"
 	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
 	"github.com/NibiruChain/pricefeeder/types"
-	"github.com/rs/zerolog"
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
 type IntegrationTestSuite struct {
@@ -36,8 +38,8 @@ type IntegrationTestSuite struct {
 }
 
 func (s *IntegrationTestSuite) SetupSuite() {
-	app.SetPrefixes(app.AccountAddressPrefix)
-	s.cfg = testutilcli.BuildNetworkConfig(genesis.NewTestGenesisState(app.MakeEncodingConfig()))
+	gosdk.EnsureNibiruPrefix()
+	s.cfg = testutilcli.BuildNetworkConfig(genesis.NewTestGenesisState(app.MakeEncodingConfig().Codec))
 	network, err := testutilcli.New(
 		s.T(),
 		s.T().TempDir(),

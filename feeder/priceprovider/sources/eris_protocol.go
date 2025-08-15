@@ -6,18 +6,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"google.golang.org/grpc/credentials/insecure"
 	"os"
 	"strconv"
 	"strings"
 
+	"google.golang.org/grpc/credentials/insecure"
+
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/NibiruChain/nibiru/x/common/set"
-	"github.com/NibiruChain/pricefeeder/metrics"
-	"github.com/NibiruChain/pricefeeder/types"
+	"github.com/NibiruChain/nibiru/v2/x/common/set"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	"github.com/NibiruChain/pricefeeder/metrics"
+	"github.com/NibiruChain/pricefeeder/types"
 )
 
 const (
@@ -63,7 +65,7 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 	}
 	defer func() {
 		if closeErr := conn.Close(); closeErr != nil {
-			logger.Err(closeErr).Msg("failed to close gRPC connection")
+			logger.Err(closeErr).Str("source", ErisProtocol).Msg("failed to close gRPC connection")
 		}
 	}()
 

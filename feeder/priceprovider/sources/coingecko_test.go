@@ -5,11 +5,12 @@ import (
 	"io"
 	"testing"
 
-	"github.com/NibiruChain/nibiru/x/common/set"
-	"github.com/NibiruChain/pricefeeder/types"
+	"github.com/NibiruChain/nibiru/v2/x/common/set"
 	"github.com/jarcoal/httpmock"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
+
+	"github.com/NibiruChain/pricefeeder/types"
 )
 
 func TestCoingeckoPriceUpdate(t *testing.T) {

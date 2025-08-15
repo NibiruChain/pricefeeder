@@ -10,21 +10,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NibiruChain/nibiru/x/common/set"
-	"github.com/NibiruChain/pricefeeder/types"
-	"github.com/NibiruChain/pricefeeder/types/uniswap_v3"
+	"github.com/NibiruChain/nibiru/v2/x/common/set"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/rs/zerolog"
+
+	"github.com/NibiruChain/pricefeeder/types"
+	"github.com/NibiruChain/pricefeeder/types/uniswap_v3"
 )
 
 var _ types.FetchPricesFunc = UniswapV3PriceUpdate
 
 const (
-	UniswapV3               = "uniswap_v3"
-	UniswapV3factoryAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
+	UniswapV3 = "uniswap_v3"
 )
+
+var UniswapV3factoryAddress = common.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
 
 type TokenInfo struct {
 	Address  string
@@ -113,7 +115,7 @@ func UniswapV3PriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) 
 	}
 	defer client.Close()
 
-	factory, err := uniswap_v3.NewUniswapV3Factory(common.HexToAddress(UniswapV3factoryAddress), client)
+	factory, err := uniswap_v3.NewUniswapV3Factory(UniswapV3factoryAddress, client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create factory contract: %w", err)
 	}
