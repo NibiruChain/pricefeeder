@@ -6,16 +6,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NibiruChain/nibiru/x/common/asset"
-	"github.com/NibiruChain/nibiru/x/common/denoms"
-	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
-	"github.com/NibiruChain/pricefeeder/types"
+	"github.com/NibiruChain/nibiru/v2/x/common/asset"
+	"github.com/NibiruChain/nibiru/v2/x/common/denoms"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
+
+	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
+	"github.com/NibiruChain/pricefeeder/types"
 )
 
 func TestAggregatePriceProvider(t *testing.T) {
 	t.Run("eris protocol success", func(t *testing.T) {
+		t.Setenv("GRPC_READ_ENDPOINT", "grpc.nibiru.fi:443")
 		pp := NewAggregatePriceProvider(
 			map[string]map[asset.Pair]types.Symbol{
 				sources.ErisProtocol: {
@@ -29,7 +31,7 @@ func TestAggregatePriceProvider(t *testing.T) {
 			zerolog.New(io.Discard),
 		)
 		defer pp.Close()
-		<-time.After(sources.UpdateTick + 2*time.Second)
+		<-time.After(sources.UpdateTick + 5*time.Second)
 
 		price := pp.GetPrice("ustnibi:uusd")
 		require.True(t, price.Valid)

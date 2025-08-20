@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/nibiru/v2/x/common/set"
+	"github.com/rs/zerolog"
+
 	"github.com/NibiruChain/pricefeeder/metrics"
 	"github.com/NibiruChain/pricefeeder/types"
-	"github.com/rs/zerolog"
 )
 
 const (
@@ -39,7 +40,14 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 		metrics.PriceSourceCounter.WithLabelValues(Okex, "false").Inc()
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		errClose := resp.Body.Close()
+		if errClose != nil {
+			errClose = fmt.Errorf("error closing response body: %w", errClose)
+			logger.Err(errClose).Str("source", Okex).Msg(errClose.Error())
+		}
+	}()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -58,7 +66,6 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 
 	rawPrices = make(map[types.Symbol]float64)
 	for _, ticker := range response.Data {
-
 		symbol := types.Symbol(ticker.Symbol)
 		if !symbols.Has(symbol) {
 			continue

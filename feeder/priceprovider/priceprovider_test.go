@@ -6,12 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NibiruChain/nibiru/x/common/asset"
-	"github.com/NibiruChain/nibiru/x/common/denoms"
-	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
-	"github.com/NibiruChain/pricefeeder/types"
+	"github.com/NibiruChain/nibiru/v2/x/common/asset"
+	"github.com/NibiruChain/nibiru/v2/x/common/denoms"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
+
+	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
+	"github.com/NibiruChain/pricefeeder/types"
 )
 
 var _ types.Source = (*testAsyncSource)(nil)
@@ -44,6 +45,7 @@ func TestPriceProvider(t *testing.T) {
 	})
 
 	t.Run("eris protocol success", func(t *testing.T) {
+		t.Setenv("GRPC_READ_ENDPOINT", "grpc.nibiru.fi:443")
 		pp := NewPriceProvider(
 			sources.ErisProtocol,
 			map[asset.Pair]types.Symbol{asset.NewPair("ustnibi", denoms.NIBI): "ustnibi:unibi"},

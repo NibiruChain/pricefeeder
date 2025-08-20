@@ -1,0 +1,72 @@
+version: "2"
+linters:
+  enable:
+    - importas
+    - whitespace
+  settings:
+    importas:
+      alias:
+        - pkg: github.com/pkg/errors
+          alias: pkgerrors
+        - pkg: cosmossdk.io/errors
+          alias: sdkioerrors
+        - pkg: github.com/cosmos/cosmos-sdk/types/errors
+          alias: sdkerrors
+        - pkg: cosmossdk.io/math
+          alias: sdkmath
+        - pkg: github.com/cosmos/cosmos-sdk/types
+          alias: sdk
+        - pkg: github.com/cometbft/cometbft/rpc/core
+          alias: cmtrpccoretypes
+        - pkg: github.com/cometbft/cometbft/rpc/client
+          alias: cmtrpcclient
+        - pkg: github.com/cometbft/cometbft/config
+          alias: cmtcfg
+        - pkg: github.com/cometbft/cometbft/libs/cli
+          alias: cmtcli
+        - pkg: github.com/cometbft/cometbft/libs/rand
+          alias: cmtrand
+        - pkg: github.com/cometbft/cometbft/types
+          alias: cmttypes
+      no-unaliased: true
+      no-extra-aliases: false
+    misspell:
+      locale: US
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - path: (.+)\.go$
+        text: github.com\/stretchr\/testify\/suite\.Suite contains sync\.RWMutex
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  fix: true
+severity:
+  default: error
+formatters:
+  enable:
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/NibiruChain/pricefeeder
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+

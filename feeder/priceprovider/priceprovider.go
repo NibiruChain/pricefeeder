@@ -5,11 +5,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/NibiruChain/nibiru/x/common/asset"
-	"github.com/NibiruChain/nibiru/x/common/set"
+	"github.com/NibiruChain/nibiru/v2/x/common/asset"
+	"github.com/NibiruChain/nibiru/v2/x/common/set"
+	"github.com/rs/zerolog"
+
 	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
 	"github.com/NibiruChain/pricefeeder/types"
-	"github.com/rs/zerolog"
 )
 
 var _ types.PriceProvider = (*PriceProvider)(nil)
@@ -28,8 +29,9 @@ type PriceProvider struct {
 	lastPrices          map[types.Symbol]types.RawPrice
 }
 
-// NewPriceProvider returns a types.PriceProvider given the price source we want to gather prices from,
-// the mapping between nibiru asset.Pair and the source's symbols, and a zerolog.Logger instance.
+// NewPriceProvider returns a types.PriceProvider given the price source we want
+// to gather prices from, the mapping between nibiru asset.Pair and the source's
+// symbols, and a zerolog.Logger instance.
 func NewPriceProvider(
 	sourceName string,
 	pairToSymbolMap map[asset.Pair]types.Symbol,
@@ -37,25 +39,31 @@ func NewPriceProvider(
 	logger zerolog.Logger,
 ) types.PriceProvider {
 	var source types.Source
+
+	symbols := set.New[types.Symbol]()
+	for _, s := range pairToSymbolMap {
+		symbols.Add(s)
+	}
+
 	switch sourceName {
 	case sources.Bitfinex:
-		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.BitfinexPriceUpdate, logger)
+		source = sources.NewTickSource(symbols, sources.BitfinexPriceUpdate, logger)
 	case sources.Binance:
-		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.BinancePriceUpdate, logger)
+		source = sources.NewTickSource(symbols, sources.BinancePriceUpdate, logger)
 	case sources.Coingecko:
-		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.CoingeckoPriceUpdate(config), logger)
+		source = sources.NewTickSource(symbols, sources.CoingeckoPriceUpdate(config), logger)
 	case sources.Okex:
-		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.OkexPriceUpdate, logger)
+		source = sources.NewTickSource(symbols, sources.OkexPriceUpdate, logger)
 	case sources.GateIo:
-		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.GateIoPriceUpdate, logger)
+		source = sources.NewTickSource(symbols, sources.GateIoPriceUpdate, logger)
 	case sources.CoinMarketCap:
-		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.CoinmarketcapPriceUpdate(config), logger)
+		source = sources.NewTickSource(symbols, sources.CoinmarketcapPriceUpdate(config), logger)
 	case sources.Bybit:
-		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.BybitPriceUpdate, logger)
+		source = sources.NewTickSource(symbols, sources.BybitPriceUpdate, logger)
 	case sources.ErisProtocol:
-		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.ErisProtocolPriceUpdate, logger)
+		source = sources.NewTickSource(symbols, sources.ErisProtocolPriceUpdate, logger)
 	case sources.UniswapV3:
-		source = sources.NewTickSource(mapValues(pairToSymbolMap), sources.UniswapV3PriceUpdate, logger)
+		source = sources.NewTickSource(symbols, sources.UniswapV3PriceUpdate, logger)
 	default:
 		panic("unknown price provider: " + sourceName)
 	}
@@ -134,15 +142,6 @@ func (p *PriceProvider) GetPrice(pair asset.Pair) types.Price {
 func (p *PriceProvider) Close() {
 	close(p.stopSignal)
 	<-p.done
-}
-
-// mapValues returns a set of the input map's values
-func mapValues(m map[asset.Pair]types.Symbol) set.Set[types.Symbol] {
-	s := set.New[types.Symbol]()
-	for _, v := range m {
-		s.Add(v)
-	}
-	return s
 }
 
 // isValid is a helper function which asserts if a price is valid given

@@ -54,7 +54,7 @@ func (m *MockPricePoster) SendPrices(arg0 types.VotingPeriod, arg1 []types.Price
 }
 
 // SendPrices indicates an expected call of SendPrices.
-func (mr *MockPricePosterMockRecorder) SendPrices(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockPricePosterMockRecorder) SendPrices(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPrices", reflect.TypeOf((*MockPricePoster)(nil).SendPrices), arg0, arg1)
 }

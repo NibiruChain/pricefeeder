@@ -6,37 +6,52 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
+	"strings"
+
+	"google.golang.org/grpc/credentials/insecure"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/NibiruChain/nibiru/x/common/set"
-	"github.com/NibiruChain/pricefeeder/metrics"
-	"github.com/NibiruChain/pricefeeder/types"
+	"github.com/NibiruChain/nibiru/v2/x/common/set"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	"github.com/NibiruChain/pricefeeder/metrics"
+	"github.com/NibiruChain/pricefeeder/types"
 )
 
 const (
 	ErisProtocol = "eris_protocol"
 	// Configuration constants
-	grpcEndpoint = "grpc.nibiru.fi:443"
-	contractAddr = "nibi1udqqx30cw8nwjxtl4l28ym9hhrp933zlq8dqxfjzcdhvl8y24zcqpzmh8m"
-	stateQuery   = `{"state": {}}`
+	stateQuery = `{"state": {}}`
 )
+
+var grpcReadEndpoint string
 
 var _ types.FetchPricesFunc = ErisProtocolPriceUpdate
 
 // newGRPCConnection creates a new gRPC connection with TLS
 func newGRPCConnection() (*grpc.ClientConn, error) {
-	transportDialOpt := grpc.WithTransportCredentials(
-		credentials.NewTLS(
+	grpcReadEndpoint = os.Getenv("GRPC_READ_ENDPOINT")
+	if grpcReadEndpoint == "" {
+		grpcReadEndpoint = os.Getenv("GRPC_ENDPOINT")
+	}
+	if grpcReadEndpoint == "" {
+		grpcReadEndpoint = "localhost:9090"
+	}
+	enableTLS := os.Getenv("ENABLE_TLS") == "true" || strings.Contains(grpcReadEndpoint, ":443")
+	creds := insecure.NewCredentials()
+	if enableTLS {
+		creds = credentials.NewTLS(
 			&tls.Config{
 				InsecureSkipVerify: false,
 			},
-		),
-	)
-	return grpc.Dial(grpcEndpoint, transportDialOpt)
+		)
+	}
+	transportDialOpt := grpc.WithTransportCredentials(creds)
+	return grpc.Dial(grpcReadEndpoint, transportDialOpt)
 }
 
 // ErisProtocolPriceUpdate retrieves the exchange rate for stNIBI to NIBI (ustnibi:unibi) from the Eris Protocol smart contract.
@@ -44,15 +59,20 @@ func newGRPCConnection() (*grpc.ClientConn, error) {
 func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	conn, err := newGRPCConnection()
 	if err != nil {
-		logger.Err(err).Msgf("failed to connect to gRPC endpoint %s", grpcEndpoint)
+		logger.Err(err).Msgf("failed to connect to gRPC endpoint %s", grpcReadEndpoint)
 		metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "false").Inc()
-		return nil, fmt.Errorf("failed to connect to gRPC endpoint %s: %w", grpcEndpoint, err)
+		return nil, fmt.Errorf("failed to connect to gRPC endpoint %s: %w", grpcReadEndpoint, err)
 	}
 	defer func() {
 		if closeErr := conn.Close(); closeErr != nil {
-			logger.Err(closeErr).Msg("failed to close gRPC connection")
+			logger.Err(closeErr).Str("source", ErisProtocol).Msg("failed to close gRPC connection")
 		}
 	}()
+
+	contractAddr := os.Getenv("ERIS_PROTOCOL_CONTRACT_ADDRESS")
+	if contractAddr == "" {
+		contractAddr = "nibi1udqqx30cw8nwjxtl4l28ym9hhrp933zlq8dqxfjzcdhvl8y24zcqpzmh8m" // mainnet
+	}
 
 	wasmClient := wasmtypes.NewQueryClient(conn)
 	query := wasmtypes.QuerySmartContractStateRequest{

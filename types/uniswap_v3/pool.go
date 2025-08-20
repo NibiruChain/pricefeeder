@@ -146,7 +146,7 @@ func bindUniswapV3Pool(address common.Address, caller bind.ContractCaller, trans
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_UniswapV3Pool *UniswapV3PoolRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+func (_UniswapV3Pool *UniswapV3PoolRaw) Call(opts *bind.CallOpts, result *[]any, method string, params ...any) error {
 	return _UniswapV3Pool.Contract.UniswapV3PoolCaller.contract.Call(opts, result, method, params...)
 }
 
@@ -157,7 +157,7 @@ func (_UniswapV3Pool *UniswapV3PoolRaw) Transfer(opts *bind.TransactOpts) (*type
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_UniswapV3Pool *UniswapV3PoolRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+func (_UniswapV3Pool *UniswapV3PoolRaw) Transact(opts *bind.TransactOpts, method string, params ...any) (*types.Transaction, error) {
 	return _UniswapV3Pool.Contract.UniswapV3PoolTransactor.contract.Transact(opts, method, params...)
 }
 
@@ -165,7 +165,7 @@ func (_UniswapV3Pool *UniswapV3PoolRaw) Transact(opts *bind.TransactOpts, method
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_UniswapV3Pool *UniswapV3PoolCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+func (_UniswapV3Pool *UniswapV3PoolCallerRaw) Call(opts *bind.CallOpts, result *[]any, method string, params ...any) error {
 	return _UniswapV3Pool.Contract.contract.Call(opts, result, method, params...)
 }
 
@@ -176,7 +176,7 @@ func (_UniswapV3Pool *UniswapV3PoolTransactorRaw) Transfer(opts *bind.TransactOp
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_UniswapV3Pool *UniswapV3PoolTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+func (_UniswapV3Pool *UniswapV3PoolTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...any) (*types.Transaction, error) {
 	return _UniswapV3Pool.Contract.contract.Transact(opts, method, params...)
 }
 
@@ -184,7 +184,7 @@ func (_UniswapV3Pool *UniswapV3PoolTransactorRaw) Transact(opts *bind.TransactOp
 //
 // Solidity: function liquidity() view returns(uint128)
 func (_UniswapV3Pool *UniswapV3PoolCaller) Liquidity(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
+	var out []any
 	err := _UniswapV3Pool.contract.Call(opts, &out, "liquidity")
 
 	if err != nil {
@@ -223,7 +223,7 @@ func (_UniswapV3Pool *UniswapV3PoolCaller) Slot0(opts *bind.CallOpts) (struct {
 	FeeProtocol                uint8
 	Unlocked                   bool
 }, error) {
-	var out []interface{}
+	var out []any
 	err := _UniswapV3Pool.contract.Call(opts, &out, "slot0")
 
 	outstruct := new(struct {
