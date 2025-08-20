@@ -80,7 +80,7 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 	},
 
 	sources.ChainLink: {
-		"uubtc:uusd": "uBTC:USD",
+		"b2btc:btc": "uBTC/BTC",
 	},
 }
 

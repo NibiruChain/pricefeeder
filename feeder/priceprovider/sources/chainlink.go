@@ -33,17 +33,17 @@ const (
 type ChainlinkConfig struct {
 	Chain           ChainType
 	ContractAddress common.Address
-	Description     string        // Expected description (for validation)
+	Description     string        // Expected description (for sanity check)
 	MaxDataAge      time.Duration // Maximum acceptable data age
 }
 
 // chainlinkConfigMap maps trading pair symbols to their Chainlink oracle configurations
 var chainlinkConfigMap = map[types.Symbol]ChainlinkConfig{
-	"uBTC:USD": {
+	"uBTC/BTC": {
 		Chain:           ChainB2,
-		ContractAddress: common.HexToAddress("0x571b77B3511ba6A097cd219023DBc7a0820DB797"),
-		Description:     "uBTC/USD",
-		MaxDataAge:      1 * time.Hour,
+		ContractAddress: common.HexToAddress("0xA2ed2B84073B3BA4F3Bd6528260d85EdDFD72fF2"),
+		Description:     "uBTC/BTC Exchange Rate",
+		MaxDataAge:      0, // No age limit for this example
 	},
 }
 
@@ -180,7 +180,7 @@ func fetchPriceFromOracle(
 	updatedAt := time.Unix(int64(roundData.UpdatedAt.Uint64()), 0)
 	dataAge := now.Sub(updatedAt)
 
-	if dataAge > config.MaxDataAge {
+	if config.MaxDataAge > 0 && dataAge > config.MaxDataAge {
 		logger.Warn().
 			Str("symbol", string(symbol)).
 			Dur("age", dataAge).

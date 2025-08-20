@@ -16,7 +16,7 @@ func TestChainlinkPriceUpdate(t *testing.T) {
 	logger := zerolog.New(zerolog.NewTestWriter(t))
 
 	symbols := set.New[types.Symbol]()
-	symbols.Add("uBTC:USD")
+	symbols.Add("uBTC/BTC")
 	symbols.Add("foo:bar")
 
 	prices, err := ChainlinkPriceUpdate(symbols, logger)
@@ -24,10 +24,10 @@ func TestChainlinkPriceUpdate(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, prices, 1)
 
-	price := prices["uBTC:USD"]
+	price := prices["uBTC/BTC"]
 	assert.Greater(t, price, 0.0)
 
-	_, unknownExists := prices["foo:bar"]
+	_, unknownExists := prices["foo/bar"]
 	assert.False(t, unknownExists)
 }
 
