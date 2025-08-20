@@ -133,6 +133,20 @@ ETHEREUM_RPC_ENDPOINT="https://mainnet.infura.io/v3/<INFURA_API_KEY>"
 ETHEREUM_RPC_PUBLIC_ENDPOINTS="https://eth.llamarpc.com,https://cloudflare-eth.com/,https://rpc.flashbots.net/"
 ```
 
+## Chainlink on B^2 Network
+
+Some token prices are retrieved from other chains Chainlink oracles.
+To configure the Chainlink data source, you could set the following environment variables.
+If not set, the price feeder will use default public RPC endpoints.
+
+```ini
+# Optional, used for Chainlink prices, defaults to pulic B^2 Network RPC endpoints
+B2_RPC_ENDPOINT="https://mainnet.b2-rpc.com"
+
+# Optional, used if custom exclusive B2_RPC_ENDPOINT not set, defaults to public endpoints (see in the code)
+B2_RPC_PUBLIC_ENDPOINTS="https://rpc.bsquared.network,https://mainnet.b2-rpc.com"
+```
+
 ## Eris Protocol for stNIBI price
 
 The price of stNIBI is fetched from the Eris Protocol (CosmWasm) by GRPC.

@@ -64,6 +64,8 @@ func NewPriceProvider(
 		source = sources.NewTickSource(symbols, sources.ErisProtocolPriceUpdate, logger)
 	case sources.UniswapV3:
 		source = sources.NewTickSource(symbols, sources.UniswapV3PriceUpdate, logger)
+	case sources.ChainLink:
+		source = sources.NewTickSource(symbols, sources.ChainlinkPriceUpdate, logger)
 	default:
 		panic("unknown price provider: " + sourceName)
 	}
