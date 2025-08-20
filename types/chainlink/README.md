@@ -1,4 +1,4 @@
-# Go Types Generator for Uniswap V3
+# Go Types Generator for Chainlink Aggregator
 
 ## Install abigen
 ```bash
