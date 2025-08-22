@@ -334,7 +334,7 @@ func TestUniswapV3PriceUpdate_WithHTTPMock_MultiplePools(t *testing.T) {
 	require.NotNil(t, prices)
 	require.Contains(t, prices, types.Symbol("USDa:USDT"))
 
-	price := prices[types.Symbol("USDa:USDT")]
+	price := prices[Symbol_UniswapV3_USDaUSD]
 	assert.Greater(t, price, 0.0, "Price should be positive")
 	assert.GreaterOrEqual(t, callCount, 3, "Should have called liquidity() for multiple pools")
 
@@ -521,7 +521,7 @@ func TestTokenInfoMap(t *testing.T) {
 }
 
 func TestConstants(t *testing.T) {
-	assert.Equal(t, "uniswap_v3", UniswapV3)
+	assert.Equal(t, "uniswap_v3", SourceUniswapV3)
 	assert.Equal(t, "0x1F98431c8aD98523631AE4a59f267346ea31F984", UniswapV3factoryAddress.Hex())
 	_, err := eth.NewEIP55AddrFromStr(
 		eth.EIP55Addr{Address: UniswapV3factoryAddress}.Hex(),
@@ -648,7 +648,7 @@ func TestUniswapV3PriceUpdate_MultipleSymbols(t *testing.T) {
 
 	logger := zerolog.New(os.Stdout)
 	symbols := set.New[types.Symbol]()
-	symbols.Add("USDa:USDT")
+	symbols.Add(Symbol_UniswapV3_USDaUSD)
 	symbols.Add("USDT:USDa") // Reverse pair
 
 	prices, err := UniswapV3PriceUpdate(symbols, logger)
@@ -758,13 +758,13 @@ func TestUniswapV3PriceUpdate_PoolSelection_DifferentLiquidities(t *testing.T) {
 
 	logger := zerolog.New(os.Stdout)
 	symbols := set.New[types.Symbol]()
-	symbols.Add("USDa:USDT")
+	symbols.Add(Symbol_UniswapV3_USDaUSD)
 
 	prices, err := UniswapV3PriceUpdate(symbols, logger)
 
 	require.NoError(t, err)
 	assert.NotNil(t, prices)
-	assert.Contains(t, prices, types.Symbol("USDa:USDT"))
+	assert.Contains(t, prices, Symbol_UniswapV3_USDaUSD)
 
 	// Verify that liquidity was checked for all pools
 	assert.Equal(t, 3, len(liquidityCallOrder), "Should check liquidity for all 3 fee tiers")

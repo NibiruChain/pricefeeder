@@ -30,7 +30,7 @@ func (t testAsyncSource) PriceUpdates() <-chan map[types.Symbol]types.RawPrice {
 func TestPriceProvider(t *testing.T) {
 	t.Run("bitfinex success", func(t *testing.T) {
 		pp := NewPriceProvider(
-			sources.Bitfinex,
+			sources.SourceBitfinex,
 			map[asset.Pair]types.Symbol{asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD"},
 			json.RawMessage{},
 			zerolog.New(io.Discard),
@@ -41,13 +41,13 @@ func TestPriceProvider(t *testing.T) {
 		price := pp.GetPrice(asset.Registry.Pair(denoms.BTC, denoms.NUSD))
 		require.True(t, price.Valid)
 		require.Equal(t, asset.Registry.Pair(denoms.BTC, denoms.NUSD), price.Pair)
-		require.Equal(t, sources.Bitfinex, price.SourceName)
+		require.Equal(t, sources.SourceBitfinex, price.SourceName)
 	})
 
 	t.Run("eris protocol success", func(t *testing.T) {
 		t.Setenv("GRPC_READ_ENDPOINT", "grpc.nibiru.fi:443")
 		pp := NewPriceProvider(
-			sources.ErisProtocol,
+			sources.SourceErisProtocol,
 			map[asset.Pair]types.Symbol{asset.NewPair("ustnibi", denoms.NIBI): "ustnibi:unibi"},
 			json.RawMessage{},
 			zerolog.New(io.Discard),
@@ -58,7 +58,7 @@ func TestPriceProvider(t *testing.T) {
 		price := pp.GetPrice(asset.NewPair("ustnibi", denoms.NIBI))
 		require.True(t, price.Valid)
 		require.Equal(t, asset.NewPair("ustnibi", denoms.NIBI), price.Pair)
-		require.Equal(t, sources.ErisProtocol, price.SourceName)
+		require.Equal(t, sources.SourceErisProtocol, price.SourceName)
 	})
 
 	t.Run("panics on unknown price source", func(t *testing.T) {
