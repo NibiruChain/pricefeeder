@@ -4,18 +4,20 @@
 
 The `pricefeeder` is a tool developed for Nibiru's [Oracle Module consensus](https://nibiru.fi/docs/ecosystem/oracle/) that runs a process to pull data from various external sources and then broadcasts transactions to vote on exchange rates.
 
-- [NibiruChain/pricefeeder for the Oracle Module](#nibiruchainpricefeeder-for-the-oracle-module)
-  - [Quick Start - Local Development](#quick-start---local-development)
-    - [Configuration for the `.env`](#configuration-for-the-env)
-    - [Run](#run)
-      - [Or, to run the tool as a daemon](#or-to-run-the-tool-as-a-daemon)
-  - [Hacking](#hacking)
-    - [Build](#build)
-    - [Delegating "feeder" consent](#delegating-feeder-consent)
-    - [Enabling TLS](#enabling-tls)
-    - [Configuring specific exchanges](#configuring-specific-exchanges)
-      - [CoinGecko](#coingecko)
-  - [Glossary](#glossary)
+
+- [Quick Start - Local Development](#quick-start---local-development)
+  - [Configuration for the `.env`](#configuration-for-the-env)
+  - [Run](#run)
+    - [Or, to run the tool as a daemon](#or-to-run-the-tool-as-a-daemon)
+- [Hacking](#hacking)
+  - [Build](#build)
+  - [Delegating "feeder" consent](#delegating-feeder-consent)
+  - [Enabling TLS](#enabling-tls)
+  - [Configuring specific exchanges](#configuring-specific-exchanges)
+    - [CoinGecko](#coingecko)
+- [Uniswap V3 on Ethereum](#uniswap-v3-on-ethereum)
+- [Eris Protocol for stNIBI price](#eris-protocol-for-stnibi-price)
+- [Glossary](#glossary)
 
 ## Quick Start - Local Development
 
@@ -108,9 +110,9 @@ To enable TLS, you need to set the following env vars:
 TLS_ENABLED="true"
 ```
 
-### Configuring specific exchanges
+## Configuring Price Sources
 
-#### CoinGecko
+### CoinGecko
 
 Coingecko source allows to use paid api key to get more requests per minute. In order to configure it,
 you need to set env var:
@@ -133,7 +135,7 @@ ETHEREUM_RPC_ENDPOINT="https://mainnet.infura.io/v3/<INFURA_API_KEY>"
 ETHEREUM_RPC_PUBLIC_ENDPOINTS="https://eth.llamarpc.com,https://cloudflare-eth.com/,https://rpc.flashbots.net/"
 ```
 
-## Eris Protocol for stNIBI price
+### Eris Protocol for stNIBI price
 
 The price of stNIBI is fetched from the Eris Protocol (CosmWasm) by GRPC.
 
@@ -179,6 +181,14 @@ ERIS_PROTOCOL_CONTRACT_ADDRESS="nibi1udqqx30cw8nwjxtl4l28ym9hhrp933zlq8dqxfjzcdh
 # Testnet-2
 ERIS_PROTOCOL_CONTRACT_ADDRESS="nibi1keqw4dllsczlldd7pmzp25wyl04fw5anh3wxljhg4fjuqj9xnxuqa82rpg"
 ```
+
+### Avalon Finance for sUSDa, USDa
+
+
+[Avalon Finance](https://avalonfinance.xyz) is a CeDeFi lending project that
+powers both USDa and sUSDa. The redeem rate between USDa and its yield-bearing variant, sUSDa, is retrieved from the API provided by Avalon Labs. 
+
+This data source adds queries for the "susda:usda" and "susda:usd" asset pairs.
 
 ## Glossary
 

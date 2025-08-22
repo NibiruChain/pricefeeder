@@ -51,9 +51,11 @@ var aggregatePriceProvider = promauto.NewCounterVec(prometheus.CounterOpts{
 // Iteration is exhaustive and random.
 // If no correct PriceResponse is found, then an invalid PriceResponse is returned.
 func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
-	// SPECIAL CASE FOR stNIBI
-	// fetch unibi:uusd first to calculate the ustnibi:unibi price
-	if pair.String() == "ustnibi:uusd" {
+	switch pairStr := pair.String(); pairStr {
+	// SPECIAL CASE - stNIBI
+	case "ustnibi:uusd":
+		// fetch unibi:uusd first to calculate the ustnibi:unibi price
+
 		unibiUusdPrice := -1.0 // default to -1 to indicate we haven't found a valid price yet
 		for _, p := range a.providers {
 			price := p.GetPrice("unibi:uusd")
@@ -67,7 +69,7 @@ func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 
 		if unibiUusdPrice <= 0 {
 			// if we can't find a valid unibi:uusd price, return an invalid price
-			a.logger.Warn().Str("pair", "ustnibi:uusd").Msg("no valid price found for unibi:uusd")
+			a.logger.Warn().Str("pair", pair.String()).Msg("no valid price found")
 			aggregatePriceProvider.WithLabelValues("ustnibi:uusd", "missing", "false").Inc()
 			return types.Price{
 				SourceName: "missing",
@@ -91,15 +93,40 @@ func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 				Valid:      true,
 			}
 		}
-	}
 
-	// for all other price pairs, iterate randomly, if we find a valid price, we return it
-	// otherwise we go onto the next PriceProvider to ask for prices.
-	for _, p := range a.providers {
-		price := p.GetPrice(pair)
-		if price.Valid {
-			aggregatePriceProvider.WithLabelValues(pair.String(), price.SourceName, "true").Inc()
-			return price
+	case "susda:usd":
+		priceSusdaUsda := a.GetPrice("susda:usda")
+		if priceSusdaUsda.Price <= 0 {
+			// if we can't find a valid unibi:uusd price, return an invalid price
+			a.logger.Warn().Str("pair", pairStr).Msg("no valid price found")
+			aggregatePriceProvider.WithLabelValues(pairStr, "missing", "false").Inc()
+			return types.Price{
+				SourceName: "missing",
+				Pair:       pair,
+				Price:      0,
+				Valid:      false,
+			}
+		}
+
+		priceUsdaUsd := a.GetPrice("usda:usd")
+		if priceSusdaUsda.Valid {
+			return types.Price{
+				Pair:       pair,
+				Price:      priceSusdaUsda.Price * priceUsdaUsd.Price,
+				SourceName: priceSusdaUsda.SourceName,
+				Valid:      true,
+			}
+		}
+
+	default:
+		// for all other price pairs, iterate randomly, if we find a valid price, we return it
+		// otherwise we go onto the next PriceProvider to ask for prices.
+		for _, p := range a.providers {
+			price := p.GetPrice(pair)
+			if price.Valid {
+				aggregatePriceProvider.WithLabelValues(pair.String(), price.SourceName, "true").Inc()
+				return price
+			}
 		}
 	}
 

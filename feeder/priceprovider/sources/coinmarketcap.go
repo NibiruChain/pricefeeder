@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	CoinMarketCap     = "coinmarketcap"
-	link              = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest"
-	apiKeyHeaderParam = "X-CMC_PRO_API_KEY"
+	SourceCoinMarketCap = "coinmarketcap"
+	link                = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest"
+	apiKeyHeaderParam   = "X-CMC_PRO_API_KEY"
 )
 
 type CmcQuotePrice struct {
@@ -47,14 +47,14 @@ func CoinmarketcapPriceUpdate(coinmarketcapConfig json.RawMessage) types.FetchPr
 		config, err := getConfig(coinmarketcapConfig)
 		if err != nil {
 			logger.Err(err).Msg("failed to extract coinmarketcap config")
-			metrics.PriceSourceCounter.WithLabelValues(CoinMarketCap, "false").Inc()
+			metrics.PriceSourceCounter.WithLabelValues(SourceCoinMarketCap, "false").Inc()
 			return nil, err
 		}
 
 		req, err := buildReq(symbols, config)
 		if err != nil {
 			logger.Err(err).Msg("failed to build request for Coinmarketcap")
-			metrics.PriceSourceCounter.WithLabelValues(CoinMarketCap, "false").Inc()
+			metrics.PriceSourceCounter.WithLabelValues(SourceCoinMarketCap, "false").Inc()
 			return nil, err
 		}
 
@@ -62,7 +62,7 @@ func CoinmarketcapPriceUpdate(coinmarketcapConfig json.RawMessage) types.FetchPr
 		res, err := client.Do(req)
 		if err != nil {
 			logger.Err(err).Msg("failed to fetch prices from Coinmarketcap")
-			metrics.PriceSourceCounter.WithLabelValues(CoinMarketCap, "false").Inc()
+			metrics.PriceSourceCounter.WithLabelValues(SourceCoinMarketCap, "false").Inc()
 			return nil, err
 		}
 
@@ -70,25 +70,25 @@ func CoinmarketcapPriceUpdate(coinmarketcapConfig json.RawMessage) types.FetchPr
 			errClose := res.Body.Close()
 			if errClose != nil {
 				errClose = fmt.Errorf("error closing response body: %w", errClose)
-				logger.Err(errClose).Str("source", CoinMarketCap).Msg(errClose.Error())
+				logger.Err(errClose).Str("source", SourceCoinMarketCap).Msg(errClose.Error())
 			}
 		}()
 
 		response, err := io.ReadAll(res.Body)
 		if err != nil {
 			logger.Err(err).Msg("failed to read response body from Coinmarketcap")
-			metrics.PriceSourceCounter.WithLabelValues(CoinMarketCap, "false").Inc()
+			metrics.PriceSourceCounter.WithLabelValues(SourceCoinMarketCap, "false").Inc()
 			return nil, err
 		}
 
 		rawPrices, err := getPricesFromResponse(symbols, response, logger)
 		if err != nil {
 			logger.Err(err).Msg("failed to extract prices from Coinmarketcap response")
-			metrics.PriceSourceCounter.WithLabelValues(CoinMarketCap, "false").Inc()
+			metrics.PriceSourceCounter.WithLabelValues(SourceCoinMarketCap, "false").Inc()
 			return nil, err
 		}
 
-		metrics.PriceSourceCounter.WithLabelValues(CoinMarketCap, "true").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceCoinMarketCap, "true").Inc()
 		return rawPrices, nil
 	}
 }
@@ -121,9 +121,9 @@ func getPricesFromResponse(symbols set.Set[types.Symbol], response []byte, logge
 	for symbol := range symbols {
 		if price, ok := cmcPrice[string(symbol)]; ok {
 			rawPrices[symbol] = price
-			logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, CoinMarketCap, price))
+			logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, SourceCoinMarketCap, price))
 		} else {
-			logger.Err(err).Msg(fmt.Sprintf("failed to parse price for %s on data source %s", symbol, CoinMarketCap))
+			logger.Err(err).Msg(fmt.Sprintf("failed to parse price for %s on data source %s", symbol, SourceCoinMarketCap))
 			continue
 		}
 	}
