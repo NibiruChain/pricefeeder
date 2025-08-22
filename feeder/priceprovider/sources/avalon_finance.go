@@ -28,7 +28,7 @@ var _ types.FetchPricesFunc = AvalonPriceUpdate
 func AvalonPriceUpdate(_ set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	var (
 		// API request URL for Avalon Finance sUSDa and USDa redeem ratio.
-		url string = "https://avalon-api-world.vercel.app/api/usda/susda-convert-ratio"
+		url = "https://avalon-api-world.vercel.app/api/usda/susda-convert-ratio"
 
 		// Response format from the Avalon API.
 		// A ratio of "1.08084207433998" means that 1 sUSDa == 1.08 USDa.
