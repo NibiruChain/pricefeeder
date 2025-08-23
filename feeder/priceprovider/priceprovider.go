@@ -46,25 +46,27 @@ func NewPriceProvider(
 	}
 
 	switch sourceName {
-	case sources.Bitfinex:
+	case sources.SourceBitfinex:
 		source = sources.NewTickSource(symbols, sources.BitfinexPriceUpdate, logger)
-	case sources.Binance:
+	case sources.SourceBinance:
 		source = sources.NewTickSource(symbols, sources.BinancePriceUpdate, logger)
-	case sources.Coingecko:
+	case sources.SourceCoingecko:
 		source = sources.NewTickSource(symbols, sources.CoingeckoPriceUpdate(config), logger)
-	case sources.Okex:
+	case sources.SourceOkex:
 		source = sources.NewTickSource(symbols, sources.OkexPriceUpdate, logger)
-	case sources.GateIo:
+	case sources.SourceGateIo:
 		source = sources.NewTickSource(symbols, sources.GateIoPriceUpdate, logger)
-	case sources.CoinMarketCap:
+	case sources.SourceCoinMarketCap:
 		source = sources.NewTickSource(symbols, sources.CoinmarketcapPriceUpdate(config), logger)
-	case sources.Bybit:
+	case sources.SourceBybit:
 		source = sources.NewTickSource(symbols, sources.BybitPriceUpdate, logger)
-	case sources.ErisProtocol:
+	case sources.SourceErisProtocol:
 		source = sources.NewTickSource(symbols, sources.ErisProtocolPriceUpdate, logger)
-	case sources.UniswapV3:
+	case sources.SourceUniswapV3:
 		source = sources.NewTickSource(symbols, sources.UniswapV3PriceUpdate, logger)
-	case sources.ChainLink:
+	case sources.SourceAvalon:
+		source = sources.NewTickSource(symbols, sources.AvalonPriceUpdate, logger)
+	case sources.SourceChainLink:
 		source = sources.NewTickSource(symbols, sources.ChainlinkPriceUpdate, logger)
 	default:
 		panic("unknown price provider: " + sourceName)

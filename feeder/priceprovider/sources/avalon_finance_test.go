@@ -11,10 +11,9 @@ import (
 	"github.com/NibiruChain/pricefeeder/types"
 )
 
-func TestErisProtocolPriceUpdate(t *testing.T) {
-	t.Setenv("GRPC_READ_ENDPOINT", "grpc.nibiru.fi:443")
-	rawPrices, err := ErisProtocolPriceUpdate(set.New[types.Symbol](), zerolog.New(io.Discard))
+func TestAvalonPriceUpdate(t *testing.T) {
+	rawPrices, err := AvalonPriceUpdate(set.New[types.Symbol](), zerolog.New(io.Discard))
 	require.NoError(t, err)
 	require.Equal(t, 1, len(rawPrices))
-	require.NotZero(t, rawPrices["ustnibi:unibi"])
+	require.GreaterOrEqual(t, rawPrices[Symbol_sUSDaUSDa], 0.5)
 }

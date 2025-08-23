@@ -11,7 +11,7 @@ import (
 
 	"github.com/NibiruChain/nibiru/v2/x/common/set"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
+	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/rs/zerolog"
 
@@ -22,10 +22,12 @@ import (
 var _ types.FetchPricesFunc = UniswapV3PriceUpdate
 
 const (
-	UniswapV3 = "uniswap_v3"
+	SourceUniswapV3 = "uniswap_v3"
+
+	Symbol_UniswapV3_USDaUSD types.Symbol = "USDa:USDT"
 )
 
-var UniswapV3factoryAddress = common.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
+var UniswapV3factoryAddress = gethcommon.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
 
 type TokenInfo struct {
 	Address  string
@@ -45,22 +47,22 @@ var tokenInfoMap = map[types.Symbol]TokenInfo{
 
 // Pool represents a Uniswap V3 pool with its metadata
 type Pool struct {
-	Address   common.Address
+	Address   gethcommon.Address
 	Fee       uint32
 	Liquidity *big.Int
 }
 
 // TokenPair represents a sorted token pair for Uniswap V3
 type TokenPair struct {
-	Token0         common.Address
-	Token1         common.Address
+	Token0         gethcommon.Address
+	Token1         gethcommon.Address
 	Token0Decimals int
 	Token1Decimals int
 	IsReversed     bool // true if the original order was reversed for sorting
 }
 
 // NewTokenPair creates a properly sorted token pair for Uniswap V3
-func NewTokenPair(tokenA, tokenB common.Address, decimalsA, decimalsB int) TokenPair {
+func NewTokenPair(tokenA, tokenB gethcommon.Address, decimalsA, decimalsB int) TokenPair {
 	// Sort tokens by address (token0 < token1)
 	if tokenA.Hex() < tokenB.Hex() {
 		return TokenPair{
@@ -117,8 +119,8 @@ func UniswapV3PriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) 
 
 		// Create properly sorted token pair
 		tokenPair := NewTokenPair(
-			common.HexToAddress(baseTokenInfo.Address),
-			common.HexToAddress(quoteTokenInfo.Address),
+			gethcommon.HexToAddress(baseTokenInfo.Address),
+			gethcommon.HexToAddress(quoteTokenInfo.Address),
 			baseTokenInfo.Decimals,
 			quoteTokenInfo.Decimals,
 		)
@@ -156,7 +158,7 @@ func UniswapV3PriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) 
 		}
 		// NOTE: Limit USDa:USDT price to be >= 1.01 to prevent oracle price
 		// manipulations on Uniswap pools. The token is backed by USDT.
-		if symbol == "USDa:USDT" && price < 1.01 {
+		if symbol == Symbol_UniswapV3_USDaUSD && price < 1.01 {
 			price = 1.01
 		}
 		prices[symbol] = price
@@ -170,7 +172,7 @@ func findPoolWithHighestLiquidity(
 	factory *uniswap_v3.UniswapV3Factory,
 	client *ethclient.Client,
 	tokenPair TokenPair,
-) (*common.Address, error) {
+) (*gethcommon.Address, error) {
 	feeTiers := []uint32{500, 3000, 10000} // 0.05%, 0.3%, 1%
 	var pools []Pool
 
@@ -186,7 +188,7 @@ func findPoolWithHighestLiquidity(
 			continue
 		}
 
-		if poolAddress != (common.Address{}) {
+		if poolAddress != (gethcommon.Address{}) {
 			pools = append(pools, Pool{
 				Address: poolAddress,
 				Fee:     fee,
@@ -230,7 +232,7 @@ func findPoolWithHighestLiquidity(
 func getPriceFromPool(
 	ctx context.Context,
 	client *ethclient.Client,
-	poolAddress common.Address,
+	poolAddress gethcommon.Address,
 	tokenPair TokenPair,
 ) (float64, error) {
 	pool, err := uniswap_v3.NewUniswapV3Pool(poolAddress, client)

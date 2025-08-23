@@ -63,7 +63,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	enableTLS := false
 	eventStream := eventstream.Dial(u.String(), grpcEndpoint, enableTLS, log)
-	priceProvider := priceprovider.NewPriceProvider(sources.Bitfinex, map[asset.Pair]types.Symbol{
+	priceProvider := priceprovider.NewPriceProvider(sources.SourceBitfinex, map[asset.Pair]types.Symbol{
 		asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD",
 		asset.Registry.Pair(denoms.ETH, denoms.NUSD): "tETHUSD",
 	}, json.RawMessage{}, log)

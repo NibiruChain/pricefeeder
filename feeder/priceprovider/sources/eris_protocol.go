@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	ErisProtocol = "eris_protocol"
+	SourceErisProtocol = "eris_protocol"
 	// Configuration constants
 	stateQuery = `{"state": {}}`
 )
@@ -60,12 +60,12 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 	conn, err := newGRPCConnection()
 	if err != nil {
 		logger.Err(err).Msgf("failed to connect to gRPC endpoint %s", grpcReadEndpoint)
-		metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceErisProtocol, "false").Inc()
 		return nil, fmt.Errorf("failed to connect to gRPC endpoint %s: %w", grpcReadEndpoint, err)
 	}
 	defer func() {
 		if closeErr := conn.Close(); closeErr != nil {
-			logger.Err(closeErr).Str("source", ErisProtocol).Msg("failed to close gRPC connection")
+			logger.Err(closeErr).Str("source", SourceErisProtocol).Msg("failed to close gRPC connection")
 		}
 	}()
 
@@ -83,13 +83,13 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 	resp, err := wasmClient.SmartContractState(context.Background(), &query)
 	if err != nil {
 		logger.Err(err).Msg("failed to query SmartContractState")
-		metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceErisProtocol, "false").Inc()
 		return nil, fmt.Errorf("failed to query SmartContractState: %w", err)
 	}
 
 	if resp == nil || len(resp.Data) == 0 {
 		logger.Error().Msg("received nil or empty response from SmartContractState")
-		metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceErisProtocol, "false").Inc()
 		return nil, fmt.Errorf("nil response from SmartContractState")
 	}
 
@@ -98,14 +98,14 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 	}
 	if err := json.Unmarshal(resp.Data, &responseObj); err != nil {
 		logger.Err(err).Msg("failed to unmarshal SmartContractState response data")
-		metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceErisProtocol, "false").Inc()
 		return nil, fmt.Errorf("failed to unmarshal SmartContractState response data: %w", err)
 	}
 
 	exchangeRate, err := strconv.ParseFloat(responseObj.ExchangeRate, 64)
 	if err != nil {
 		logger.Err(err).Msg("failed to convert exchange_rate to float")
-		metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceErisProtocol, "false").Inc()
 		return nil, fmt.Errorf("failed to convert exchange_rate to float: %w", err)
 	}
 
@@ -113,7 +113,7 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 	if exchangeRate <= 0 {
 		errMsg := "received invalid exchange rate: value must be positive"
 		logger.Error().Float64("exchange_rate", exchangeRate).Msg(errMsg)
-		metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceErisProtocol, "false").Inc()
 		return nil, errors.New(errMsg)
 	}
 
@@ -121,11 +121,11 @@ func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logge
 	rawPrices[types.Symbol("ustnibi:unibi")] = exchangeRate
 
 	logger.Debug().
-		Str("symbols", fmt.Sprint(symbols)).
-		Str("source", ErisProtocol).
+		Str("source", SourceErisProtocol).
 		Float64("exchange_rate", exchangeRate).
+		Str("symbols", fmt.Sprint(symbols)).
 		Msg("fetched prices")
 
-	metrics.PriceSourceCounter.WithLabelValues(ErisProtocol, "true").Inc()
+	metrics.PriceSourceCounter.WithLabelValues(SourceErisProtocol, "true").Inc()
 	return rawPrices, nil
 }
