@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -86,34 +85,10 @@ func NewTokenPair(tokenA, tokenB gethcommon.Address, decimalsA, decimalsB int) T
 
 // UniswapV3PriceUpdate retrieves the exchange rates for the given symbols from the Uniswap V3 protocol.
 func UniswapV3PriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (map[types.Symbol]float64, error) {
-	endpoints := types.GetEthereumRPCEndpoints()
-
-	var client *ethclient.Client
-	var connErr error
-
-	// If ETHEREUM_RPC_ENDPOINT is set, use it exclusively
-	if os.Getenv("ETHEREUM_RPC_ENDPOINT") != "" {
-		client, connErr = ethclient.Dial(endpoints[0])
-		if connErr != nil {
-			return nil, fmt.Errorf("failed to connect to Ethereum client: %w", connErr)
-		}
-	} else {
-		// Try each endpoint with 10 second timeout
-		timeout := 10 * time.Second
-
-		for _, endpoint := range endpoints {
-			client, connErr = types.TryEthereumRPCEndpoint(endpoint, timeout, logger)
-			if connErr == nil {
-				break
-			}
-			logger.Warn().
-				Str("endpoint", endpoint).
-				Err(connErr).
-				Msg("failed to connect to RPC endpoint, trying next")
-		}
-		if client == nil {
-			return nil, fmt.Errorf("failed to connect to any Ethereum RPC endpoint. Last error: %w", connErr)
-		}
+	timeout := 10 * time.Second
+	client, err := types.ConnectToEthereum(timeout, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to Ethereum: %w", err)
 	}
 	defer client.Close()
 

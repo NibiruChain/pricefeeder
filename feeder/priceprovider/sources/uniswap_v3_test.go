@@ -269,7 +269,7 @@ func TestUniswapV3PriceUpdate_WithHTTPMock_InvalidURL(t *testing.T) {
 
 	_, err := UniswapV3PriceUpdate(symbols, logger)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to connect to Ethereum client")
+	assert.Contains(t, err.Error(), "failed to connect to Ethereum")
 }
 
 func TestUniswapV3PriceUpdate_WithHTTPMock_MultiplePools(t *testing.T) {
