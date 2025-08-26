@@ -4,7 +4,6 @@
 
 The `pricefeeder` is a tool developed for Nibiru's [Oracle Module consensus](https://nibiru.fi/docs/ecosystem/oracle/) that runs a process to pull data from various external sources and then broadcasts transactions to vote on exchange rates.
 
-
 - [Quick Start - Local Development](#quick-start---local-development)
   - [Configuration for the `.env`](#configuration-for-the-env)
   - [Run](#run)
@@ -13,10 +12,13 @@ The `pricefeeder` is a tool developed for Nibiru's [Oracle Module consensus](htt
   - [Build](#build)
   - [Delegating "feeder" consent](#delegating-feeder-consent)
   - [Enabling TLS](#enabling-tls)
-  - [Configuring specific exchanges](#configuring-specific-exchanges)
-    - [CoinGecko](#coingecko)
+- [Configuring Price Sources](#configuring-price-sources)
+  - [CoinGecko](#coingecko)
 - [Uniswap V3 on Ethereum](#uniswap-v3-on-ethereum)
+- [Chainlink on B^2 Network](#chainlink-on-b2-network)
 - [Eris Protocol for stNIBI price](#eris-protocol-for-stnibi-price)
+  - [Eris Protocol for stNIBI price](#eris-protocol-for-stnibi-price-1)
+  - [Avalon Finance for sUSDa, USDa](#avalon-finance-for-susda-usda)
 - [Glossary](#glossary)
 
 ## Quick Start - Local Development
@@ -189,6 +191,20 @@ ERIS_PROTOCOL_CONTRACT_ADDRESS="nibi1keqw4dllsczlldd7pmzp25wyl04fw5anh3wxljhg4fj
 powers both USDa and sUSDa. The redeem rate between USDa and its yield-bearing variant, sUSDa, is retrieved from the API provided by Avalon Labs. 
 
 This data source adds queries for the "susda:usda" and "susda:usd" asset pairs.
+
+### Chainlink on B^2 Network
+
+Some token prices are retrieved from other chains Chainlink oracles.
+To configure the Chainlink data source, you could set the following environment variables.
+If not set, the price feeder will use default public RPC endpoints.
+
+```ini
+# Optional, used for Chainlink prices, defaults to pulic B^2 Network RPC endpoints
+B2_RPC_ENDPOINT="https://mainnet.b2-rpc.com"
+
+# Optional, used if custom exclusive B2_RPC_ENDPOINT not set, defaults to public endpoints (see in the code)
+B2_RPC_PUBLIC_ENDPOINTS="https://rpc.bsquared.network,https://mainnet.b2-rpc.com"
+```
 
 ## Glossary
 

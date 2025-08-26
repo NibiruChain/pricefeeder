@@ -78,6 +78,10 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 	sources.SourceUniswapV3: {
 		"usda:usd": "USDa:USDT",
 	},
+
+	sources.SourceChainLink: {
+		"b2btc:btc": "uBTC/BTC",
+	},
 }
 
 func MustGet() *Config {

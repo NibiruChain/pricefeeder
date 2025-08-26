@@ -66,6 +66,8 @@ func NewPriceProvider(
 		source = sources.NewTickSource(symbols, sources.UniswapV3PriceUpdate, logger)
 	case sources.SourceAvalon:
 		source = sources.NewTickSource(symbols, sources.AvalonPriceUpdate, logger)
+	case sources.SourceChainLink:
+		source = sources.NewTickSource(symbols, sources.ChainlinkPriceUpdate, logger)
 	default:
 		panic("unknown price provider: " + sourceName)
 	}
