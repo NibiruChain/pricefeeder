@@ -15,10 +15,10 @@ import (
 )
 
 const (
-	Coingecko   = "coingecko"
-	FreeLink    = "https://api.coingecko.com/api/v3/"
-	PaidLink    = "https://pro-api.coingecko.com/api/v3/"
-	ApiKeyParam = "x_cg_pro_api_key"
+	SourceCoingecko = "coingecko"
+	FreeLink        = "https://api.coingecko.com/api/v3/"
+	PaidLink        = "https://pro-api.coingecko.com/api/v3/"
+	ApiKeyParam     = "x_cg_pro_api_key"
 )
 
 type CoingeckoTicker struct {
@@ -34,14 +34,14 @@ func CoingeckoPriceUpdate(sourceConfig json.RawMessage) types.FetchPricesFunc {
 		c, err := extractConfig(sourceConfig)
 		if err != nil {
 			logger.Err(err).Msg("failed to extract coingecko config")
-			metrics.PriceSourceCounter.WithLabelValues(Coingecko, "false").Inc()
+			metrics.PriceSourceCounter.WithLabelValues(SourceCoingecko, "false").Inc()
 			return nil, err
 		}
 
 		res, err := http.Get(buildURL(symbols, c))
 		if err != nil {
 			logger.Err(err).Msg("failed to fetch prices from Coingecko")
-			metrics.PriceSourceCounter.WithLabelValues(Coingecko, "false").Inc()
+			metrics.PriceSourceCounter.WithLabelValues(SourceCoingecko, "false").Inc()
 			return nil, err
 		}
 
@@ -49,25 +49,25 @@ func CoingeckoPriceUpdate(sourceConfig json.RawMessage) types.FetchPricesFunc {
 			errClose := res.Body.Close()
 			if errClose != nil {
 				errClose = fmt.Errorf("error closing response body: %w", errClose)
-				logger.Err(errClose).Str("source", Coingecko).Msg(errClose.Error())
+				logger.Err(errClose).Str("source", SourceCoingecko).Msg(errClose.Error())
 			}
 		}()
 
 		response, err := io.ReadAll(res.Body)
 		if err != nil {
 			logger.Err(err).Msg("failed to read response body from Coingecko")
-			metrics.PriceSourceCounter.WithLabelValues(Coingecko, "false").Inc()
+			metrics.PriceSourceCounter.WithLabelValues(SourceCoingecko, "false").Inc()
 			return nil, err
 		}
 
 		rawPrices, err := extractPricesFromResponse(symbols, response, logger)
 		if err != nil {
 			logger.Err(err).Msg("failed to extract prices from Coingecko response")
-			metrics.PriceSourceCounter.WithLabelValues(Coingecko, "false").Inc()
+			metrics.PriceSourceCounter.WithLabelValues(SourceCoingecko, "false").Inc()
 			return nil, err
 		}
 
-		metrics.PriceSourceCounter.WithLabelValues(Coingecko, "true").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceCoingecko, "true").Inc()
 		return rawPrices, nil
 	}
 }
@@ -95,9 +95,9 @@ func extractPricesFromResponse(symbols set.Set[types.Symbol], response []byte, l
 	for symbol := range symbols {
 		if price, ok := result[string(symbol)]; ok {
 			rawPrices[symbol] = price.Price
-			logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, Coingecko, price.Price))
+			logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, SourceCoingecko, price.Price))
 		} else {
-			logger.Err(fmt.Errorf("failed to parse price for %s on data source %s", symbol, Coingecko)).Msg(string(response))
+			logger.Err(fmt.Errorf("failed to parse price for %s on data source %s", symbol, SourceCoingecko)).Msg(string(response))
 			continue
 		}
 	}

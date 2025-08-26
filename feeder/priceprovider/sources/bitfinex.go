@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	Bitfinex = "bitfinex"
+	SourceBitfinex = "bitfinex"
 )
 
 var _ types.FetchPricesFunc = BitfinexPriceUpdate
@@ -38,21 +38,21 @@ func BitfinexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (
 	resp, err := http.Get(url)
 	if err != nil {
 		logger.Err(err).Msg("failed to fetch prices from Bitfinex")
-		metrics.PriceSourceCounter.WithLabelValues(Bitfinex, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceBitfinex, "false").Inc()
 		return nil, err
 	}
 	defer func() {
 		errClose := resp.Body.Close()
 		if errClose != nil {
 			errClose = fmt.Errorf("error closing response body: %w", errClose)
-			logger.Err(errClose).Str("source", Bitfinex).Msg(errClose.Error())
+			logger.Err(errClose).Str("source", SourceBitfinex).Msg(errClose.Error())
 		}
 	}()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Err(err).Msg("failed to read response body from Bitfinex")
-		metrics.PriceSourceCounter.WithLabelValues(Bitfinex, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceBitfinex, "false").Inc()
 		return nil, err
 	}
 	var tickers []ticker
@@ -60,7 +60,7 @@ func BitfinexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (
 	err = json.Unmarshal(b, &tickers)
 	if err != nil {
 		logger.Err(err).Msg("failed to unmarshal response body from Bitfinex")
-		metrics.PriceSourceCounter.WithLabelValues(Bitfinex, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceBitfinex, "false").Inc()
 		return nil, err
 	}
 
@@ -73,10 +73,10 @@ func BitfinexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (
 		lastPrice := ticker[lastPriceIndex].(float64)
 
 		rawPrices[symbol] = lastPrice
-		logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, Bitfinex, lastPrice))
+		logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, SourceBitfinex, lastPrice))
 	}
 
-	metrics.PriceSourceCounter.WithLabelValues(Bitfinex, "true").Inc()
+	metrics.PriceSourceCounter.WithLabelValues(SourceBitfinex, "true").Inc()
 
 	return rawPrices, nil
 }
