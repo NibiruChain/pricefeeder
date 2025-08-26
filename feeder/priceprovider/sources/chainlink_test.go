@@ -1,6 +1,7 @@
 package sources
 
 import (
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -32,11 +33,29 @@ func TestChainlinkPriceUpdate(t *testing.T) {
 }
 
 func TestConvertChainlinkPrice(t *testing.T) {
-	answer := big.NewInt(5000000000) // 50.00000000
-	decimals := uint8(8)
+	for idx, tc := range []struct {
+		answer   *big.Int
+		decimals uint8
+		want     float64
+	}{
+		{
+			answer:   big.NewInt(5_000_000_000),
+			decimals: 8,
+			want:     50.0,
+		},
+		{
+			answer: new(big.Int).Mul(
+				big.NewInt(420_690),
+				new(big.Int).Exp(big.NewInt(10), big.NewInt(15), nil),
+			),
+			decimals: 18,
+			want:     420.69,
+		},
+	} {
+		t.Run(fmt.Sprintf("tc %d - %+v", idx, tc), func(t *testing.T) {})
 
-	price, err := convertChainlinkPrice(answer, decimals)
-
-	require.NoError(t, err)
-	assert.Equal(t, 50.0, price)
+		gotPrice, err := convertChainlinkPrice(tc.answer, tc.decimals)
+		assert.NoError(t, err)
+		assert.Equal(t, tc.want, gotPrice)
+	}
 }
