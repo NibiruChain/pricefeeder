@@ -1,5 +1,7 @@
 package sources
 
+// NOTE: we don't use CoinGecko provider as it's free rate limits are too low for production use.
+
 import (
 	"encoding/json"
 	"fmt"
