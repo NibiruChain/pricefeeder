@@ -39,7 +39,7 @@ func newGRPCConnection() (*grpc.ClientConn, error) {
 		grpcReadEndpoint = os.Getenv("GRPC_ENDPOINT")
 	}
 	if grpcReadEndpoint == "" {
-		grpcReadEndpoint = "localhost:9090"
+		grpcReadEndpoint = "grpc.nibiru.fi:443" // default to mainnet
 	}
 	enableTLS := os.Getenv("ENABLE_TLS") == "true" || strings.Contains(grpcReadEndpoint, ":443")
 	creds := insecure.NewCredentials()
