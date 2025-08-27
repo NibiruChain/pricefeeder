@@ -158,7 +158,7 @@ func UniswapV3PriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) 
 		}
 		// NOTE: Limit USDa:USDT price to be >= 1.01 to prevent oracle price
 		// manipulations on Uniswap pools. The token is backed by USDT.
-		if symbol == Symbol_UniswapV3_USDaUSD && price < 1.01 {
+		if symbol == Symbol_UniswapV3_USDaUSD && price > 1.01 {
 			price = 1.01
 		}
 		prices[symbol] = price
