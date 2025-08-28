@@ -55,7 +55,7 @@ BUILD_FLAGS = -tags "$(build_tags)" -ldflags '$(ldflags)'
 
 CGO_LDFLAGS := -L$(TEMPDIR)/wasmvm/$(WASMVM_VERSION)/lib/$(OS_NAME)_$(ARCH_NAME)/
 ifeq ($(OS_NAME),linux)
-  CGO_LDFLAGS += -static
+  CGO_LDFLAGS += -static -lm
 endif
 
 # ==============================================================================
