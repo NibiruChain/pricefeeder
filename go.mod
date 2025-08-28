@@ -8,7 +8,7 @@ require (
 	github.com/CosmWasm/wasmvm v1.5.8 // indirect
 	github.com/NibiruChain/nibiru/v2 v2.6.0
 	github.com/cometbft/cometbft v0.37.5
-	github.com/cosmos/cosmos-sdk v0.47.11-nibiru.3
+	github.com/cosmos/cosmos-sdk v0.47.13
 	github.com/ethereum/go-ethereum v1.14.13
 )
 
@@ -89,7 +89,7 @@ require (
 	github.com/cosmos/gogoproto v1.4.10 // indirect
 	github.com/cosmos/iavl v0.21.0-beta.1 // indirect
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.3.2-0.20240730185603-13c071f0b34d // indirect
-	github.com/cosmos/ibc-go/v7 v7.4.0 // indirect
+	github.com/cosmos/ibc-go/v7 v7.10.0 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.12.4 // indirect
 	github.com/cosmos/rosetta-sdk-go v0.10.0 // indirect
