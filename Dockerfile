@@ -29,7 +29,7 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
 # ---------- Binary Build Source ----------
 FROM build-${src} AS build-source
 
-FROM gcr.io/distroless/static:nonroot
+FROM gcr.io/distroless/static:nonroot AS release
 
 COPY --from=build-source /root/pricefeeder /bin/
 USER nonroot:nonroot
