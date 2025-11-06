@@ -53,6 +53,11 @@ type TickSource struct {
 	priceUpdateChannel chan map[types.Symbol]types.RawPrice
 }
 
+// loop runs in a background goroutine and periodically fetches prices at the
+// interval defined by UpdateTick. When prices are received, they are formatted
+// as RawPrice objects and sent on the priceUpdateChannel. The loop handles
+// shutdown gracefully by dropping pending updates if a stop signal is received
+// while trying to send.
 func (s *TickSource) loop() {
 	defer s.tick.Stop()
 	defer close(s.done)

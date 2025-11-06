@@ -87,6 +87,10 @@ func newPriceProvider(source types.Source, sourceName string, pairToSymbolsMap m
 	return pp
 }
 
+// loop runs in a background goroutine and continuously listens for price updates
+// from the source. It updates the lastPrices map with new data and handles
+// shutdown signals. The loop exits when stopSignal is closed, ensuring proper
+// cleanup of the source and done channel.
 func (p *PriceProvider) loop() {
 	defer close(p.done)
 	defer p.source.Close()
@@ -140,8 +144,9 @@ func (p *PriceProvider) Close() {
 	<-p.done
 }
 
-// isValid is a helper function which asserts if a price is valid given
-// if it was found and the time at which it was last updated.
+// isValid determines whether a price is valid based on whether it was found and
+// whether it was updated within the [types.PriceTimeout] window. Prices that are
+// missing or older than [types.PriceTimeout] are considered invalid.
 func isValid(price types.RawPrice, found bool) bool {
 	return found && time.Since(price.UpdateTime) < types.PriceTimeout
 }

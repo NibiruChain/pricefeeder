@@ -11,6 +11,9 @@ import (
 	"github.com/NibiruChain/pricefeeder/types"
 )
 
+// SourceFactory is a function type that creates a [types.Source] instance for a given
+// set of symbols, configuration, and logger. Use [SourceFactory] to register
+// new price data sources with the application registry.
 type SourceFactory func(
 	symbols set.Set[types.Symbol],
 	cfg json.RawMessage,
@@ -18,22 +21,40 @@ type SourceFactory func(
 ) types.Source
 
 var (
-	muSource       sync.RWMutex
+	// The [muSource] mutex protects [sourceRegistry] from concurrent access during
+	// registration and retrieval operations. Use RLock for reads and Lock for writes.
+	muSource sync.RWMutex
+
+	// The [sourceRegistry] maps source names (e.g., "binance", "bitfinex") to their
+	// factory functions. Sources are registered during package initialization
+	// via the init function.
 	sourceRegistry = map[string]SourceFactory{}
 )
 
+// NamedSource pairs a source name with its factory function for registration
+// in the price feeder source registry. Use [NamedSource] with [Register] to make
+// a source available to the application.
 type NamedSource struct {
-	Name string
-	F    SourceFactory
+	Name string        // For example, "binance", "bitfinex"
+	F    SourceFactory // The factory function that creates instances of this source
 }
 
 // Register adds a [NamedSource] to the price feeder application.
 func Register(ns NamedSource) {
 	muSource.Lock()
+	defer muSource.Unlock()
+
+	if len(ns.Name) == 0 || ns.F == nil {
+		return
+	}
 	sourceRegistry[ns.Name] = ns.F
-	muSource.Unlock()
 }
 
+// GetRegisteredSource retrieves a registered source by name from the source
+// registry and instantiates it with the provided symbols, configuration, and logger.
+//   - [GetRegisteredSource] is safe for concurrent use.
+//   - Returns an error if the source name is not registered or if the registered
+//     factory function is nil.
 func GetRegisteredSource(
 	name string,
 	symbols set.Set[types.Symbol],

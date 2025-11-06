@@ -169,6 +169,13 @@ func TryUntilDone(
 /// SIGNING
 /// -------------------------------------------------
 
+// sendTx constructs, signs, and broadcasts a transaction containing the provided
+// messages. It retrieves account information (account number and sequence) from
+// the chain and sets transaction fees and gas limits. Returns the transaction
+// response or an error if the broadcast fails or the transaction is rejected.
+//
+// Panics on configuration errors (missing key, encoding failures) as these
+// indicate programmer errors rather than runtime failures.
 func sendTx(
 	ctx context.Context,
 	keyBase keyring.Keyring,
@@ -233,7 +240,15 @@ func sendTx(
 	return resp.TxResponse, nil
 }
 
-func getAccount(ctx context.Context, authClient Auth, ir codectypes.InterfaceRegistry, feeder sdk.AccAddress) (uint64, uint64, error) {
+// The [getAccount] fn retrieves the account number and sequence for the given feeder
+// address from the chain. These values are required for constructing valid
+// transactions. Returns an error if the account cannot be found or unpacked.
+func getAccount(
+	ctx context.Context,
+	authClient Auth,
+	ir codectypes.InterfaceRegistry,
+	feeder sdk.AccAddress,
+) (uint64, uint64, error) {
 	accRaw, err := authClient.Account(ctx, &authtypes.QueryAccountRequest{Address: feeder.String()})
 	if err != nil {
 		return 0, 0, err // if account not found it's pointless to continue
@@ -257,6 +272,13 @@ func getAccount(ctx context.Context, authClient Auth, ir codectypes.InterfaceReg
 // TODO(mercilex): if we used digits + alphanumerics it's more randomized
 var MaxSaltNumber = big.NewInt(9999) // NOTE(mercilex): max salt length is 4
 
+// The [vote] fn submits a prevote message to the chain, and optionally a vote message
+// if an old prevote exists. The vote is constructed from the old prevote's
+// hash and salt. Messages are ordered such that the vote (if present) is sent
+// before the new prevote, as the new prevote will overwrite the old one.
+//
+// oldPrevote may be nil if no previous prevote exists, in which case only
+// the new prevote is submitted.
 func vote(
 	ctx context.Context,
 	newPrevote, oldPrevote *prevote,
@@ -290,6 +312,11 @@ func vote(
 	)
 }
 
+// The [prepareVote] fn constructs a vote message from an existing prevote on the chain.
+// It verifies that the local prevote hash matches the chain's prevote hash
+// to ensure the prevote hasn't been tampered with or expired. Returns nil
+// if no prevote exists on the chain or if the hashes don't match, indicating
+// the prevote has expired or been invalidated.
 func prepareVote(
 	ctx context.Context,
 	oracleClient Oracle,
@@ -323,12 +350,20 @@ func prepareVote(
 	}, nil
 }
 
+// The [prevote] struct contains the data needed for a prevote-vote cycle in the
+// oracle. The [prevote] message is sent first with a hash of the vote data,
+// followed by the actual vote message in the next voting period. This two-phase
+// commit pattern prevents front-running and ensures vote integrity.
 type prevote struct {
 	msg  *oracletypes.MsgAggregateExchangeRatePrevote
 	salt string
 	vote string
 }
 
+// The [newPrevote] fn creates a new prevote message from a list of prices. It generates
+// a random salt value, formats the prices as exchange rate tuples, and computes
+// the aggregate vote hash. The prevote struct contains both the message to send
+// and the data needed to construct the corresponding vote in the next voting period.
 func newPrevote(prices []types.Price, validator sdk.ValAddress, feeder sdk.AccAddress) *prevote {
 	tuple := make(oracletypes.ExchangeRateTuples, len(prices))
 	for i, price := range prices {
