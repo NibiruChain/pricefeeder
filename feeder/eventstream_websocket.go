@@ -1,4 +1,4 @@
-package eventstream
+package feeder
 
 import (
 	"sync/atomic"
@@ -8,14 +8,14 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type dianFn func() (*websocket.Conn, error)
+type dianWsFn func() (*websocket.Conn, error)
 
 type ws struct {
 	logger           zerolog.Logger
 	stopSignal       chan struct{} // external signal to stop the ws
 	done             chan struct{} // internal signal to wait for the ws to execute its shutdown operations
 	read             chan []byte
-	dial             dianFn
+	dial             dianWsFn
 	connection       *websocket.Conn
 	connectionClosed *atomic.Bool
 }

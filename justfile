@@ -20,11 +20,19 @@ build-docker:
 docker-compose:
     docker-compose up
 
-# Run all repo tests, including heavy ones
-test:
+# Run all repo tests, including heavy ones. Ex: just test ./feeder/... -run TestFeeder
+test *ARGS:
   #!/usr/bin/env bash
-  echo "This takes a few minutes to run. The '.' getting printed signifies 2 seconds have passed."
-  (go test ./... & go_test_pid=$!
+  echo "Note that you can pass args to augment the test command."
+  echo "For example: just test ./feeder/... -run TestFeeder"
+  echo "  becomes -> go test ./feeder/... -run TestFeeder 2>&1 | tee out.txt"
+  echo -e "\nThis takes a few minutes to run. The '.' getting printed signifies 2 seconds have passed."
+
+  args="{{ARGS}}"
+  args="${args:-./...}"
+  echo -e "\nRunning: go test $args 2>&1 | tee out.txt"
+
+  (go test $args 2>&1 | tee out.txt & go_test_pid=$!
     # Print while the go test process ID (PID) is running
     while kill -0 $go_test_pid 2>/dev/null; do
       printf '.'

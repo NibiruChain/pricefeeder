@@ -20,9 +20,9 @@ type Feeder struct {
 
 	params types.Params
 
-	eventStream   types.EventStream
-	pricePoster   types.PricePoster
-	priceProvider types.PriceProvider
+	EventStream   types.EventStream
+	PricePoster   types.PricePoster
+	PriceProvider types.PriceProvider
 }
 
 func NewFeeder(
@@ -36,9 +36,9 @@ func NewFeeder(
 		stop:          make(chan struct{}),
 		done:          make(chan struct{}),
 		params:        types.Params{},
-		eventStream:   eventStream,
-		pricePoster:   pricePoster,
-		priceProvider: priceProvider,
+		EventStream:   eventStream,
+		PricePoster:   pricePoster,
+		PriceProvider: priceProvider,
 	}
 
 	return f
@@ -54,7 +54,7 @@ func (f *Feeder) Run() {
 // initParamsOrDie gets the initial params from the event stream or panics if the timeout is exceeded.
 func (f *Feeder) initParamsOrDie() {
 	select {
-	case initParams := <-f.eventStream.ParamsUpdate():
+	case initParams := <-f.EventStream.ParamsUpdate():
 		f.handleParamsUpdate(initParams)
 	case <-time.After(InitTimeout):
 		panic("init timeout deadline exceeded")
@@ -71,10 +71,10 @@ func (f *Feeder) loop() {
 		case <-f.stop:
 			f.logger.Debug().Msg("stop signal received")
 			return
-		case params := <-f.eventStream.ParamsUpdate():
+		case params := <-f.EventStream.ParamsUpdate():
 			f.logger.Info().Interface("changes", params).Msg("params changed")
 			f.handleParamsUpdate(params)
-		case vp := <-f.eventStream.VotingPeriodStarted():
+		case vp := <-f.EventStream.VotingPeriodStarted():
 			f.logger.Info().Interface("voting-period", vp).Msg("new voting period")
 			f.handleVotingPeriod(vp)
 		}
@@ -83,9 +83,9 @@ func (f *Feeder) loop() {
 
 // close closes all the connections and components.
 func (f *Feeder) close() {
-	f.eventStream.Close()
-	f.pricePoster.Close()
-	f.priceProvider.Close()
+	f.EventStream.Close()
+	f.PricePoster.Close()
+	f.PriceProvider.Close()
 	close(f.done)
 }
 
@@ -97,7 +97,7 @@ func (f *Feeder) handleVotingPeriod(vp types.VotingPeriod) {
 	// gather prices
 	prices := make([]types.Price, len(f.params.Pairs))
 	for i, p := range f.params.Pairs {
-		price := f.priceProvider.GetPrice(p)
+		price := f.PriceProvider.GetPrice(p)
 		if !price.Valid {
 			f.logger.Err(fmt.Errorf("no valid price")).Str("asset", p.String()).Str("source", price.SourceName)
 			price.Price = 0
@@ -106,7 +106,7 @@ func (f *Feeder) handleVotingPeriod(vp types.VotingPeriod) {
 	}
 
 	// send prices
-	f.pricePoster.SendPrices(vp, prices)
+	f.PricePoster.SendPrices(vp, prices)
 }
 
 func (f *Feeder) Close() {

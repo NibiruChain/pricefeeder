@@ -1,4 +1,4 @@
-package eventstream
+package feeder
 
 import (
 	"os"
