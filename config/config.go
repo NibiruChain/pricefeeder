@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/joho/godotenv"
 
-	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
+	"github.com/NibiruChain/pricefeeder/sources"
 	"github.com/NibiruChain/pricefeeder/types"
 )
 

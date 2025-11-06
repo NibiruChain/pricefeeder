@@ -1,4 +1,4 @@
-package eventstream
+package feeder
 
 import (
 	"sync/atomic"
@@ -8,18 +8,33 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type dianFn func() (*websocket.Conn, error)
+type dianWsFn func() (*websocket.Conn, error)
 
+// ws represents a WebSocket connection with automatic reconnection capabilities.
+// It handles connection establishment, message reading, and graceful shutdown.
 type ws struct {
 	logger           zerolog.Logger
 	stopSignal       chan struct{} // external signal to stop the ws
 	done             chan struct{} // internal signal to wait for the ws to execute its shutdown operations
 	read             chan []byte
-	dial             dianFn
+	dial             dianWsFn
 	connection       *websocket.Conn
 	connectionClosed *atomic.Bool
 }
 
+// NewWebsocket creates a new WebSocket connection to the specified URL.
+// The connection automatically sends onOpenMsg as a binary message immediately after
+// establishing the connection. The function returns a WebSocket instance that runs
+// in a background goroutine, handling connection, reconnection, and message reading.
+//
+// Parameters:
+//   - url: The WebSocket server URL (e.g., "wss://echo.websocket.org")
+//   - onOpenMsg: A binary message to send immediately after connection is established
+//   - logger: A zerolog logger instance for logging connection events and errors
+//
+// The WebSocket will automatically attempt to reconnect with exponential backoff
+// if the connection is lost (up to 10 retry attempts). Messages can be read from
+// the channel returned by the message() method.
 func NewWebsocket(url string, onOpenMsg []byte, logger zerolog.Logger) *ws {
 	dialFunction := func() (*websocket.Conn, error) {
 		conn, _, err := websocket.DefaultDialer.Dial(url, nil)
@@ -78,7 +93,9 @@ func (w *ws) loop() {
 	}
 }
 
-// attemps to dial the websocket using binary exponential backoff
+// connect attempts to dial the websocket using binary exponential backoff.
+// It will retry up to 10 times with exponentially increasing delays (1s, 2s, 4s, etc.)
+// before giving up. On successful connection, it sends the onOpenMsg and begins reading messages.
 func (w *ws) connect() {
 	w.logger.Debug().Msg("connecting")
 
@@ -105,11 +122,17 @@ func (w *ws) connect() {
 	}
 }
 
-func (w *ws) message() <-chan []byte {
+// Message returns a read-only channel that receives all messages from the WebSocket connection.
+// Messages are delivered as []byte. The channel will be closed when the WebSocket connection
+// is closed via the Close() method.
+func (w *ws) Message() <-chan []byte {
 	return w.read
 }
 
-func (w *ws) close() {
+// Close gracefully closes the WebSocket connection. It signals the connection loop to stop,
+// closes the underlying WebSocket connection, and waits for all shutdown operations to complete.
+// This method is safe to call multiple times and will not panic.
+func (w *ws) Close() {
 	close(w.stopSignal)
 	w.connectionClosed.Store(true)
 	if w.connection != nil {

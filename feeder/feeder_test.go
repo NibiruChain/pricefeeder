@@ -97,9 +97,9 @@ func initFeeder(t *testing.T) testFeederHarness {
 	feeder := &Feeder{
 		stop:          make(chan struct{}),
 		done:          make(chan struct{}),
-		eventStream:   eventStream,
-		pricePoster:   pricePoster,
-		priceProvider: priceProvider,
+		EventStream:   eventStream,
+		PricePoster:   pricePoster,
+		PriceProvider: priceProvider,
 		params:        types.Params{},
 		logger:        zerolog.New(io.Discard),
 	}

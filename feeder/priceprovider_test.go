@@ -1,4 +1,4 @@
-package priceprovider
+package feeder
 
 import (
 	"encoding/json"
@@ -9,11 +9,16 @@ import (
 	"github.com/NibiruChain/nibiru/v2/x/common/asset"
 	"github.com/NibiruChain/nibiru/v2/x/common/denoms"
 	"github.com/rs/zerolog"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
+	"github.com/NibiruChain/pricefeeder/sources"
 	"github.com/NibiruChain/pricefeeder/types"
 )
+
+// -------------------------------------------------
+// PriceProvider
+// -------------------------------------------------
 
 var _ types.Source = (*testAsyncSource)(nil)
 
@@ -28,6 +33,17 @@ func (t testAsyncSource) PriceUpdates() <-chan map[types.Symbol]types.RawPrice {
 }
 
 func TestPriceProvider(t *testing.T) {
+	// Speed up tests by using a much shorter tick duration
+	// Lock for the entire test to serialize tests that modify UpdateTick
+	sources.UpdateTickTestLock.Lock()
+	originalUpdateTick := sources.UpdateTick
+	sources.UpdateTick = 10 * time.Millisecond
+	t.Cleanup(func() {
+		// We still hold the lock from the start of the test, so just restore and unlock
+		sources.UpdateTick = originalUpdateTick
+		sources.UpdateTickTestLock.Unlock()
+	})
+
 	t.Run("bitfinex success", func(t *testing.T) {
 		pp := NewPriceProvider(
 			sources.SourceBitfinex,
@@ -36,6 +52,7 @@ func TestPriceProvider(t *testing.T) {
 			zerolog.New(io.Discard),
 		)
 		defer pp.Close()
+		// Wait for HTTP call + tick, but much shorter now
 		<-time.After(sources.UpdateTick + 2*time.Second)
 
 		price := pp.GetPrice(asset.Registry.Pair(denoms.BTC, denoms.NUSD))
@@ -53,6 +70,7 @@ func TestPriceProvider(t *testing.T) {
 			zerolog.New(io.Discard),
 		)
 		defer pp.Close()
+		// Wait for HTTP call + tick, but much shorter now
 		<-time.After(sources.UpdateTick + 2*time.Second)
 
 		price := pp.GetPrice(asset.NewPair("ustnibi", denoms.NIBI))
@@ -130,5 +148,80 @@ func TestIsValid(t *testing.T) {
 			Price:      20,
 			UpdateTime: time.Now().Add(-1 - 1*types.PriceTimeout),
 		}, true))
+	})
+}
+
+// -------------------------------------------------
+// AggregatePriceProvider
+// -------------------------------------------------
+
+func TestAggregatePriceProvider(t *testing.T) {
+	// Lock for the entire test to serialize tests that modify UpdateTick
+	// NewAggregatePriceProvider -> NewPriceProvider -> NewTickSource reads UpdateTick
+	sources.UpdateTickTestLock.Lock()
+	originalUpdateTick := sources.UpdateTick
+	sources.UpdateTick = 10 * time.Millisecond
+	t.Cleanup(func() {
+		// We still hold the lock from the start of the test, so just restore and unlock
+		sources.UpdateTick = originalUpdateTick
+		sources.UpdateTickTestLock.Unlock()
+	})
+
+	t.Run("eris protocol success", func(t *testing.T) {
+		t.Setenv("GRPC_READ_ENDPOINT", "grpc.nibiru.fi:443")
+		pp := NewAggregatePriceProvider(
+			map[string]map[asset.Pair]types.Symbol{
+				sources.SourceErisProtocol: {
+					asset.NewPair("ustnibi", denoms.NIBI): "ustnibi:unibi",
+				},
+				sources.SourceGateIo: {
+					asset.NewPair("unibi", denoms.USD): "NIBI_USDT",
+				},
+			},
+			map[string]json.RawMessage{},
+			zerolog.New(io.Discard),
+		)
+		defer pp.Close()
+		<-time.After(sources.UpdateTick + 5*time.Second)
+
+		price := pp.GetPrice("ustnibi:uusd")
+		require.True(t, price.Valid)
+		require.Equal(t, asset.NewPair("ustnibi", denoms.USD), price.Pair)
+		require.Equal(t, sources.SourceErisProtocol, price.SourceName)
+	})
+
+	t.Run(sources.SourceAvalon, func(t *testing.T) {
+		pp := NewAggregatePriceProvider(
+			map[string]map[asset.Pair]types.Symbol{
+				sources.SourceAvalon: {
+					"susda:usda": sources.Symbol_sUSDaUSDa,
+				},
+				sources.SourceUniswapV3: {
+					"usda:usd": sources.Symbol_UniswapV3_USDaUSD,
+				},
+			},
+			map[string]json.RawMessage{},
+			zerolog.New(io.Discard),
+		)
+		defer pp.Close()
+		<-time.After(sources.UpdateTick + 5*time.Second)
+
+		pair := asset.Pair("susda:usda")
+		price := pp.GetPrice(pair)
+		assert.Truef(t, price.Valid, "invalid price for %s", price.Pair)
+		assert.Equal(t, pair, price.Pair)
+		assert.Equal(t, sources.SourceAvalon, price.SourceName)
+
+		pair = asset.Pair("usda:usd")
+		price = pp.GetPrice(pair)
+		assert.Truef(t, price.Valid, "invalid price for %s", price.Pair)
+		assert.EqualValues(t, pair, price.Pair)
+		assert.Equal(t, sources.SourceUniswapV3, price.SourceName)
+
+		pair = asset.Pair("susda:usd")
+		price = pp.GetPrice(pair)
+		assert.Truef(t, price.Valid, "invalid price for %s", price.Pair)
+		assert.EqualValues(t, pair, price.Pair)
+		assert.Equal(t, sources.SourceAvalon, price.SourceName)
 	})
 }

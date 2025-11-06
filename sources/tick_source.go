@@ -1,6 +1,7 @@
 package sources
 
 import (
+	"sync"
 	"time"
 
 	"github.com/NibiruChain/nibiru/v2/x/common/set"
@@ -11,6 +12,10 @@ import (
 
 // UpdateTick defines the wait time between price updates.
 var UpdateTick = 8 * time.Second
+
+// UpdateTickTestLock is a mutex that should be acquired before modifying UpdateTick
+// in tests to prevent data races when tests run in parallel.
+var UpdateTickTestLock sync.Mutex
 
 var _ types.Source = (*TickSource)(nil)
 

@@ -68,7 +68,7 @@ make run
 
 ## Hacking
 
-Connecters for data sources like Binance and Bitfinex are defined in the `feeder/priceprovider/sources` directory. Each of these sources must implement a `FetchPricesFunc` function for querying external data.
+Connecters for data sources like Binance and Bitfinex are defined in the `feeder/sources` directory. Each of these sources must implement a `FetchPricesFunc` function for querying external data.
 
 ### Build
 
