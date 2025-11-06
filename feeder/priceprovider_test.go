@@ -157,6 +157,18 @@ func TestIsValid(t *testing.T) {
 // -------------------------------------------------
 
 func TestAggregatePriceProvider(t *testing.T) {
+	// Lock for the entire test to serialize tests that modify UpdateTick
+	// NewAggregatePriceProvider -> NewPriceProvider -> NewTickSource reads UpdateTick
+	sources.UpdateTickTestLock.Lock()
+	defer sources.UpdateTickTestLock.Unlock()
+	originalUpdateTick := sources.UpdateTick
+	sources.UpdateTick = 10 * time.Millisecond
+	t.Cleanup(func() {
+		sources.UpdateTickTestLock.Lock()
+		defer sources.UpdateTickTestLock.Unlock()
+		sources.UpdateTick = originalUpdateTick
+	})
+
 	t.Run("eris protocol success", func(t *testing.T) {
 		t.Setenv("GRPC_READ_ENDPOINT", "grpc.nibiru.fi:443")
 		pp := NewAggregatePriceProvider(
