@@ -130,10 +130,6 @@ func (s *IntegrationSuite) SetupSuite() {
 	)
 }
 
-func (s *IntegrationSuite) TestOk() {
-	<-time.After(30 * time.Second) // TODO
-}
-
 // canConnectToWebsocket checks if we can resolve and connect to the websocket server.
 // It performs a DNS lookup to verify network connectivity before attempting a connection.
 // This allows tests to skip gracefully when network is unavailable.
