@@ -19,8 +19,13 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - name: "Install just"
+        # casey/just: https://just.systems/man/en/chapter_6.html
+        # taiki-e/install-action: https://github.com/taiki-e/install-action
+        uses: taiki-e/install-action@just
+
       - name: Run all tests.
-        run: make test
+        run: just test
 
   build:
     runs-on: ubuntu-latest
