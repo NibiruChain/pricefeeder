@@ -24,8 +24,8 @@ type wsI interface {
 	close()
 }
 
-// Dial opens two connections to the given endpoint, one for the websocket and one for the oracle grpc.
-func Dial(tendermintRPCEndpoint string, grpcEndpoint string, enableTLS bool, logger zerolog.Logger) *Stream {
+// DialEventStream opens two connections to the given endpoint, one for the websocket and one for the oracle grpc.
+func DialEventStream(tendermintRPCEndpoint string, grpcEndpoint string, enableTLS bool, logger zerolog.Logger) *Stream {
 	var transportDialOpt grpc.DialOption
 
 	if enableTLS {

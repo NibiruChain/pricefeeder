@@ -1,4 +1,4 @@
-package priceposter
+package feeder
 
 import (
 	"context"
@@ -30,7 +30,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-var _ types.PricePoster = (*Client)(nil)
+var _ types.PricePoster = (*ClientPricePoster)(nil)
 
 type Oracle interface {
 	AggregatePrevote(context.Context, *oracletypes.QueryAggregatePrevoteRequest, ...grpc.CallOption) (*oracletypes.QueryAggregatePrevoteResponse, error)
@@ -54,7 +54,7 @@ type deps struct {
 	chainID      string
 }
 
-func Dial(
+func DialPricePoster(
 	grpcEndpoint string,
 	chainID string,
 	enableTLS bool,
@@ -62,7 +62,7 @@ func Dial(
 	validator sdk.ValAddress,
 	feeder sdk.AccAddress,
 	logger zerolog.Logger,
-) *Client {
+) *ClientPricePoster {
 	creds := insecure.NewCredentials()
 	if enableTLS {
 		creds = credentials.NewTLS(
@@ -89,7 +89,7 @@ func Dial(
 		chainID:      chainID,
 	}
 
-	return &Client{
+	return &ClientPricePoster{
 		logger:    logger,
 		validator: validator,
 		feeder:    feeder,
@@ -97,7 +97,7 @@ func Dial(
 	}
 }
 
-type Client struct {
+type ClientPricePoster struct {
 	logger zerolog.Logger
 
 	validator sdk.ValAddress
@@ -107,7 +107,7 @@ type Client struct {
 	deps            deps
 }
 
-func (c *Client) Whoami() sdk.ValAddress {
+func (c *ClientPricePoster) Whoami() sdk.ValAddress {
 	return c.validator
 }
 
@@ -117,7 +117,7 @@ var pricePosterCounter = promauto.NewCounterVec(prometheus.CounterOpts{
 	Help:      "The total number of price update txs sent to the chain, by success status",
 }, []string{"success"})
 
-func (c *Client) SendPrices(vp types.VotingPeriod, prices []types.Price) {
+func (c *ClientPricePoster) SendPrices(vp types.VotingPeriod, prices []types.Price) {
 	logger := c.logger.With().Uint64("voting-period-height", vp.Height).Logger()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -136,12 +136,17 @@ func (c *Client) SendPrices(vp types.VotingPeriod, prices []types.Price) {
 	pricePosterCounter.WithLabelValues("true").Inc()
 }
 
-func (c *Client) Close() {
+func (c *ClientPricePoster) Close() {
 }
 
-// tryUntilDone will try to execute the given function until it succeeds or the
+// GetOracleClient returns the oracle client for testing purposes.
+func (c *ClientPricePoster) GetOracleClient() Oracle {
+	return c.deps.oracleClient
+}
+
+// TryUntilDone will try to execute the given function until it succeeds or the
 // context is cancelled.
-func tryUntilDone(
+func TryUntilDone(
 	ctx context.Context,
 	wait time.Duration,
 	f func() error,

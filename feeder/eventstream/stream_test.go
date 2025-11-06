@@ -55,7 +55,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	s.logs = new(bytes.Buffer)
 	enableTLS := false
-	s.eventStream = Dial(
+	s.eventStream = DialEventStream(
 		u.String(),
 		grpcEndpoint,
 		enableTLS,

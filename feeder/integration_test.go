@@ -21,23 +21,22 @@ import (
 
 	"github.com/NibiruChain/pricefeeder/feeder"
 	"github.com/NibiruChain/pricefeeder/feeder/eventstream"
-	"github.com/NibiruChain/pricefeeder/feeder/priceposter"
 	"github.com/NibiruChain/pricefeeder/feeder/priceprovider"
 	"github.com/NibiruChain/pricefeeder/sources"
 	"github.com/NibiruChain/pricefeeder/types"
 )
 
-type IntegrationTestSuite struct {
+type IntegrationSuite struct {
 	suite.Suite
 
-	cfg     testnetwork.Config
-	network *testnetwork.Network
-
-	feeder *feeder.Feeder
-	logs   *bytes.Buffer
+	cfg               testnetwork.Config
+	network           *testnetwork.Network
+	feeder            *feeder.Feeder
+	pricePosterClient *feeder.ClientPricePoster
+	logs              *bytes.Buffer
 }
 
-func (s *IntegrationTestSuite) SetupSuite() {
+func (s *IntegrationSuite) SetupSuite() {
 	gosdk.EnsureNibiruPrefix()
 	s.cfg = testnetwork.BuildNetworkConfig(genesis.NewTestGenesisState(app.MakeEncodingConfig().Codec))
 	network, err := testnetwork.New(
@@ -62,29 +61,41 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	log := zerolog.New(io.MultiWriter(os.Stderr, s.logs)).Level(zerolog.InfoLevel)
 
 	enableTLS := false
-	eventStream := eventstream.Dial(u.String(), grpcEndpoint, enableTLS, log)
+	eventStream := eventstream.DialEventStream(u.String(), grpcEndpoint, enableTLS, log)
 	priceProvider := priceprovider.NewPriceProvider(sources.SourceBitfinex, map[asset.Pair]types.Symbol{
 		asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD",
 		asset.Registry.Pair(denoms.ETH, denoms.NUSD): "tETHUSD",
 	}, json.RawMessage{}, log)
-	pricePoster := priceposter.Dial(
+	pricePoster := feeder.DialPricePoster(
 		grpcEndpoint,
 		s.cfg.ChainID,
 		enableTLS,
 		val.ClientCtx.Keyring, val.ValAddress, val.Address, log)
 	s.feeder = feeder.NewFeeder(eventStream, priceProvider, pricePoster, log)
 	s.feeder.Run()
+
+	// Set up a separate pricePoster client for direct testing (shares the same logs)
+	s.pricePosterClient = feeder.DialPricePoster(
+		grpcEndpoint,
+		s.cfg.ChainID,
+		enableTLS,
+		val.ClientCtx.Keyring, val.ValAddress, val.Address, log)
 }
 
-func (s *IntegrationTestSuite) TestOk() {
+func (s *IntegrationSuite) TestOk() {
 	<-time.After(30 * time.Second) // TODO
 }
 
-func (s *IntegrationTestSuite) TearDownSuite() {
+func (s *IntegrationSuite) TearDownSuite() {
+	if s.feeder != nil {
+		s.feeder.Close()
+	}
+	if s.pricePosterClient != nil {
+		s.pricePosterClient.Close()
+	}
 	s.network.Cleanup()
-	s.feeder.Close()
 }
 
-func TestIntegration(t *testing.T) {
-	suite.Run(t, new(IntegrationTestSuite))
+func TestFeederIntegration(t *testing.T) {
+	suite.Run(t, new(IntegrationSuite))
 }
