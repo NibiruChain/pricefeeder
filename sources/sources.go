@@ -44,7 +44,9 @@ func GetRegisteredSource(
 	sourceFactory, ok := sourceRegistry[name]
 	muSource.RUnlock()
 	if !ok {
-		return nil, fmt.Errorf("unknown provider: %s", name)
+		return nil, fmt.Errorf("unknown data provider source name: %s", name)
+	} else if sourceFactory == nil {
+		return nil, fmt.Errorf("source name %s registered without a SourceFactory", name)
 	}
 	return sourceFactory(symbols, cfg, logger), nil
 }

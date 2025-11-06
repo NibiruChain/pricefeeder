@@ -180,11 +180,11 @@ func NewAggregatePriceProvider(
 
 	if len(providers) != len(sourcesToPairSymbolMap) {
 		logger.Warn().
-			Msg(fmt.Sprintf("invalid source names given as key in configuration: { invalidSources: %s }", invalidSources))
+			Msg(fmt.Sprintf("invalid source names given as key in configuration: { invalidSources: %#v }", invalidSources))
 	}
 	if len(providers) == 0 {
 		logger.Error().
-			Msg(fmt.Sprintf("no price providers available: { invalidSources: %s }", invalidSources))
+			Msg(fmt.Sprintf("no price providers available: { invalidSources: %#v }", invalidSources))
 	}
 
 	return AggregatePriceProvider{
