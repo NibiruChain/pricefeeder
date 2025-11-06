@@ -14,7 +14,7 @@ import (
 	"github.com/NibiruChain/nibiru/v2/x/common/asset"
 	"github.com/NibiruChain/nibiru/v2/x/common/denoms"
 	"github.com/NibiruChain/nibiru/v2/x/common/testutil/genesis"
-	testutilcli "github.com/NibiruChain/nibiru/v2/x/common/testutil/testnetwork"
+	"github.com/NibiruChain/nibiru/v2/x/common/testutil/testnetwork"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -30,8 +30,8 @@ import (
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	cfg     testutilcli.Config
-	network *testutilcli.Network
+	cfg     testnetwork.Config
+	network *testnetwork.Network
 
 	feeder *feeder.Feeder
 	logs   *bytes.Buffer
@@ -39,8 +39,8 @@ type IntegrationTestSuite struct {
 
 func (s *IntegrationTestSuite) SetupSuite() {
 	gosdk.EnsureNibiruPrefix()
-	s.cfg = testutilcli.BuildNetworkConfig(genesis.NewTestGenesisState(app.MakeEncodingConfig().Codec))
-	network, err := testutilcli.New(
+	s.cfg = testnetwork.BuildNetworkConfig(genesis.NewTestGenesisState(app.MakeEncodingConfig().Codec))
+	network, err := testnetwork.New(
 		s.T(),
 		s.T().TempDir(),
 		s.cfg,
