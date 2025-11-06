@@ -521,7 +521,7 @@ func TestTokenInfoMap(t *testing.T) {
 }
 
 func TestConstants(t *testing.T) {
-	assert.Equal(t, "uniswap_v3", SourceUniswapV3)
+	assert.Equal(t, "uniswap_v3", SourceNameUniswapV3)
 	assert.Equal(t, "0x1F98431c8aD98523631AE4a59f267346ea31F984", UniswapV3factoryAddress.Hex())
 	_, err := eth.NewEIP55AddrFromStr(
 		eth.EIP55Addr{Address: UniswapV3factoryAddress}.Hex(),

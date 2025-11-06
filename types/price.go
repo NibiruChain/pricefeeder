@@ -10,6 +10,11 @@ import (
 
 const (
 	PriceTimeout = 15 * time.Second
+
+	// PriceAbstain is the sentinel value (-1) used for invalid prices that
+	// result in abstain votes being posted to the oracle instead of price
+	// values.
+	PriceAbstain float64 = -1
 )
 
 type RawPrice struct {

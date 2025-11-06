@@ -31,7 +31,7 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 	// },
 
 	// https://api-pub.bitfinex.com/v2/conf/pub:list:pair:exchange
-	sources.SourceBitfinex: {
+	sources.SourceNameBitfinex: {
 		"ubtc:uusd":  "tBTCUSD",
 		"ueth:uusd":  "tETHUSD",
 		"uusdc:uusd": "tUDCUSD",
@@ -41,7 +41,7 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 	},
 
 	// https://api.gateio.ws/api/v4/spot/currency_pairs
-	sources.SourceGateIo: {
+	sources.SourceNameGateIo: {
 		"ubtc:uusd":  "BTC_USDT",
 		"ueth:uusd":  "ETH_USDT",
 		"uusdc:uusd": "USDC_USDT",
@@ -52,7 +52,7 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 	},
 
 	// https://www.okx.com/api/v5/market/tickers?instType=SPOT
-	sources.SourceOkex: {
+	sources.SourceNameOkex: {
 		"ubtc:uusd":  "BTC-USDT",
 		"ueth:uusd":  "ETH-USDT",
 		"uusdc:uusd": "USDC-USDT",
@@ -62,7 +62,7 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 	},
 
 	// https://api.bybit.com/v5/market/tickers?category=spot
-	sources.SourceBybit: {
+	sources.SourceNameBybit: {
 		"ubtc:uusd":  "BTCUSDT",
 		"ueth:uusd":  "ETHUSDT",
 		"uusdc:uusd": "USDCUSDT",
@@ -71,19 +71,19 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 		"usol:uusd":  "SOLUSDT",
 	},
 
-	sources.SourceErisProtocol: {
+	sources.SourceNameErisProtocol: {
 		"ustnibi:unibi": "ustnibi:unibi", // this is the only pair supported by the Eris Protocol smart contract
 	},
 
-	sources.SourceUniswapV3: {
+	sources.SourceNameUniswapV3: {
 		"usda:usd": "USDa:USDT",
 	},
 
-	sources.SourceChainLink: {
+	sources.SourceNameChainLink: {
 		"b2btc:btc": "uBTC/BTC",
 	},
 
-	sources.SourceAvalon: {
+	sources.SourceNameAvalon: {
 		"susda:usda": "susda:usda",
 	},
 }

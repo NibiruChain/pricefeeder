@@ -16,3 +16,18 @@ type PriceProvider interface {
 	// Close shuts down the PriceProvider.
 	Close()
 }
+
+var _ PriceProvider = (*NullPriceProvider)(nil)
+
+type NullPriceProvider struct{}
+
+func (pp NullPriceProvider) GetPrice(pair asset.Pair) Price {
+	return Price{
+		Pair:       pair,
+		Price:      PriceAbstain,
+		SourceName: "null",
+		Valid:      false,
+	}
+}
+
+func (pp NullPriceProvider) Close() {}

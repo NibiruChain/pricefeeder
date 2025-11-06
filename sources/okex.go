@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	SourceOkex = "okex"
+	SourceNameOkex = "okex"
 )
 
 var _ types.FetchPricesFunc = OkexPriceUpdate
@@ -37,7 +37,7 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 	resp, err := http.Get(url)
 	if err != nil {
 		logger.Err(err).Msg("failed to fetch prices from Okex")
-		metrics.PriceSourceCounter.WithLabelValues(SourceOkex, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameOkex, "false").Inc()
 		return nil, err
 	}
 
@@ -45,14 +45,14 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 		errClose := resp.Body.Close()
 		if errClose != nil {
 			errClose = fmt.Errorf("error closing response body: %w", errClose)
-			logger.Err(errClose).Str("source", SourceOkex).Msg(errClose.Error())
+			logger.Err(errClose).Str("source", SourceNameOkex).Msg(errClose.Error())
 		}
 	}()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Err(err).Msg("failed to read response body from Okex")
-		metrics.PriceSourceCounter.WithLabelValues(SourceOkex, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameOkex, "false").Inc()
 		return nil, err
 	}
 
@@ -60,7 +60,7 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 	err = json.Unmarshal(b, &response)
 	if err != nil {
 		logger.Err(err).Msg("failed to unmarshal response body from Okex")
-		metrics.PriceSourceCounter.WithLabelValues(SourceOkex, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameOkex, "false").Inc()
 		return nil, err
 	}
 
@@ -73,14 +73,14 @@ func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawP
 
 		price, err := strconv.ParseFloat(ticker.Price, 64)
 		if err != nil {
-			logger.Err(err).Msg(fmt.Sprintf("failed to parse price for %s on data source %s", symbol, SourceOkex))
+			logger.Err(err).Msg(fmt.Sprintf("failed to parse price for %s on data source %s", symbol, SourceNameOkex))
 			continue
 		}
 
 		rawPrices[symbol] = price
-		logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, SourceOkex, price))
+		logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, SourceNameOkex, price))
 	}
 
-	metrics.PriceSourceCounter.WithLabelValues(SourceOkex, "true").Inc()
+	metrics.PriceSourceCounter.WithLabelValues(SourceNameOkex, "true").Inc()
 	return rawPrices, nil
 }

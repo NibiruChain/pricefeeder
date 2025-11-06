@@ -100,7 +100,7 @@ func (f *Feeder) handleVotingPeriod(vp types.VotingPeriod) {
 		price := f.PriceProvider.GetPrice(p)
 		if !price.Valid {
 			f.logger.Err(fmt.Errorf("no valid price")).Str("asset", p.String()).Str("source", price.SourceName)
-			price.Price = 0
+			price.Price = types.PriceAbstain
 		}
 		prices[i] = price
 	}

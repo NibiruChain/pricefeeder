@@ -15,7 +15,7 @@ import (
 
 const (
 	// https://www.avalonfinance.xyz/
-	SourceAvalon = "avalon_finance"
+	SourceNameAvalon = "avalon_finance"
 
 	Symbol_sUSDaUSDa types.Symbol = "susda:usda"
 	Symbol_sUSDaUSD  types.Symbol = "susda:usd"
@@ -44,7 +44,7 @@ func AvalonPriceUpdate(_ set.Set[types.Symbol], logger zerolog.Logger) (rawPrice
 	resp, err := http.Get(url)
 	if err != nil {
 		logger.Err(err).Msg("failed to fetch prices from Avalon")
-		metrics.PriceSourceCounter.WithLabelValues(SourceAvalon, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameAvalon, "false").Inc()
 		return nil, err
 	}
 
@@ -52,21 +52,21 @@ func AvalonPriceUpdate(_ set.Set[types.Symbol], logger zerolog.Logger) (rawPrice
 		errClose := resp.Body.Close()
 		if errClose != nil {
 			errClose = fmt.Errorf("error closing response body: %w", errClose)
-			logger.Err(errClose).Str("source", SourceAvalon).Msg(errClose.Error())
+			logger.Err(errClose).Str("source", SourceNameAvalon).Msg(errClose.Error())
 		}
 	}()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Err(err).Msg("failed to read response body from Avalon")
-		metrics.PriceSourceCounter.WithLabelValues(SourceAvalon, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameAvalon, "false").Inc()
 		return nil, err
 	}
 
 	err = json.Unmarshal(b, &avalonApiResp)
 	if err != nil {
 		logger.Err(err).Msg("failed to unmarshal response body from Avalon")
-		metrics.PriceSourceCounter.WithLabelValues(SourceAvalon, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameAvalon, "false").Inc()
 		return nil, err
 	}
 
@@ -74,11 +74,11 @@ func AvalonPriceUpdate(_ set.Set[types.Symbol], logger zerolog.Logger) (rawPrice
 	rawPrices[Symbol_sUSDaUSDa] = avalonApiResp.Data.Ratio
 
 	logger.Debug().
-		Str("source", SourceAvalon).
+		Str("source", SourceNameAvalon).
 		Str("symbol", string(Symbol_sUSDaUSDa)).
 		Float64("exchange_rate", avalonApiResp.Data.Ratio).
 		Msg("fetched prices")
 
-	metrics.PriceSourceCounter.WithLabelValues(SourceAvalon, "true").Inc()
+	metrics.PriceSourceCounter.WithLabelValues(SourceNameAvalon, "true").Inc()
 	return rawPrices, nil
 }

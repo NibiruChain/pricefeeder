@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	SourceBybit = "bybit"
+	SourceNameBybit = "bybit"
 )
 
 var _ types.FetchPricesFunc = BybitPriceUpdate
@@ -40,7 +40,7 @@ func BybitPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (raw
 	resp, err := http.Get(url)
 	if err != nil {
 		logger.Err(err).Msg("failed to fetch prices from Bybit")
-		metrics.PriceSourceCounter.WithLabelValues(SourceBybit, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameBybit, "false").Inc()
 		return nil, err
 	}
 
@@ -48,14 +48,14 @@ func BybitPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (raw
 		errClose := resp.Body.Close()
 		if errClose != nil {
 			errClose = fmt.Errorf("error closing response body: %w", errClose)
-			logger.Err(errClose).Str("source", SourceBybit).Msg(errClose.Error())
+			logger.Err(errClose).Str("source", SourceNameBybit).Msg(errClose.Error())
 		}
 	}()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Err(err).Msg("failed to read response body from Bybit")
-		metrics.PriceSourceCounter.WithLabelValues(SourceBybit, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameBybit, "false").Inc()
 		return nil, err
 	}
 
@@ -66,7 +66,7 @@ func BybitPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (raw
 			err = fmt.Errorf("%s: %w", ErrBybitBlockAccess, err)
 		}
 		logger.Err(err).Msg("failed to unmarshal response body from Bybit")
-		metrics.PriceSourceCounter.WithLabelValues(SourceBybit, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameBybit, "false").Inc()
 		return nil, err
 	}
 
@@ -76,7 +76,7 @@ func BybitPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (raw
 		symbol := types.Symbol(ticker.Symbol)
 		price, err := strconv.ParseFloat(ticker.Price, 64)
 		if err != nil {
-			logger.Err(err).Msgf("failed to parse price for %s on data source %s", symbol, SourceBybit)
+			logger.Err(err).Msgf("failed to parse price for %s on data source %s", symbol, SourceNameBybit)
 			continue
 		}
 
@@ -84,7 +84,7 @@ func BybitPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (raw
 			rawPrices[symbol] = price
 		}
 	}
-	logger.Debug().Msgf("fetched prices for %s on data source %s: %v", symbols, SourceBybit, rawPrices)
-	metrics.PriceSourceCounter.WithLabelValues(SourceBybit, "true").Inc()
+	logger.Debug().Msgf("fetched prices for %s on data source %s: %v", symbols, SourceNameBybit, rawPrices)
+	metrics.PriceSourceCounter.WithLabelValues(SourceNameBybit, "true").Inc()
 	return rawPrices, nil
 }
