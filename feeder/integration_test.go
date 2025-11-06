@@ -140,19 +140,19 @@ func (s *IntegrationSuite) TestOk() {
 func (s *IntegrationSuite) canConnectToWebsocket(urlStr string) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	
+
 	// Parse the hostname from the URL
 	parsedURL, err := url.Parse(urlStr)
 	if err != nil {
 		return false
 	}
-	
+
 	host := parsedURL.Host
 	// Remove port if present (e.g., "echo.websocket.org:443" -> "echo.websocket.org")
 	if hostname, _, err := net.SplitHostPort(host); err == nil {
 		host = hostname
 	}
-	
+
 	_, err = net.DefaultResolver.LookupHost(ctx, host)
 	return err == nil
 }
