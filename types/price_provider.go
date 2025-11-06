@@ -16,3 +16,26 @@ type PriceProvider interface {
 	// Close shuts down the PriceProvider.
 	Close()
 }
+
+var _ PriceProvider = (*NullPriceProvider)(nil)
+
+// NullPriceProvider is a no-op implementation of [PriceProvider] that always
+// returns invalid prices with [PriceAbstain] values.
+//
+// Use [NullPriceProvider] as a fallback when source initialization fails,
+// allowing the application to continue operating with other available providers
+// rather than crashing.
+//
+// [NullPriceProvider] implements the null object pattern for graceful error handling.
+type NullPriceProvider struct{}
+
+func (pp NullPriceProvider) GetPrice(pair asset.Pair) Price {
+	return Price{
+		Pair:       pair,
+		Price:      PriceAbstain,
+		SourceName: "null",
+		Valid:      false,
+	}
+}
+
+func (pp NullPriceProvider) Close() {}

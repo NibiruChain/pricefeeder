@@ -2,6 +2,7 @@ package feeder
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -55,31 +56,12 @@ func NewPriceProvider(
 		symbols.Add(s)
 	}
 
-	switch sourceName {
-	case sources.SourceBitfinex:
-		source = sources.NewTickSource(symbols, sources.BitfinexPriceUpdate, logger)
-	case sources.SourceBinance:
-		source = sources.NewTickSource(symbols, sources.BinancePriceUpdate, logger)
-	case sources.SourceCoingecko:
-		source = sources.NewTickSource(symbols, sources.CoingeckoPriceUpdate(config), logger)
-	case sources.SourceOkex:
-		source = sources.NewTickSource(symbols, sources.OkexPriceUpdate, logger)
-	case sources.SourceGateIo:
-		source = sources.NewTickSource(symbols, sources.GateIoPriceUpdate, logger)
-	case sources.SourceCoinMarketCap:
-		source = sources.NewTickSource(symbols, sources.CoinmarketcapPriceUpdate(config), logger)
-	case sources.SourceBybit:
-		source = sources.NewTickSource(symbols, sources.BybitPriceUpdate, logger)
-	case sources.SourceErisProtocol:
-		source = sources.NewTickSource(symbols, sources.ErisProtocolPriceUpdate, logger)
-	case sources.SourceUniswapV3:
-		source = sources.NewTickSource(symbols, sources.UniswapV3PriceUpdate, logger)
-	case sources.SourceAvalon:
-		source = sources.NewTickSource(symbols, sources.AvalonPriceUpdate, logger)
-	case sources.SourceChainLink:
-		source = sources.NewTickSource(symbols, sources.ChainlinkPriceUpdate, logger)
-	default:
-		panic("unknown price provider: " + sourceName)
+	source, err := sources.GetRegisteredSource(sourceName, symbols, config, logger)
+	if err != nil {
+		logger.
+			Warn().
+			Msg(err.Error())
+		return types.NullPriceProvider{}
 	}
 
 	return newPriceProvider(source, sourceName, pairToSymbolMap, logger)
@@ -105,6 +87,10 @@ func newPriceProvider(source types.Source, sourceName string, pairToSymbolsMap m
 	return pp
 }
 
+// loop runs in a background goroutine and continuously listens for price updates
+// from the source. It updates the lastPrices map with new data and handles
+// shutdown signals. The loop exits when stopSignal is closed, ensuring proper
+// cleanup of the source and done channel.
 func (p *PriceProvider) loop() {
 	defer close(p.done)
 	defer p.source.Close()
@@ -135,7 +121,7 @@ func (p *PriceProvider) GetPrice(pair asset.Pair) types.Price {
 		p.logger.Debug().Str("pair", pair.String()).Msg("pair not configured for this pricefeeder")
 		return types.Price{
 			Pair:       pair,
-			Price:      -1, // abstain
+			Price:      types.PriceAbstain,
 			SourceName: p.sourceName,
 			Valid:      false,
 		}
@@ -158,8 +144,9 @@ func (p *PriceProvider) Close() {
 	<-p.done
 }
 
-// isValid is a helper function which asserts if a price is valid given
-// if it was found and the time at which it was last updated.
+// isValid determines whether a price is valid based on whether it was found and
+// whether it was updated within the [types.PriceTimeout] window. Prices that are
+// missing or older than [types.PriceTimeout] are considered invalid.
 func isValid(price types.RawPrice, found bool) bool {
 	return found && time.Since(price.UpdateTime) < types.PriceTimeout
 }
@@ -171,8 +158,11 @@ func isValid(price types.RawPrice, found bool) bool {
 // AggregatePriceProvider aggregates multiple price providers
 // and queries them for prices.
 type AggregatePriceProvider struct {
+	// providers: A set of providers implemented using a map to zero size
+	// empty struct. Using a map gives us random order of iteration, the
+	// intended behavior (since golang's map range is unordered)
+	providers map[types.PriceProvider]struct{}
 	logger    zerolog.Logger
-	providers map[int]types.PriceProvider // we use a map here to provide random ranging (since golang's map range is unordered)
 }
 
 // NewAggregatePriceProvider instantiates a new AggregatePriceProvider instance
@@ -182,11 +172,24 @@ func NewAggregatePriceProvider(
 	sourceConfigMap map[string]json.RawMessage,
 	logger zerolog.Logger,
 ) types.PriceProvider {
-	providers := make(map[int]types.PriceProvider, len(sourcesToPairSymbolMap))
-	i := 0
+	providers := make(map[types.PriceProvider]struct{})
+	invalidSources := []string{}
 	for sourceName, pairToSymbolMap := range sourcesToPairSymbolMap {
-		providers[i] = NewPriceProvider(sourceName, pairToSymbolMap, sourceConfigMap[sourceName], logger)
-		i++
+		pp := NewPriceProvider(sourceName, pairToSymbolMap, sourceConfigMap[sourceName], logger)
+		if _, isNull := pp.(types.NullPriceProvider); isNull {
+			invalidSources = append(invalidSources, sourceName)
+			continue
+		}
+		providers[pp] = struct{}{}
+	}
+
+	if len(providers) != len(sourcesToPairSymbolMap) {
+		logger.Warn().
+			Msg(fmt.Sprintf("invalid source names given as key in configuration: { invalidSources: %#v }", invalidSources))
+	}
+	if len(providers) == 0 {
+		logger.Error().
+			Msg(fmt.Sprintf("no price providers available: { invalidSources: %#v }", invalidSources))
 	}
 
 	return AggregatePriceProvider{
@@ -210,8 +213,8 @@ func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 	case "ustnibi:uusd":
 		// fetch unibi:uusd first to calculate the ustnibi:unibi price
 
-		unibiUusdPrice := -1.0 // default to -1 to indicate we haven't found a valid price yet
-		for _, p := range a.providers {
+		unibiUusdPrice := types.PriceAbstain // default to -1 to indicate we haven't found a valid price yet
+		for p := range a.providers {
 			price := p.GetPrice("unibi:uusd")
 			if !price.Valid {
 				continue
@@ -228,13 +231,13 @@ func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 			return types.Price{
 				SourceName: "missing",
 				Pair:       pair,
-				Price:      0,
+				Price:      types.PriceAbstain,
 				Valid:      false,
 			}
 		}
 
 		// now we can calculate the ustnibi:unibi price
-		for _, p := range a.providers {
+		for p := range a.providers {
 			price := p.GetPrice("ustnibi:unibi")
 			if !price.Valid {
 				continue
@@ -257,7 +260,7 @@ func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 			return types.Price{
 				SourceName: "missing",
 				Pair:       pair,
-				Price:      0,
+				Price:      types.PriceAbstain,
 				Valid:      false,
 			}
 		}
@@ -278,14 +281,14 @@ func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 		return types.Price{
 			SourceName: "missing",
 			Pair:       pair,
-			Price:      0,
+			Price:      types.PriceAbstain,
 			Valid:      false,
 		}
 
 	default:
 		// for all other price pairs, iterate randomly, if we find a valid price, we return it
 		// otherwise we go onto the next PriceProvider to ask for prices.
-		for _, p := range a.providers {
+		for p := range a.providers {
 			price := p.GetPrice(pair)
 			if price.Valid {
 				aggregatePriceProvider.WithLabelValues(pair.String(), price.SourceName, "true").Inc()
@@ -300,13 +303,13 @@ func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 	return types.Price{
 		SourceName: "missing",
 		Pair:       pair,
-		Price:      0,
+		Price:      types.PriceAbstain,
 		Valid:      false,
 	}
 }
 
 func (a AggregatePriceProvider) Close() {
-	for _, p := range a.providers {
+	for p := range a.providers {
 		p.Close()
 	}
 }

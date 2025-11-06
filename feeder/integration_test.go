@@ -91,7 +91,7 @@ func (s *IntegrationSuite) SetupSuite() {
 			logger,
 		),
 		feeder.NewPriceProvider(
-			sources.SourceBitfinex,
+			sources.SourceNameBitfinex,
 			map[asset.Pair]types.Symbol{
 				asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD",
 				asset.Registry.Pair(denoms.ETH, denoms.NUSD): "tETHUSD",

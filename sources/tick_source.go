@@ -19,7 +19,7 @@ var UpdateTickTestLock sync.Mutex
 
 var _ types.Source = (*TickSource)(nil)
 
-// NewTickSource instantiates a new TickSource instance, given the symbols and a
+// NewTickSource instantiates a new [TickSource] instance, given the symbols and a
 // price updater function which returns the latest prices for the provided
 // symbols.
 func NewTickSource(
@@ -42,8 +42,7 @@ func NewTickSource(
 	return ts
 }
 
-// TickSource is a Source which updates prices
-// every x time.Duration.
+// TickSource is a Source which updates prices every x [time.Duration].
 type TickSource struct {
 	logger             zerolog.Logger
 	stopSignal         chan struct{} // external signal to stop the loop
@@ -54,6 +53,11 @@ type TickSource struct {
 	priceUpdateChannel chan map[types.Symbol]types.RawPrice
 }
 
+// loop runs in a background goroutine and periodically fetches prices at the
+// interval defined by UpdateTick. When prices are received, they are formatted
+// as RawPrice objects and sent on the priceUpdateChannel. The loop handles
+// shutdown gracefully by dropping pending updates if a stop signal is received
+// while trying to send.
 func (s *TickSource) loop() {
 	defer s.tick.Stop()
 	defer close(s.done)

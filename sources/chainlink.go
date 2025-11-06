@@ -19,7 +19,7 @@ import (
 var _ types.FetchPricesFunc = ChainlinkPriceUpdate
 
 const (
-	SourceChainLink = "chainlink"
+	SourceNameChainLink = "chainlink"
 )
 
 // ChainType represents different blockchain networks

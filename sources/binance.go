@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	SourceBinance = "binance"
+	SourceNameBinance = "binance"
 )
 
 var _ types.FetchPricesFunc = BinancePriceUpdate
@@ -40,21 +40,21 @@ func BinancePriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (r
 	resp, err := http.Get(url)
 	if err != nil {
 		logger.Err(err).Msg("failed to fetch prices from Binance")
-		metrics.PriceSourceCounter.WithLabelValues(SourceBinance, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameBinance, "false").Inc()
 		return nil, err
 	}
 	defer func() {
 		errClose := resp.Body.Close()
 		if errClose != nil {
 			errClose = fmt.Errorf("error closing response body: %w", errClose)
-			logger.Err(errClose).Str("source", SourceBinance).Msg(errClose.Error())
+			logger.Err(errClose).Str("source", SourceNameBinance).Msg(errClose.Error())
 		}
 	}()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Err(err).Msg("failed to read response body from Binance")
-		metrics.PriceSourceCounter.WithLabelValues(SourceBinance, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameBinance, "false").Inc()
 		return nil, err
 	}
 
@@ -63,16 +63,16 @@ func BinancePriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (r
 	err = json.Unmarshal(b, &tickers)
 	if err != nil {
 		logger.Err(err).Msg("failed to unmarshal response body from Binance")
-		metrics.PriceSourceCounter.WithLabelValues(SourceBinance, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameBinance, "false").Inc()
 		return nil, err
 	}
 
 	rawPrices = make(map[types.Symbol]float64)
 	for _, ticker := range tickers {
 		rawPrices[types.Symbol(ticker.Symbol)] = ticker.Price
-		logger.Debug().Msgf("fetched price for %s on data source %s: %f", ticker.Symbol, SourceBinance, ticker.Price)
+		logger.Debug().Msgf("fetched price for %s on data source %s: %f", ticker.Symbol, SourceNameBinance, ticker.Price)
 	}
-	metrics.PriceSourceCounter.WithLabelValues(SourceBinance, "true").Inc()
+	metrics.PriceSourceCounter.WithLabelValues(SourceNameBinance, "true").Inc()
 
 	return rawPrices, nil
 }

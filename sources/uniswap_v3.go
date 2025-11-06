@@ -22,7 +22,7 @@ import (
 var _ types.FetchPricesFunc = UniswapV3PriceUpdate
 
 const (
-	SourceUniswapV3 = "uniswap_v3"
+	SourceNameUniswapV3 = "uniswap_v3"
 
 	Symbol_UniswapV3_USDaUSD types.Symbol = "USDa:USDT"
 )

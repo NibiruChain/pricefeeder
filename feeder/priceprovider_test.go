@@ -46,7 +46,7 @@ func TestPriceProvider(t *testing.T) {
 
 	t.Run("bitfinex success", func(t *testing.T) {
 		pp := NewPriceProvider(
-			sources.SourceBitfinex,
+			sources.SourceNameBitfinex,
 			map[asset.Pair]types.Symbol{asset.Registry.Pair(denoms.BTC, denoms.NUSD): "tBTCUSD"},
 			json.RawMessage{},
 			zerolog.New(io.Discard),
@@ -58,13 +58,13 @@ func TestPriceProvider(t *testing.T) {
 		price := pp.GetPrice(asset.Registry.Pair(denoms.BTC, denoms.NUSD))
 		require.True(t, price.Valid)
 		require.Equal(t, asset.Registry.Pair(denoms.BTC, denoms.NUSD), price.Pair)
-		require.Equal(t, sources.SourceBitfinex, price.SourceName)
+		require.Equal(t, sources.SourceNameBitfinex, price.SourceName)
 	})
 
 	t.Run("eris protocol success", func(t *testing.T) {
 		t.Setenv("GRPC_READ_ENDPOINT", "grpc.nibiru.fi:443")
 		pp := NewPriceProvider(
-			sources.SourceErisProtocol,
+			sources.SourceNameErisProtocol,
 			map[asset.Pair]types.Symbol{asset.NewPair("ustnibi", denoms.NIBI): "ustnibi:unibi"},
 			json.RawMessage{},
 			zerolog.New(io.Discard),
@@ -76,17 +76,19 @@ func TestPriceProvider(t *testing.T) {
 		price := pp.GetPrice(asset.NewPair("ustnibi", denoms.NIBI))
 		require.True(t, price.Valid)
 		require.Equal(t, asset.NewPair("ustnibi", denoms.NIBI), price.Pair)
-		require.Equal(t, sources.SourceErisProtocol, price.SourceName)
+		require.Equal(t, sources.SourceNameErisProtocol, price.SourceName)
 	})
 
-	t.Run("panics on unknown price source", func(t *testing.T) {
-		require.Panics(t, func() {
-			NewPriceProvider(
+	t.Run("gracefully handles unknown price source", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			pp := NewPriceProvider(
 				"unknown",
 				nil,
 				nil,
 				zerolog.New(io.Discard),
 			)
+			_, isNull := pp.(types.NullPriceProvider)
+			require.True(t, isNull, "expect NullPriceProvider when an unknown source is given")
 		})
 	})
 
@@ -94,7 +96,7 @@ func TestPriceProvider(t *testing.T) {
 		pp := newPriceProvider(testAsyncSource{}, "test", map[asset.Pair]types.Symbol{}, zerolog.New(io.Discard))
 		price := pp.GetPrice(asset.Registry.Pair(denoms.BTC, denoms.NUSD))
 		require.False(t, price.Valid)
-		require.Equal(t, float64(-1), price.Price)
+		require.Equal(t, types.PriceAbstain, price.Price)
 		require.Equal(t, asset.Registry.Pair(denoms.BTC, denoms.NUSD), price.Pair)
 	})
 
@@ -171,10 +173,10 @@ func TestAggregatePriceProvider(t *testing.T) {
 		t.Setenv("GRPC_READ_ENDPOINT", "grpc.nibiru.fi:443")
 		pp := NewAggregatePriceProvider(
 			map[string]map[asset.Pair]types.Symbol{
-				sources.SourceErisProtocol: {
+				sources.SourceNameErisProtocol: {
 					asset.NewPair("ustnibi", denoms.NIBI): "ustnibi:unibi",
 				},
-				sources.SourceGateIo: {
+				sources.SourceNameGateIo: {
 					asset.NewPair("unibi", denoms.USD): "NIBI_USDT",
 				},
 			},
@@ -187,16 +189,16 @@ func TestAggregatePriceProvider(t *testing.T) {
 		price := pp.GetPrice("ustnibi:uusd")
 		require.True(t, price.Valid)
 		require.Equal(t, asset.NewPair("ustnibi", denoms.USD), price.Pair)
-		require.Equal(t, sources.SourceErisProtocol, price.SourceName)
+		require.Equal(t, sources.SourceNameErisProtocol, price.SourceName)
 	})
 
-	t.Run(sources.SourceAvalon, func(t *testing.T) {
+	t.Run(sources.SourceNameAvalon, func(t *testing.T) {
 		pp := NewAggregatePriceProvider(
 			map[string]map[asset.Pair]types.Symbol{
-				sources.SourceAvalon: {
+				sources.SourceNameAvalon: {
 					"susda:usda": sources.Symbol_sUSDaUSDa,
 				},
-				sources.SourceUniswapV3: {
+				sources.SourceNameUniswapV3: {
 					"usda:usd": sources.Symbol_UniswapV3_USDaUSD,
 				},
 			},
@@ -210,18 +212,18 @@ func TestAggregatePriceProvider(t *testing.T) {
 		price := pp.GetPrice(pair)
 		assert.Truef(t, price.Valid, "invalid price for %s", price.Pair)
 		assert.Equal(t, pair, price.Pair)
-		assert.Equal(t, sources.SourceAvalon, price.SourceName)
+		assert.Equal(t, sources.SourceNameAvalon, price.SourceName)
 
 		pair = asset.Pair("usda:usd")
 		price = pp.GetPrice(pair)
 		assert.Truef(t, price.Valid, "invalid price for %s", price.Pair)
 		assert.EqualValues(t, pair, price.Pair)
-		assert.Equal(t, sources.SourceUniswapV3, price.SourceName)
+		assert.Equal(t, sources.SourceNameUniswapV3, price.SourceName)
 
 		pair = asset.Pair("susda:usd")
 		price = pp.GetPrice(pair)
 		assert.Truef(t, price.Valid, "invalid price for %s", price.Pair)
 		assert.EqualValues(t, pair, price.Pair)
-		assert.Equal(t, sources.SourceAvalon, price.SourceName)
+		assert.Equal(t, sources.SourceNameAvalon, price.SourceName)
 	})
 }

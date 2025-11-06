@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	SourceGateIo = "gateio"
+	SourceNameGateIo = "gateio"
 )
 
 var _ types.FetchPricesFunc = GateIoPriceUpdate
@@ -27,7 +27,7 @@ func GateIoPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (ra
 	resp, err := http.Get(url)
 	if err != nil {
 		logger.Err(err).Msg("failed to fetch prices from GateIo")
-		metrics.PriceSourceCounter.WithLabelValues(SourceGateIo, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameGateIo, "false").Inc()
 		return nil, err
 	}
 
@@ -35,14 +35,14 @@ func GateIoPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (ra
 		errClose := resp.Body.Close()
 		if errClose != nil {
 			errClose = fmt.Errorf("error closing response body: %w", errClose)
-			logger.Err(errClose).Str("source", SourceGateIo).Msg(errClose.Error())
+			logger.Err(errClose).Str("source", SourceNameGateIo).Msg(errClose.Error())
 		}
 	}()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Err(err).Msg("failed to read response body from GateIo")
-		metrics.PriceSourceCounter.WithLabelValues(SourceGateIo, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameGateIo, "false").Inc()
 		return nil, err
 	}
 
@@ -50,7 +50,7 @@ func GateIoPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (ra
 	err = json.Unmarshal(b, &tickers)
 	if err != nil {
 		logger.Err(err).Msg("failed to unmarshal response body from GateIo")
-		metrics.PriceSourceCounter.WithLabelValues(SourceGateIo, "false").Inc()
+		metrics.PriceSourceCounter.WithLabelValues(SourceNameGateIo, "false").Inc()
 		return nil, err
 	}
 
@@ -63,14 +63,14 @@ func GateIoPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (ra
 
 		price, err := strconv.ParseFloat(ticker["last"].(string), 64)
 		if err != nil {
-			logger.Err(err).Msg(fmt.Sprintf("failed to parse price for %s on data source %s", symbol, SourceGateIo))
+			logger.Err(err).Msg(fmt.Sprintf("failed to parse price for %s on data source %s", symbol, SourceNameGateIo))
 			continue
 		}
 
 		rawPrices[symbol] = price
-		logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, SourceGateIo, price))
+		logger.Debug().Msg(fmt.Sprintf("fetched price for %s on data source %s: %f", symbol, SourceNameGateIo, price))
 	}
 
-	metrics.PriceSourceCounter.WithLabelValues(SourceGateIo, "true").Inc()
+	metrics.PriceSourceCounter.WithLabelValues(SourceNameGateIo, "true").Inc()
 	return rawPrices, nil
 }

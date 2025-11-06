@@ -27,7 +27,10 @@ func TestRunPanics(t *testing.T) {
 
 	require.Panics(t, func() {
 		f.Run()
-	})
+	}, `expect panic on Run because the mock ParamsUpdate returns an unbuffered 
+		channel. This means that when initParamsOrDie tries to receive from it, 
+		the channel will be empty, and the receive blocks. This means the "Run" 
+		will timeout after InitTimeout.`)
 }
 
 func TestParamsUpdate(t *testing.T) {
@@ -62,7 +65,7 @@ func TestVotingPeriod(t *testing.T) {
 	}
 
 	abstainPrice := invalidPrice
-	abstainPrice.Price = 0.0
+	abstainPrice.Price = types.PriceAbstain
 
 	tf.mockPriceProvider.EXPECT().GetPrice(asset.Registry.Pair(denoms.BTC, denoms.NUSD)).Return(validPrice)
 	tf.mockPriceProvider.EXPECT().GetPrice(asset.Registry.Pair(denoms.ETH, denoms.NUSD)).Return(invalidPrice)
