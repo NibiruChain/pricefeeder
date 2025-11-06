@@ -24,15 +24,19 @@ docker-compose:
 test:
   #!/usr/bin/env bash
   echo "This takes a few minutes to run. The '.' getting printed signifies 2 seconds have passed."
-  (go test ./... & pid=$!
-    while kill -0 $pid 2>/dev/null; do
+  (go test ./... & go_test_pid=$!
+    # Print while the go test process ID (PID) is running
+    while kill -0 $go_test_pid 2>/dev/null; do
       printf '.'
       sleep 2
     done
-    wait $pid
+    wait $go_test_pid
+    # Capture exit code before running echo. 
+    # Otherwise, the subshell exits with 0, hiding the true result.
+    exit_code=$?
     echo
-    echo "Done.")
-  go test ./...
+    echo "Done."
+    exit $exit_code)
 
 # Run the main application
 run:
