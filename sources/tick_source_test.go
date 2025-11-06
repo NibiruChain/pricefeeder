@@ -73,7 +73,7 @@ func TestTickSource(t *testing.T) {
 		}, zerolog.New(mw))
 
 		<-time.After(UpdateTick + 50*time.Millisecond) // wait for a tick update
-		ts.Close()                                      // make the update be dropped because of close
+		ts.Close()                                     // make the update be dropped because of close
 
 		require.Contains(t, logs.String(), "dropped price update due to shutdown") // assert logs contained the warning about dropped price updates
 	})
