@@ -250,8 +250,8 @@ func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 
 	case "susda:usd":
 		priceSusdaUsda := a.GetPrice("susda:usda")
-		if priceSusdaUsda.Price <= 0 {
-			// if we can't find a valid unibi:uusd price, return an invalid price
+		if !priceSusdaUsda.Valid || priceSusdaUsda.Price <= 0 {
+			// if we can't find a valid susda:usda price, return an invalid price
 			a.logger.Warn().Str("pair", pairStr).Msg("no valid price found")
 			aggregatePriceProvider.WithLabelValues(pairStr, "missing", "false").Inc()
 			return types.Price{
@@ -263,13 +263,23 @@ func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 		}
 
 		priceUsdaUsd := a.GetPrice("usda:usd")
-		if priceSusdaUsda.Valid {
+		if priceUsdaUsd.Valid && priceUsdaUsd.Price > 0 {
 			return types.Price{
 				Pair:       pair,
 				Price:      priceSusdaUsda.Price * priceUsdaUsd.Price,
 				SourceName: priceSusdaUsda.SourceName,
 				Valid:      true,
 			}
+		}
+
+		// if either price is invalid, return an invalid price
+		a.logger.Warn().Str("pair", pairStr).Msg("no valid price found")
+		aggregatePriceProvider.WithLabelValues(pairStr, "missing", "false").Inc()
+		return types.Price{
+			SourceName: "missing",
+			Pair:       pair,
+			Price:      0,
+			Valid:      false,
 		}
 
 	default:

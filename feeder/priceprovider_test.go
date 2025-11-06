@@ -36,13 +36,12 @@ func TestPriceProvider(t *testing.T) {
 	// Speed up tests by using a much shorter tick duration
 	// Lock for the entire test to serialize tests that modify UpdateTick
 	sources.UpdateTickTestLock.Lock()
-	defer sources.UpdateTickTestLock.Unlock()
 	originalUpdateTick := sources.UpdateTick
 	sources.UpdateTick = 10 * time.Millisecond
 	t.Cleanup(func() {
-		sources.UpdateTickTestLock.Lock()
-		defer sources.UpdateTickTestLock.Unlock()
+		// We still hold the lock from the start of the test, so just restore and unlock
 		sources.UpdateTick = originalUpdateTick
+		sources.UpdateTickTestLock.Unlock()
 	})
 
 	t.Run("bitfinex success", func(t *testing.T) {
@@ -160,13 +159,12 @@ func TestAggregatePriceProvider(t *testing.T) {
 	// Lock for the entire test to serialize tests that modify UpdateTick
 	// NewAggregatePriceProvider -> NewPriceProvider -> NewTickSource reads UpdateTick
 	sources.UpdateTickTestLock.Lock()
-	defer sources.UpdateTickTestLock.Unlock()
 	originalUpdateTick := sources.UpdateTick
 	sources.UpdateTick = 10 * time.Millisecond
 	t.Cleanup(func() {
-		sources.UpdateTickTestLock.Lock()
-		defer sources.UpdateTickTestLock.Unlock()
+		// We still hold the lock from the start of the test, so just restore and unlock
 		sources.UpdateTick = originalUpdateTick
+		sources.UpdateTickTestLock.Unlock()
 	})
 
 	t.Run("eris protocol success", func(t *testing.T) {

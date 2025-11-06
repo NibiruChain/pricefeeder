@@ -26,13 +26,12 @@ func TestTickSource(t *testing.T) {
 	// Speed up tests by using a much shorter tick duration
 	// Lock for the entire test to serialize tests that modify UpdateTick
 	UpdateTickTestLock.Lock()
-	defer UpdateTickTestLock.Unlock()
 	originalUpdateTick := UpdateTick
 	UpdateTick = 10 * time.Millisecond
 	t.Cleanup(func() {
-		UpdateTickTestLock.Lock()
-		defer UpdateTickTestLock.Unlock()
+		// We still hold the lock from the start of the test, so just restore and unlock
 		UpdateTick = originalUpdateTick
+		UpdateTickTestLock.Unlock()
 	})
 
 	t.Run("success", func(t *testing.T) {
