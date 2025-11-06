@@ -20,9 +20,19 @@ build-docker:
 docker-compose:
     docker-compose up
 
-# Run tests
+# Run all repo tests, including heavy ones
 test:
-    go test ./...
+  #!/usr/bin/env bash
+  echo "This takes a few minutes to run. The '.' getting printed signifies 2 seconds have passed."
+  (go test ./... & pid=$!
+    while kill -0 $pid 2>/dev/null; do
+      printf '.'
+      sleep 2
+    done
+    wait $pid
+    echo
+    echo "Done.")
+  go test ./...
 
 # Run the main application
 run:
