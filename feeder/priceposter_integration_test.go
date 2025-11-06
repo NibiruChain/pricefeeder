@@ -13,7 +13,6 @@ import (
 )
 
 func (s *IntegrationSuite) TestClientWorks() {
-
 	s.pricePosterClient.SendPrices(types.VotingPeriod{}, s.randomPrices())
 
 	// assert vote was skipped because no previous prevote

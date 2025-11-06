@@ -14,7 +14,6 @@ import (
 
 	"github.com/NibiruChain/pricefeeder/config"
 	"github.com/NibiruChain/pricefeeder/feeder"
-	"github.com/NibiruChain/pricefeeder/feeder/priceprovider"
 )
 
 func setupLogger() zerolog.Logger {
@@ -53,7 +52,7 @@ var rootCmd = &cobra.Command{
 		c := config.MustGet()
 
 		eventStream := feeder.DialEventStream(c.WebsocketEndpoint, c.GRPCEndpoint, c.EnableTLS, logger)
-		priceProvider := priceprovider.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, c.DataSourceConfigMap, logger)
+		priceProvider := feeder.NewAggregatePriceProvider(c.ExchangesToPairToSymbolMap, c.DataSourceConfigMap, logger)
 		kb, valAddr, feederAddr := config.GetAuth(c.FeederMnemonic)
 
 		if c.ValidatorAddr != nil {

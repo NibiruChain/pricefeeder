@@ -32,19 +32,27 @@ test *ARGS:
   args="${args:-./...}"
   echo -e "\nRunning: go test $args 2>&1 | tee out.txt"
 
-  (go test $args 2>&1 | tee out.txt & go_test_pid=$!
-    # Print while the go test process ID (PID) is running
-    while kill -0 $go_test_pid 2>/dev/null; do
-      printf '.'
-      sleep 2
-    done
-    wait $go_test_pid
-    # Capture exit code before running echo. 
-    # Otherwise, the subshell exits with 0, hiding the true result.
-    exit_code=$?
-    echo
-    echo "Done."
-    exit $exit_code)
+  # Run go test in a new process group so we can kill all children on interrupt
+  set -m  # Enable job control to create process groups
+  (go test $args 2>&1 | tee out.txt) & 
+  go_test_pid=$!
+  pgid=$(ps -o pgid= -p $go_test_pid 2>/dev/null | tr -d ' ')
+  # Set up trap to kill the entire process group on interrupt
+  trap "kill -TERM -${pgid:-$go_test_pid} 2>/dev/null; wait $go_test_pid 2>/dev/null; exit 130" INT TERM
+  # Print while the go test process ID (PID) is running
+  while kill -0 $go_test_pid 2>/dev/null; do
+    printf '.'
+    sleep 2
+  done
+  wait $go_test_pid
+  # Capture exit code before running echo. 
+  # Otherwise, the subshell exits with 0, hiding the true result.
+  exit_code=$?
+  trap - INT TERM
+  set +m
+  echo
+  echo "Done."
+  exit $exit_code
 
 # Run the main application
 run:

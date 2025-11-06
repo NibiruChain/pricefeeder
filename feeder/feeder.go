@@ -110,6 +110,13 @@ func (f *Feeder) handleVotingPeriod(vp types.VotingPeriod) {
 }
 
 func (f *Feeder) Close() {
-	close(f.stop)
+	// Use select to avoid panic if channel is already closed
+	select {
+	case <-f.stop:
+		// Channel already closed, just wait for done
+	default:
+		close(f.stop)
+	}
+	// Wait for loop to exit and cleanup to complete
 	<-f.done
 }

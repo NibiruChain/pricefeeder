@@ -20,8 +20,8 @@ var _ types.EventStream = (*Stream)(nil)
 
 // wsI exists for testing purposes.
 type wsI interface {
-	message() <-chan []byte
-	close()
+	Message() <-chan []byte
+	Close()
 }
 
 // DialEventStream opens two connections to the given endpoint, one for the websocket and one for the oracle grpc.
@@ -83,14 +83,14 @@ func (s *Stream) votingPeriodStartedLoop(ws wsI, logger zerolog.Logger) {
 	defer func() {
 		logger.Info().Msg("exited loop")
 		s.waitGroup.Done()
-		ws.close()
+		ws.Close()
 	}()
 
 	for {
 		select {
 		case <-s.stopSignal:
 			return
-		case msg := <-ws.message():
+		case msg := <-ws.Message():
 			logger.Debug().Bytes("payload", msg).Msg("received message from websocket")
 			blockHeight, err := types.GetBlockHeight(msg)
 			if err != nil {
