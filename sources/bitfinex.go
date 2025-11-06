@@ -27,7 +27,11 @@ func BitfinexSymbolCsv(symbols set.Set[types.Symbol]) string {
 	return s[:len(s)-1]
 }
 
-// BitfinexPriceUpdate returns the prices given the symbols or an error.
+// BitfinexPriceUpdate fetches the latest last prices from Bitfinex for the provided symbols.
+// It calls the Bitfinex tickers API, parses each ticker entry, and returns a map from symbol to last price.
+// The function updates the PriceSourceCounter metric with label SourceNameBitfinex ("true" on success, "false" on error)
+// and emits structured logs via the provided logger. It expects each ticker entry to have length 11 and
+// returns an error if the response cannot be fetched, read, parsed, or if any ticker has an unexpected size.
 func BitfinexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	type ticker []any
 	const size = 11

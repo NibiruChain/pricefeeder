@@ -27,13 +27,17 @@ type NamedSource struct {
 	F    SourceFactory
 }
 
-// Register adds a [NamedSource] to the price feeder application.
+// Register registers the given NamedSource in the package registry, adding or replacing any existing entry with the same name.
+// Register is safe for concurrent use.
 func Register(ns NamedSource) {
 	muSource.Lock()
 	sourceRegistry[ns.Name] = ns.F
 	muSource.Unlock()
 }
 
+// GetRegisteredSource looks up the factory registered under name and invokes it to construct a types.Source.
+// If no factory is registered for name, it returns an error. If name is registered but the factory is nil, it returns an error.
+// The provided cfg and logger are forwarded to the factory; implementations may ignore cfg.
 func GetRegisteredSource(
 	name string,
 	symbols set.Set[types.Symbol],
@@ -51,6 +55,7 @@ func GetRegisteredSource(
 	return sourceFactory(symbols, cfg, logger), nil
 }
 
+// init registers all built-in NamedSource entries from allSources into the package registry.
 func init() {
 	for _, namedSource := range allSources {
 		Register(namedSource)

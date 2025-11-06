@@ -24,7 +24,10 @@ const (
 var _ types.FetchPricesFunc = AvalonPriceUpdate
 
 // AvalonPriceUpdate returns the prices given the symbols or an error.
-// Uses the Avalon API at https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-currency-pair.
+// AvalonPriceUpdate fetches the sUSDa→USDa redeem ratio from the Avalon API and returns it keyed by Symbol_sUSDaUSDa.
+// 
+// On success, the returned map contains a single entry mapping Symbol_sUSDaUSDa to the numeric exchange ratio.
+// On failure, the function returns a non-nil error.
 func AvalonPriceUpdate(_ set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	var (
 		// API request URL for Avalon Finance sUSDa and USDa redeem ratio.

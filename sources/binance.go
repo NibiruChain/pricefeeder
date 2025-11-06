@@ -34,7 +34,10 @@ func BinanceSymbolCsv(symbols set.Set[types.Symbol]) string {
 }
 
 // BinancePriceUpdate returns the prices given the symbols or an error.
-// Uses the Binance API at https://docs.binance.us/#price-data.
+// BinancePriceUpdate fetches latest tick prices for the provided symbols from the Binance US API.
+// It updates metrics.PriceSourceCounter with SourceNameBinance as "true" on success or "false" on failure and logs errors using the provided logger.
+// 
+// The function returns a map from types.Symbol to the fetched price, or nil and an error if the HTTP request, response read, or JSON unmarshal fails.
 func BinancePriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	url := "https://api.binance.us/api/v3/ticker/price?symbols=%5B" + BinanceSymbolCsv(symbols) + "%5D"
 	resp, err := http.Get(url)

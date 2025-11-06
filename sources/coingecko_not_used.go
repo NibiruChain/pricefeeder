@@ -31,6 +31,9 @@ type CoingeckoConfig struct {
 	ApiKey string `json:"api_key"`
 }
 
+// CoingeckoPriceUpdate returns a FetchPricesFunc that fetches USD prices for the provided symbols from the Coingecko API using an optional configuration.
+// The returned function builds a request URL (choosing free or paid endpoint based on the optional API key), performs the HTTP request, parses USD prices into a map[types.Symbol]float64, and returns that map.
+// The fetcher logs errors and increments success/failure metrics for the Coingecko source.
 func CoingeckoPriceUpdate(sourceConfig json.RawMessage) types.FetchPricesFunc {
 	return func(symbols set.Set[types.Symbol], logger zerolog.Logger) (map[types.Symbol]float64, error) {
 		c, err := extractConfig(sourceConfig)
@@ -86,6 +89,15 @@ func extractConfig(jsonConfig json.RawMessage) (*CoingeckoConfig, error) {
 	return c, nil
 }
 
+// extractPricesFromResponse parses a Coingecko JSON response and returns USD prices for the requested symbols.
+// 
+// It unmarshals the response into the Coingecko response shape and builds a map of symbols to their USD price
+// for each requested symbol present in the response. Missing symbols are skipped (an error is logged for each).
+//
+// The logger is used to record debug messages for successfully fetched prices and errors for missing symbols.
+//
+// Returns a map from requested Symbol to its USD price for symbols found in the response, and an error if JSON
+// unmarshalling failed.
 func extractPricesFromResponse(symbols set.Set[types.Symbol], response []byte, logger zerolog.Logger) (map[types.Symbol]float64, error) {
 	var result map[string]CoingeckoTicker
 	err := json.Unmarshal(response, &result)

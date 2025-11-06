@@ -42,6 +42,12 @@ type CoinmarketcapConfig struct {
 	ApiKey string `json:"api_key"`
 }
 
+// CoinmarketcapPriceUpdate returns a fetch function that obtains USD prices for the given symbols from CoinMarketCap.
+// 
+// The coinmarketcapConfig parameter is an optional JSON configuration that may contain the API key (field `api_key`).
+// The returned function accepts a set of symbols and a logger, and returns a map from symbol to USD price or an error.
+// It sets the CoinMarketCap API key header when provided, logs failures, and updates the price source metrics labeled with
+// SourceNameCoinMarketCap to indicate success or failure.
 func CoinmarketcapPriceUpdate(coinmarketcapConfig json.RawMessage) types.FetchPricesFunc {
 	return func(symbols set.Set[types.Symbol], logger zerolog.Logger) (map[types.Symbol]float64, error) {
 		config, err := getConfig(coinmarketcapConfig)
@@ -105,6 +111,11 @@ func getConfig(jsonConfig json.RawMessage) (*CoinmarketcapConfig, error) {
 	return c, nil
 }
 
+// getPricesFromResponse parses a CoinMarketCap JSON response and extracts USD prices for the requested symbols.
+// 
+// It returns a map from the requested symbols to their USD price for every symbol found in the response.
+// If the response cannot be unmarshaled, an error is returned and the map is nil. Symbols not present in the
+// response are omitted from the returned map.
 func getPricesFromResponse(symbols set.Set[types.Symbol], response []byte, logger zerolog.Logger) (map[types.Symbol]float64, error) {
 	var respCmc CmcResponse
 	err := json.Unmarshal(response, &respCmc)

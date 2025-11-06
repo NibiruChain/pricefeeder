@@ -42,7 +42,10 @@ type PriceProvider struct {
 
 // NewPriceProvider returns a types.PriceProvider given the price source we want
 // to gather prices from, the mapping between nibiru asset.Pair and the source's
-// symbols, and a zerolog.Logger instance.
+// NewPriceProvider constructs a PriceProvider for the named source using the provided
+// pair-to-symbol mapping, configuration, and logger. It builds the set of symbols from
+// the mapping and attempts to obtain a registered source; on error it logs a warning
+// and returns types.NullPriceProvider, otherwise it wraps the source with newPriceProvider.
 func NewPriceProvider(
 	sourceName string,
 	pairToSymbolMap map[asset.Pair]types.Symbol,
@@ -161,7 +164,10 @@ type AggregatePriceProvider struct {
 }
 
 // NewAggregatePriceProvider instantiates a new AggregatePriceProvider instance
-// given multiple PriceProvider.
+// NewAggregatePriceProvider creates an AggregatePriceProvider that aggregates prices from multiple configured sources.
+// It instantiates a price provider for each entry in sourcesToPairSymbolMap using the corresponding config from sourceConfigMap,
+// excludes sources that fail to initialize, logs a warning when some configured sources are invalid and an error when none are available,
+// and returns an AggregatePriceProvider containing the successfully created providers with a scoped logger.
 func NewAggregatePriceProvider(
 	sourcesToPairSymbolMap map[string]map[asset.Pair]types.Symbol,
 	sourceConfigMap map[string]json.RawMessage,

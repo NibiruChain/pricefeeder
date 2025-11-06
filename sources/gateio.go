@@ -21,7 +21,9 @@ const (
 var _ types.FetchPricesFunc = GateIoPriceUpdate
 
 // GateIoPriceUpdate returns the prices given the symbols or an error.
-// Uses the GateIo API at https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-currency-pair.
+// GateIoPriceUpdate fetches current spot prices for the given symbols from Gate.io and returns a map from symbol to price.
+// It returns a non-nil error if the HTTP request, response reading, or JSON unmarshalling fail; individual price parse errors are logged and skipped.
+// The function increments metrics.PriceSourceCounter with success/failure labels.
 func GateIoPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	url := "https://api.gateio.ws/api/v4/spot/tickers"
 	resp, err := http.Get(url)

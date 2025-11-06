@@ -21,7 +21,10 @@ var _ types.Source = (*TickSource)(nil)
 
 // NewTickSource instantiates a new [TickSource] instance, given the symbols and a
 // price updater function which returns the latest prices for the provided
-// symbols.
+// NewTickSource creates a TickSource for the provided symbols that periodically fetches prices.
+// It starts an internal ticker (interval defined by UpdateTick) and a background goroutine that
+// calls fetchPricesFunc and emits price updates on the source's update channel.
+// The returned *TickSource is ready for use and will run until Close is called.
 func NewTickSource(
 	symbols set.Set[types.Symbol],
 	fetchPricesFunc types.FetchPricesFunc,

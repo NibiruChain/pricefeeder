@@ -30,7 +30,10 @@ type OkexResponse struct {
 }
 
 // OkexPriceUpdate returns the prices for given symbols or an error.
-// Uses OKEX API at https://www.okx.com/docs-v5/en/#rest-api-market-data.
+// OkexPriceUpdate fetches current spot market tickers from OKEx and returns the latest prices for the requested symbols.
+// The `symbols` set limits which tickers are included in the returned map. The function returns a map from symbol to price
+// for any requested symbols found in the OKEx response, or a non-nil error if the HTTP request, response read, or JSON
+// unmarshalling fails.
 func OkexPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	url := "https://www.okx.com/api/v5/market/tickers?instType=SPOT"
 

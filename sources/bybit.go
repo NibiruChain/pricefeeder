@@ -33,7 +33,9 @@ type BybitResponse struct {
 const ErrBybitBlockAccess = "configured to block access from your country"
 
 // BybitPriceUpdate returns the prices for given symbols or an error.
-// Uses BYBIT API at https://bybit-exchange.github.io/docs/v5/market/tickers.
+// BybitPriceUpdate fetches current spot prices from Bybit and returns a map of the requested symbols to their latest prices.
+// It queries Bybit's tickers endpoint, parses the response, and includes only symbols present in the provided set.
+// On success the returned map contains each requested symbol mapped to its parsed float64 price; on failure a non-nil error is returned.
 func BybitPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	url := "https://api.bybit.com/v5/market/tickers?category=spot"
 

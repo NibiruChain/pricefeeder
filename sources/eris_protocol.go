@@ -55,7 +55,9 @@ func newGRPCConnection() (*grpc.ClientConn, error) {
 }
 
 // ErisProtocolPriceUpdate retrieves the exchange rate for stNIBI to NIBI (ustnibi:unibi) from the Eris Protocol smart contract.
-// Note: This function ignores the input symbols and always returns the exchange rate for "ustnibi:unibi".
+// ErisProtocolPriceUpdate queries the Eris Protocol smart contract and returns the exchange rate for "ustnibi:unibi".
+// It ignores the provided symbols, returns a map with key types.Symbol("ustnibi:unibi") mapped to the parsed exchange rate, and returns an error on failure.
+// The function logs via the supplied logger and increments metrics.PriceSourceCounter with the source name and a success/failure label.
 func ErisProtocolPriceUpdate(symbols set.Set[types.Symbol], logger zerolog.Logger) (rawPrices map[types.Symbol]float64, err error) {
 	conn, err := newGRPCConnection()
 	if err != nil {
