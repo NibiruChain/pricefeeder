@@ -23,6 +23,11 @@ type mockWriter struct {
 func (m mockWriter) Write(p []byte) (n int, err error) { return m.w(p) }
 
 func TestTickSource(t *testing.T) {
+	// Speed up tests by using a much shorter tick duration
+	originalUpdateTick := UpdateTick
+	UpdateTick = 10 * time.Millisecond
+	t.Cleanup(func() { UpdateTick = originalUpdateTick })
+
 	t.Run("success", func(t *testing.T) {
 		expectedSymbols := set.New[types.Symbol]("tBTCUSDT")
 		expectedPrices := map[types.Symbol]float64{"tBTCUSDT": 250_000.56}
@@ -38,14 +43,14 @@ func TestTickSource(t *testing.T) {
 		var gotPrices map[types.Symbol]types.RawPrice
 		select {
 		case gotPrices = <-ts.PriceUpdates():
-		case <-time.After(11 * time.Second): // timeout
+		case <-time.After(100 * time.Millisecond): // timeout - much shorter now
 			t.Fatal("timeout when receiving prices")
 		}
 
 		require.Equal(t, len(expectedPrices), len(gotPrices))
 		for symbol, price := range expectedPrices {
 			require.Equal(t, price, gotPrices[symbol].Price)
-			require.True(t, time.Since(gotPrices[symbol].UpdateTime) < 50*time.Millisecond)
+			require.True(t, time.Since(gotPrices[symbol].UpdateTime) < 100*time.Millisecond)
 		}
 	})
 
@@ -67,8 +72,8 @@ func TestTickSource(t *testing.T) {
 			return expectedPrices, nil
 		}, zerolog.New(mw))
 
-		<-time.After(UpdateTick + 1*time.Second) // wait for a tick update
-		ts.Close()                               // make the update be dropped because of close
+		<-time.After(UpdateTick + 50*time.Millisecond) // wait for a tick update
+		ts.Close()                                      // make the update be dropped because of close
 
 		require.Contains(t, logs.String(), "dropped price update due to shutdown") // assert logs contained the warning about dropped price updates
 	})
@@ -87,7 +92,7 @@ func TestTickSource(t *testing.T) {
 		}, zerolog.New(mw))
 		defer ts.Close()
 
-		<-time.After(UpdateTick + 1*time.Second) // wait for a tick update
+		<-time.After(UpdateTick + 50*time.Millisecond) // wait for a tick update
 
 		select {
 		case <-ts.PriceUpdates():

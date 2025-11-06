@@ -23,7 +23,7 @@ import (
 	"github.com/NibiruChain/pricefeeder/feeder/eventstream"
 	"github.com/NibiruChain/pricefeeder/feeder/priceposter"
 	"github.com/NibiruChain/pricefeeder/feeder/priceprovider"
-	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
+	"github.com/NibiruChain/pricefeeder/sources"
 	"github.com/NibiruChain/pricefeeder/types"
 )
 

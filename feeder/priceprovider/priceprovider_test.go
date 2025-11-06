@@ -11,7 +11,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 
-	"github.com/NibiruChain/pricefeeder/feeder/priceprovider/sources"
+	"github.com/NibiruChain/pricefeeder/sources"
 	"github.com/NibiruChain/pricefeeder/types"
 )
 
@@ -28,6 +28,11 @@ func (t testAsyncSource) PriceUpdates() <-chan map[types.Symbol]types.RawPrice {
 }
 
 func TestPriceProvider(t *testing.T) {
+	// Speed up tests by using a much shorter tick duration
+	originalUpdateTick := sources.UpdateTick
+	sources.UpdateTick = 10 * time.Millisecond
+	t.Cleanup(func() { sources.UpdateTick = originalUpdateTick })
+
 	t.Run("bitfinex success", func(t *testing.T) {
 		pp := NewPriceProvider(
 			sources.SourceBitfinex,
@@ -36,6 +41,7 @@ func TestPriceProvider(t *testing.T) {
 			zerolog.New(io.Discard),
 		)
 		defer pp.Close()
+		// Wait for HTTP call + tick, but much shorter now
 		<-time.After(sources.UpdateTick + 2*time.Second)
 
 		price := pp.GetPrice(asset.Registry.Pair(denoms.BTC, denoms.NUSD))
@@ -53,6 +59,7 @@ func TestPriceProvider(t *testing.T) {
 			zerolog.New(io.Discard),
 		)
 		defer pp.Close()
+		// Wait for HTTP call + tick, but much shorter now
 		<-time.After(sources.UpdateTick + 2*time.Second)
 
 		price := pp.GetPrice(asset.NewPair("ustnibi", denoms.NIBI))
