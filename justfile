@@ -1,7 +1,5 @@
 PACKAGE_NAME := "github.com/NibiruChain/pricefeeder"
 GOLANG_CROSS_VERSION := "v1.19.4"
-VERSION := `git describe --tags --abbrev=0`
-COMMIT := `git rev-parse HEAD`
 
 # Displays available recipes by running `just -l`.
 setup:
@@ -64,11 +62,17 @@ run-debug:
 
 # Build the application
 build:
-    CGO_ENABLED=0 go build -mod=readonly -ldflags="-s -w -X github.com/NibiruChain/pricefeeder/cmd.Version={{VERSION}} -X github.com/NibiruChain/pricefeeder/cmd.CommitHash={{COMMIT}}" .
+    #!/usr/bin/env bash
+    VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "dev")
+    COMMIT=$(git rev-parse HEAD)
+    CGO_ENABLED=0 go build -mod=readonly -ldflags="-s -w -X github.com/NibiruChain/pricefeeder/cmd.Version=${VERSION} -X github.com/NibiruChain/pricefeeder/cmd.CommitHash=${COMMIT}" .
 
 # Install the application
 install:
-    CGO_ENABLED=0 go install -mod=readonly -ldflags="-s -w -X github.com/NibiruChain/pricefeeder/cmd.Version={{VERSION}} -X github.com/NibiruChain/pricefeeder/cmd.CommitHash={{COMMIT}}" .
+    #!/usr/bin/env bash
+    VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "dev")
+    COMMIT=$(git rev-parse HEAD)
+    CGO_ENABLED=0 go install -mod=readonly -ldflags="-s -w -X github.com/NibiruChain/pricefeeder/cmd.Version=${VERSION} -X github.com/NibiruChain/pricefeeder/cmd.CommitHash=${COMMIT}" .
 
 # Alias for both build and install
 build-install: build install
