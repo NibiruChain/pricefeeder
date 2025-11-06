@@ -29,9 +29,16 @@ func (t testAsyncSource) PriceUpdates() <-chan map[types.Symbol]types.RawPrice {
 
 func TestPriceProvider(t *testing.T) {
 	// Speed up tests by using a much shorter tick duration
+	// Lock for the entire test to serialize tests that modify UpdateTick
+	sources.UpdateTickTestLock.Lock()
+	defer sources.UpdateTickTestLock.Unlock()
 	originalUpdateTick := sources.UpdateTick
 	sources.UpdateTick = 10 * time.Millisecond
-	t.Cleanup(func() { sources.UpdateTick = originalUpdateTick })
+	t.Cleanup(func() {
+		sources.UpdateTickTestLock.Lock()
+		defer sources.UpdateTickTestLock.Unlock()
+		sources.UpdateTick = originalUpdateTick
+	})
 
 	t.Run("bitfinex success", func(t *testing.T) {
 		pp := NewPriceProvider(

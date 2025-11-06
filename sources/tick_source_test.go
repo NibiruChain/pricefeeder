@@ -24,9 +24,16 @@ func (m mockWriter) Write(p []byte) (n int, err error) { return m.w(p) }
 
 func TestTickSource(t *testing.T) {
 	// Speed up tests by using a much shorter tick duration
+	// Lock for the entire test to serialize tests that modify UpdateTick
+	UpdateTickTestLock.Lock()
+	defer UpdateTickTestLock.Unlock()
 	originalUpdateTick := UpdateTick
 	UpdateTick = 10 * time.Millisecond
-	t.Cleanup(func() { UpdateTick = originalUpdateTick })
+	t.Cleanup(func() {
+		UpdateTickTestLock.Lock()
+		defer UpdateTickTestLock.Unlock()
+		UpdateTick = originalUpdateTick
+	})
 
 	t.Run("success", func(t *testing.T) {
 		expectedSymbols := set.New[types.Symbol]("tBTCUSDT")
