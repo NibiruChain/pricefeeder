@@ -24,7 +24,7 @@ test *ARGS:
   echo "Note that you can pass args to augment the test command."
   echo "For example: just test ./feeder/... -run TestFeeder"
   echo "  becomes -> go test ./feeder/... -run TestFeeder 2>&1 | tee out.txt"
-  echo -e "\nThis takes a few minutes to run. The '.' getting printed signifies 2 seconds have passed."
+  echo -e "\nThis takes a ~4 minutes to run. The '.' getting printed signifies 2 seconds have passed."
 
   args="{{ARGS}}"
   args="${args:-./...}"
@@ -77,6 +77,18 @@ install:
 # Alias for both build and install
 build-install: build install
 
-# Runs golang formatter (gofumpt)
+# Run golang formatter (gofumpt)
 fmt:
   gofumpt -w .
+
+# Run `golangci-lint` with docker
+lint: 
+  #!/usr/bin/env bash
+  echo "Running golangci-lint with docker!"
+  image_version="v2.6.1"
+  docker run --rm \
+    -v "$(pwd)":/app \
+    -v ~/.cache/golangci-lint/$image_version:/root/.cache \
+    -w /app \
+    golangci/golangci-lint:$image_version \
+    golangci-lint run -v --fix 2>&1

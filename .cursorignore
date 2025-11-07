@@ -1,0 +1,35 @@
+# .cursorignore
+#
+# ## .cursorignore Syntax Exmaple
+# It's generally close to .gitignore syntax with. Examples:
+# config.json     # Specific file
+# dist/           # Directory
+# *.log           # File extension
+# **/logs         # Nested directories
+# !app/           # Exclude from ignore (negate)
+#
+# -----------------------------------------------------------------
+# Files in the .gitignore are ignored by default.
+# To intentionally NOT ignore patterns from .gitignore, uncomment the following:
+# !.gitignore
+
+# Additional patterns specific to Cursor
+.env*
+**/credentials/*
+**/secrets/*
+private/
+confidential/
+
+# Large binary files and datasets
+*.bin
+*.dat
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+*~
+
+# This is git ignored, so it needs to be explicitly negated for your agent to see it.
+!out.txt 
