@@ -33,6 +33,10 @@ GRPC_ENDPOINT="localhost:9090"
 WEBSOCKET_ENDPOINT="ws://localhost:26657/websocket"
 FEEDER_MNEMONIC="guard cream sadness conduct invite crumble clock pudding hole grit liar hotel maid produce squeeze return argue turtle know drive eight casino maze host"
 EXCHANGE_SYMBOLS_MAP='{"bitfinex": {"ubtc:unusd": "tBTCUSD", "ueth:unusd": "tETHUSD", "uusd:unusd": "tUSTUSD"}}'
+
+# Gas and fee settings
+FEE_AMOUNT_UNIBI="125"
+GAS_LIMIT="7000"
 ```
 
 This would allow you to run `pricefeeder` using a local instance of the network. To set up a local network, you can run:
