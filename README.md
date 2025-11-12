@@ -35,7 +35,7 @@ FEEDER_MNEMONIC="guard cream sadness conduct invite crumble clock pudding hole g
 EXCHANGE_SYMBOLS_MAP='{"bitfinex": {"ubtc:unusd": "tBTCUSD", "ueth:unusd": "tETHUSD", "uusd:unusd": "tUSTUSD"}}'
 
 # Gas and fee settings
-FEE_AMOUNT_UNIBI="125"
+FEE_AMOUNT_UNIBI="175"
 GAS_LIMIT="7000"
 ```
 
