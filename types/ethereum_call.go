@@ -45,6 +45,16 @@ var DefaultNetworkConfigs = map[string]NetworkConfig{
 		EnvEndpoint:        "B2_RPC_ENDPOINT",
 		EnvPublicEndpoints: "B2_RPC_PUBLIC_ENDPOINTS",
 	},
+	"base": {
+		Name: "base",
+		DefaultEndpoints: []string{
+			"https://mainnet.base.org",
+			"https://base-rpc.publicnode.com",
+			"https://1rpc.io/base",
+		},
+		EnvEndpoint:        "BASE_RPC_ENDPOINT",
+		EnvPublicEndpoints: "BASE_RPC_PUBLIC_ENDPOINTS",
+	},
 }
 
 // Global variables to track the last working RPC endpoint per network
@@ -203,4 +213,8 @@ func ConnectToEthereum(timeout time.Duration, logger zerolog.Logger) (*ethclient
 
 func ConnectToB2(timeout time.Duration, logger zerolog.Logger) (*ethclient.Client, error) {
 	return ConnectToNetwork("b2", timeout, logger)
+}
+
+func ConnectToBase(timeout time.Duration, logger zerolog.Logger) (*ethclient.Client, error) {
+	return ConnectToNetwork("base", timeout, logger)
 }

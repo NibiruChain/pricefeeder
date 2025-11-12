@@ -285,6 +285,46 @@ func (a AggregatePriceProvider) GetPrice(pair asset.Pair) types.Price {
 			Valid:      false,
 		}
 
+	case "yneth:usd":
+		priceYnethxEth := a.GetPrice("ynethx:eth")
+		if !priceYnethxEth.Valid || priceYnethxEth.Price <= 0 {
+			a.logger.Warn().Str("pair", pairStr).Msg("no valid ynethx:eth price")
+			aggregatePriceProvider.WithLabelValues(pairStr, "missing", "false").Inc()
+			return types.Price{
+				SourceName: "missing",
+				Pair:       pair,
+				Price:      types.PriceAbstain,
+				Valid:      false,
+			}
+		}
+
+		ethPriceSources := []asset.Pair{"eth:usd", "ueth:uusd"}
+		var priceEthUsd types.Price
+		for _, ethPair := range ethPriceSources {
+			priceEthUsd = a.GetPrice(ethPair)
+			if priceEthUsd.Valid && priceEthUsd.Price > 0 {
+				break
+			}
+		}
+
+		if !priceEthUsd.Valid || priceEthUsd.Price <= 0 {
+			a.logger.Warn().Str("pair", pairStr).Msg("no valid eth:usd price")
+			aggregatePriceProvider.WithLabelValues(pairStr, "missing", "false").Inc()
+			return types.Price{
+				SourceName: "missing",
+				Pair:       pair,
+				Price:      types.PriceAbstain,
+				Valid:      false,
+			}
+		}
+
+		return types.Price{
+			Pair:       pair,
+			Price:      priceYnethxEth.Price * priceEthUsd.Price,
+			SourceName: priceYnethxEth.SourceName,
+			Valid:      true,
+		}
+
 	default:
 		// for all other price pairs, iterate randomly, if we find a valid price, we return it
 		// otherwise we go onto the next PriceProvider to ask for prices.

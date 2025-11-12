@@ -80,11 +80,17 @@ var defaultExchangeSymbolsMap = map[string]map[asset.Pair]types.Symbol{
 	},
 
 	sources.SourceNameChainLink: {
-		"b2btc:btc": "uBTC/BTC",
+		"b2btc:btc":  "uBTC/BTC",
+		"ynethx:eth": "ynETHx/ETH",
 	},
 
 	sources.SourceNameAvalon: {
 		"susda:usda": "susda:usda",
+	},
+
+	sources.SourceNamePyth: {
+		"ynethx:eth": "741f2ecf4436868e4642db088fa33f9858954b992285129c9b03917dcb067ecc",
+		"eth:usd":    "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
 	},
 }
 

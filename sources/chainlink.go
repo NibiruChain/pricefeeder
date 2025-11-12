@@ -26,7 +26,8 @@ const (
 type ChainType string
 
 const (
-	ChainB2 ChainType = "b2"
+	ChainB2   ChainType = "b2"
+	ChainBase ChainType = "base"
 )
 
 // ChainlinkConfig represents configuration for a specific Chainlink oracle
@@ -45,11 +46,18 @@ var chainlinkConfigMap = map[types.Symbol]ChainlinkConfig{
 		Description:     "uBTC/BTC Exchange Rate",
 		MaxDataAge:      0, // No age limit for this example
 	},
+	"ynETHx/ETH": {
+		Chain:           ChainBase,
+		ContractAddress: common.HexToAddress("0xb4482096e3cdE116C15fC0D700a73a58FEdeB8c0"),
+		Description:     "ynETH / ETH Exchange Rate",
+		MaxDataAge:      0,
+	},
 }
 
 // chainConnectors maps chain types to their connection functions
 var chainConnectors = map[ChainType]func(time.Duration, zerolog.Logger) (*ethclient.Client, error){
-	ChainB2: types.ConnectToB2,
+	ChainB2:   types.ConnectToB2,
+	ChainBase: types.ConnectToBase,
 }
 
 // ChainlinkPriceUpdate retrieves exchange rates from various Chainlink oracles across different chains

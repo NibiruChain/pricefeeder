@@ -189,4 +189,14 @@ var allSources = []NamedSource{
 			return NewTickSource(symbols, ChainlinkPriceUpdate, logger)
 		},
 	},
+	{
+		Name: SourceNamePyth,
+		F: func(
+			symbols set.Set[types.Symbol],
+			cfg json.RawMessage,
+			logger zerolog.Logger,
+		) types.Source {
+			return NewTickSource(symbols, PythPriceUpdate(cfg), logger)
+		},
+	},
 }

@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- feat: add Chainlink and Pyth ynETHx:ETH feeds plus aggregate ynETH:USD pricing
 - [#67](https://github.com/NibiruChain/pricefeeder/pull/67) - feat: update deps and code for Nibiru v2 (v2.6.0)
 - [#63](https://github.com/NibiruChain/pricefeeder/pull/63) - chore: add changelog
 - [#64](https://github.com/NibiruChain/pricefeeder/pull/64) - feat: Uniswap V3 data source for USDa from Avalon.
