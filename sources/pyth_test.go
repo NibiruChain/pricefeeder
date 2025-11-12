@@ -51,7 +51,8 @@ func TestPythPriceUpdate_CustomEndpoint(t *testing.T) {
 
 func TestPythPriceUpdate_EmptyParsedReturnsError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`{"parsed":[]}`))
+		_, writeErr := w.Write([]byte(`{"parsed":[]}`))
+		require.NoError(t, writeErr)
 	}))
 	defer server.Close()
 
