@@ -202,7 +202,7 @@ func sendTx(
 	}
 
 	txFeeStr := os.Getenv("FEE_AMOUNT_UNIBI")
-	feeAmount := int64(125)
+	feeAmount := int64(175)
 	if txFeeStr != "" {
 		if v, err := strconv.ParseInt(txFeeStr, 10, 64); err == nil {
 			feeAmount = v
