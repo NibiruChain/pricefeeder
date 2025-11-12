@@ -18,15 +18,17 @@ func TestChainlinkPriceUpdate(t *testing.T) {
 
 	symbols := set.New[types.Symbol]()
 	symbols.Add("uBTC/BTC")
+	symbols.Add("ynETHx/ETH")
 	symbols.Add("foo:bar")
 
 	prices, err := ChainlinkPriceUpdate(symbols, logger)
 
 	require.NoError(t, err)
-	require.Len(t, prices, 1)
+	require.Len(t, prices, 2)
 
 	price := prices["uBTC/BTC"]
 	assert.Greater(t, price, 0.0)
+	assert.Greater(t, prices["ynETHx/ETH"], 0.0)
 
 	_, unknownExists := prices["foo/bar"]
 	assert.False(t, unknownExists)

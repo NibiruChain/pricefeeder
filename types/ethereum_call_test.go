@@ -42,6 +42,21 @@ func TestConnectToEthereum(t *testing.T) {
 	assert.Greater(t, blockNumber, uint64(0))
 }
 
+func TestConnectToBase(t *testing.T) {
+	logger := zerolog.New(zerolog.NewTestWriter(t))
+	timeout := 10 * time.Second
+
+	client, err := ConnectToBase(timeout, logger)
+
+	require.NoError(t, err)
+	require.NotNil(t, client)
+	defer client.Close()
+
+	blockNumber, err := client.BlockNumber(context.Background())
+	require.NoError(t, err)
+	assert.Greater(t, blockNumber, uint64(0))
+}
+
 func TestGetRPCEndpoints(t *testing.T) {
 	endpoints, err := GetRPCEndpoints("b2")
 

@@ -208,6 +208,41 @@ B2_RPC_ENDPOINT="https://mainnet.b2-rpc.com"
 
 # Optional, used if custom exclusive B2_RPC_ENDPOINT not set, defaults to public endpoints (see in the code)
 B2_RPC_PUBLIC_ENDPOINTS="https://rpc.bsquared.network,https://mainnet.b2-rpc.com"
+
+# Optional, override the Base mainnet RPC used for Chainlink feeds deployed on Base
+BASE_RPC_ENDPOINT="https://mainnet.base.org"
+
+# Optional, comma separated list of fallback Base RPC endpoints
+BASE_RPC_PUBLIC_ENDPOINTS="https://mainnet.base.org,https://base-rpc.publicnode.com"
+```
+
+### Pyth Network API
+
+The Pyth data source consumes prices from the public Hermes REST API. By default
+the feeder queries `https://hermes.pyth.network/v2/updates/price/latest` and
+aggregates the parsed price objects for the configured feed IDs.
+
+You can override the endpoint, request timeout, or accepted staleness via the
+`DATASOURCE_CONFIG_MAP` env var, for example:
+
+```ini
+DATASOURCE_CONFIG_MAP='{
+  "pyth": {
+    "endpoint": "https://hermes.pyth.network",
+    "timeout_seconds": 10,
+    "max_price_age_seconds": 120
+  }
+}'
+```
+
+Two feeds are enabled by default:
+
+- `ynethx:eth` – mapped to feed ID `0x741f2ecf4436868e4642db088fa33f9858954b992285129c9b03917dcb067ecc`
+- `eth:usd` – mapped to feed ID `0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace`
+
+These prices are also reused to build the aggregate `yneth:usd` pair inside the
+`AggregatePriceProvider` by multiplying `ynethx:eth` with the best available
+`eth:usd` (or legacy `ueth:uusd`) quote.
 ```
 
 ## Glossary

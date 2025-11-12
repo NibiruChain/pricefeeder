@@ -31,7 +31,6 @@ Types of changes (Stanzas):
 Ref: https://keepachangelog.com/en/1.0.0/
 -->
 
-
 # Changelog
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -39,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- [#92](https://github.com/NibiruChain/pricefeeder/pull/92) - feat: add Chainlink and Pyth ynETHx:ETH feeds plus aggregate ynETH:USD pricing
 - [#67](https://github.com/NibiruChain/pricefeeder/pull/67) - feat: update deps and code for Nibiru v2 (v2.6.0)
 - [#63](https://github.com/NibiruChain/pricefeeder/pull/63) - chore: add changelog
 - [#64](https://github.com/NibiruChain/pricefeeder/pull/64) - feat: Uniswap V3 data source for USDa from Avalon.
@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [#46](https://github.com/NibiruChain/pricefeeder/pull/46) - refactor: dynamic version and refactor builds
 - [#47](https://github.com/NibiruChain/pricefeeder/pull/47) - Suggestion to allow better precision for exchange rates
-- [#55](https://github.com/NibiruChain/pricefeeder/pull/55) - fix(priceprovider-bybit): add special exception for blocked regions in bybit test 
+- [#55](https://github.com/NibiruChain/pricefeeder/pull/55) - fix(priceprovider-bybit): add special exception for blocked regions in bybit test
 - f2de02b chore(github): Add project automation for https://tinyurl.com/25uty9w5
 - [#59](https://github.com/NibiruChain/pricefeeder/pull/59) - fix: reset httpmock before register responder
 - [#60](https://github.com/NibiruChain/pricefeeder/pull/60) - chore: lint workflow
@@ -64,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0.3
 
-- [#45](https://github.com/NibiruChain/pricefeeder/pull/45) - feat(observability): add prometheus metrics and detailed logging 
+- [#45](https://github.com/NibiruChain/pricefeeder/pull/45) - feat(observability): add prometheus metrics and detailed logging
 - [#40](https://github.com/NibiruChain/pricefeeder/pull/40) - avoid parsing if EXCHANGE_SYMBOLS_MAP is not define.
 
 ## v1.0.2
