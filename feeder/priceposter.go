@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"math/big"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -200,8 +201,23 @@ func sendTx(
 		panic(err)
 	}
 
-	txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewInt64Coin("unibi", 125)))
-	txBuilder.SetGasLimit(5_000)
+	txFeeStr := os.Getenv("FEE_AMOUNT_UNIBI")
+	feeAmount := int64(125)
+	if txFeeStr != "" {
+		if v, err := strconv.ParseInt(txFeeStr, 10, 64); err == nil {
+			feeAmount = v
+		}
+	}
+	txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewInt64Coin("unibi", feeAmount)))
+
+	gasStr := os.Getenv("GAS_LIMIT")
+	gasLimit := uint64(7000)
+	if gasStr != "" {
+		if v, err := strconv.ParseUint(gasStr, 10, 64); err == nil {
+			gasLimit = v
+		}
+	}
+	txBuilder.SetGasLimit(gasLimit)
 
 	// get acc info, can fail
 	accNum, sequence, err := getAccount(ctx, authClient, ir, feeder)
